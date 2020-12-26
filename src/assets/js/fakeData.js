@@ -5,30 +5,44 @@ export const architectures = [
         components: [
             {
                 id: 1,
-                name: "Blockchain"
+                name: "Blockchain",
+                properties: {
+                    name: "Ethereum",
+                    consensusAlgorithm: "PoA"
+                }
             },
             {
                 id: 2, 
-                name: "API"
+                name: "API",
+                properties: {
+                    language: "Node.js"
+                }
             }
         ],
         desc: "This is the architecture for paper 1",
-        doneBy: "Nicolas Six"
+        doneBy: 1
     },
     {
         id: 2,
         paper: "Paper 2",
         components: [
             {
-                id: 1,
-                name: "Blockchain"
+                id: 3,
+                name: "Blockchain",
+                properties: {
+                    name: "Ethereum",
+                    consensusAlgorithm: "PoS"
+                }
             },
             {
-                id: 3, 
-                name: "Front"
+                id: 4, 
+                name: "Front",
+                properties: {
+                    "language": "React"
+                }
             }
         ],
         desc: "This is the architecture for paper 2",
-        doneBy: "Nicolas Herbaut"
+        doneBy: 2
     }
 ]

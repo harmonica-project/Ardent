@@ -8,8 +8,9 @@ import ArchitectureList from './components/architecture/ArchitectureList';
 import ErrorPage from './components/error/ErrorPage';
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import Architecture from './components/architecture/Architecture';
+import ArchitecturalComponent from './components/component/ArchitecturalComponent';
 
-const UserContext = createContext(0);
+export const UserContext = createContext(0);
 
 class App extends Component {
   constructor(props) {
@@ -36,11 +37,20 @@ class App extends Component {
                 <Route exact path={'/architecture/new'}>
                   <Architecture opType={"new"}/>
                 </Route>
+                <Route exact path={'/component/new'}>
+                  <ArchitecturalComponent opType={"new"}/>
+                </Route>
                 <Route path={'/architecture/:id/edit'}>
                   <Architecture opType={"edit"}/>
                 </Route>
                 <Route path={'/architecture/:id'}>
                   <Architecture opType={"view"}/>
+                </Route>
+                <Route path={'/component/:id/edit'}>
+                  <ArchitecturalComponent opType={"edit"}/>
+                </Route>
+                <Route path={'/component/:id'}>
+                  <ArchitecturalComponent opType={"view"}/>
                 </Route>
                 <Route exact path='/' component={Home}/>
                 <Route 

@@ -1,9 +1,10 @@
 import { useParams, useHistory } from 'react-router-dom';
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Button, Container, Jumbotron } from 'react-bootstrap';
 import { Form, Table } from 'react-bootstrap';
 import { architectures } from '../../assets/js/fakeData';
 import { FaPen, FaTimes } from 'react-icons/fa';
+import { UserContext } from '../../App';
 
 const Architecture = ({opType}) => {
     const getLabel = () => {
@@ -59,6 +60,44 @@ const Architecture = ({opType}) => {
         }
     }
 
+    const formUpdateHandler = e => {
+        switch(e.target.id) {
+            case 'formArchitecturePaper':
+                setArchitecture({
+                    ...architecture,
+                    paper: e.target.value
+                });
+                break;
+
+            case 'formArchitectureDesc':
+                setArchitecture({
+                    ...architecture,
+                    desc: e.target.value
+                });
+                break;
+
+            case 'formArchitectureDoneBy':
+                console.log(e.target)
+                setArchitecture({
+                    ...architecture,
+                    doneBy: e.target.value
+                })
+        }
+    }
+
+    const getUser = userId => {
+        switch(userId) {
+            case 1:
+                return "Nicolas Six";
+            case 2: 
+                return "Nicolas Herbaut";
+            case 3: 
+                return "Claudia Negri Ribalta";
+            default:
+                return "Anonymous";
+        }
+    }
+
     const getForm = () => {
         var a = false;
         if(pageOp === 'view' || pageOp === 'edit') {
@@ -68,9 +107,9 @@ const Architecture = ({opType}) => {
         }
 
         return (
-            <Form>
+            <Form onChange={formUpdateHandler.bind(this)}>
                 <h1>{pageOp === 'new' ? 'Create an architecture' : 'Architecture #' + architecture.id}</h1>
-                {pageOp === 'new' ? '' : <p className="lead">By {architecture.doneBy}</p>}
+                {pageOp === 'new' ? '' : <p className="lead">By {getUser(architecture.doneBy)}</p>}
                 <hr/>
                 <Form.Group controlId="formArchitecturePaper">
                     <Form.Label>Associated paper</Form.Label>
@@ -79,6 +118,15 @@ const Architecture = ({opType}) => {
                 <Form.Group controlId="formArchitectureDesc">
                     <Form.Label>Architecture description</Form.Label>
                     <Form.Control as="textarea" rows="5" placeholder="Unknown" defaultValue={pageOp === 'new' ? '' : architecture.paper} disabled={pageOp === 'view' ? true : false}/>
+                </Form.Group>
+                <Form.Label>Writer</Form.Label>
+                <Form.Group controlId="formArchitectureDoneBy">
+                    <Form.Control as="select" disabled={pageOp === 'view' ? true : false} defaultValue={pageOp === 'new' ? user : architecture.doneBy}>
+                        <option value={0}>Anonymous</option>
+                        <option value={1}>Nicolas Six</option>
+                        <option value={2}>Nicolas Herbaut</option>
+                        <option value={3}>Claudia Negri Ribalta</option>
+                    </Form.Control>
                 </Form.Group>
                 <p>Components</p>
                 <Table striped bordered hover size="sm">
@@ -117,9 +165,10 @@ const Architecture = ({opType}) => {
     let { id } = useParams();
     const initialLabel = getLabel(opType)
     const history = useHistory();
+    const user = useContext(UserContext);
     const [pageOp, setPageOp] = useState(opType);
     const [formBtnLabel, setFormBtnLabel] = useState(initialLabel)
-    const [architecture, getArchitecture] = useState(initArchitecture(id))
+    const [architecture, setArchitecture] = useState(initArchitecture(id))
 
     return <Container>{getForm()}</Container>
 }
