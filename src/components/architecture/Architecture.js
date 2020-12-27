@@ -1,10 +1,10 @@
 import { useParams, useHistory } from 'react-router-dom';
 import React, { useState, useContext } from 'react';
-import { Button, Container, Jumbotron } from 'react-bootstrap';
-import { Form, Table } from 'react-bootstrap';
+import { Button, Container, Jumbotron, Form, Table } from 'react-bootstrap';
 import { architectures } from '../../assets/js/fakeData';
 import { FaPen, FaTimes } from 'react-icons/fa';
 import { UserContext } from '../../App';
+import util from '../../assets/js/util';
 
 const Architecture = ({opType}) => {
     const getLabel = () => {
@@ -48,10 +48,10 @@ const Architecture = ({opType}) => {
             return arch.components.map((c, i) => {
                 return(
                     <tr key={"comp_" + i}>
-                        <td style={{cursor:"pointer"}} onClick={() => history.push("/component/" + c.id)}>{c.id}</td>
-                        <td style={{cursor:"pointer"}} onClick={() => history.push("/component/" + c.id)}>{c.name}</td>
+                        <td style={{cursor:"pointer"}} onClick={() => history.push("/architecture/" + aid + "/component/" + c.id)}>{c.id}</td>
+                        <td style={{cursor:"pointer"}} onClick={() => history.push("/architecture/" + aid + "/component/" + c.id)}>{c.name}</td>
                         <td hidden={pageOp === 'view' ? true : false}>
-                            <Button variant="secondary" size="sm" onClick={() => history.push("/component/" + c.id + "/edit")}><FaPen/></Button>&nbsp;
+                            <Button variant="secondary" size="sm" onClick={() => history.push("/architecture/" + aid + "/component/" + c.id + "/edit")}><FaPen/></Button>&nbsp;
                             <Button variant="danger" size="sm"><FaTimes/></Button>
                         </td>
                     </tr>
@@ -101,7 +101,7 @@ const Architecture = ({opType}) => {
     const getForm = () => {
         var a = false;
         if(pageOp === 'view' || pageOp === 'edit') {
-            if (architecture === {}) {
+            if (util.JSONEmpty(architecture)) {
                 return architectureNotFoundContainer()                   
             }
         }
@@ -143,7 +143,7 @@ const Architecture = ({opType}) => {
                 </Table>
                 <Button variant="secondary" onClick={() => history.push("/architectures/")}>Return</Button>&nbsp;
                 <Button onClick={formBtnHandler.bind(this, architecture.id)}>{formBtnLabel}</Button>&nbsp;
-                <Button variant="success" onClick={formBtnHandler.bind(this, architecture.id)} hidden={pageOp === 'view' ? true : false}>Add component</Button>
+                <Button variant="success" onClick={() => history.push("/architecture/" + aid + "/component/new")} hidden={pageOp === 'view' ? true : false}>Add component</Button>
             </Form>
         )
     }
@@ -162,13 +162,13 @@ const Architecture = ({opType}) => {
         )
     }
 
-    let { id } = useParams();
+    let { aid } = useParams();
     const initialLabel = getLabel(opType)
     const history = useHistory();
     const user = useContext(UserContext);
     const [pageOp, setPageOp] = useState(opType);
     const [formBtnLabel, setFormBtnLabel] = useState(initialLabel)
-    const [architecture, setArchitecture] = useState(initArchitecture(id))
+    const [architecture, setArchitecture] = useState(initArchitecture(aid))
 
     return <Container>{getForm()}</Container>
 }

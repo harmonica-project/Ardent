@@ -6,17 +6,29 @@ export const architectures = [
             {
                 id: 1,
                 name: "Blockchain",
-                properties: {
-                    name: "Ethereum",
-                    consensusAlgorithm: "PoA"
-                }
+                properties: [
+                    {
+                        id: 1,
+                        key: "name", 
+                        value: "Ethereum"
+                    },
+                    {
+                        id: 2,
+                        key: "consensusAlgorithm", 
+                        value: "PoA"
+                    }
+                ]
             },
             {
                 id: 2, 
                 name: "API",
-                properties: {
-                    language: "Node.js"
-                }
+                properties: [
+                    {
+                        id: 3,
+                        key: "language", 
+                        value: "Node.JS"
+                    }
+                ]
             }
         ],
         desc: "This is the architecture for paper 1",
@@ -29,17 +41,29 @@ export const architectures = [
             {
                 id: 3,
                 name: "Blockchain",
-                properties: {
-                    name: "Ethereum",
-                    consensusAlgorithm: "PoS"
-                }
+                properties: [
+                    {
+                        id: 4,
+                        key: "name", 
+                        value: "Ethereum"
+                    },
+                    {
+                        id: 5,
+                        key: "consensusAlgorithm", 
+                        value: "PoS"
+                    }
+                ]
             },
             {
                 id: 4, 
                 name: "Front",
-                properties: {
-                    "language": "React"
-                }
+                properties: [
+                    {
+                        id: 6,
+                        key: "language", 
+                        value: "React"
+                    }
+                ]
             }
         ],
         desc: "This is the architecture for paper 2",

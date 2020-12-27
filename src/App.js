@@ -33,25 +33,25 @@ class App extends Component {
           <NavbarComponent changeUser={this.changeUser}/>
           <Router>
               <Switch>
-                <Route exact path='/architectures' component={ArchitectureList}/>
+                <Route path={'/architecture/:aid/component/new'}>
+                  <ArchitecturalComponent opType={"new"}/>
+                </Route>
+                <Route path={'/architecture/:aid/component/:cid/edit'}>
+                  <ArchitecturalComponent opType={"edit"}/>
+                </Route>
+                <Route path={'/architecture/:aid/component/:cid'}>
+                  <ArchitecturalComponent opType={"view"}/>
+                </Route>
+                <Route path={'/architecture/:aid/edit'}>
+                  <Architecture opType={"edit"}/>
+                </Route>
+                <Route path={'/architecture/:aid'}>
+                  <Architecture opType={"view"}/>
+                </Route>
                 <Route exact path={'/architecture/new'}>
                   <Architecture opType={"new"}/>
                 </Route>
-                <Route exact path={'/component/new'}>
-                  <ArchitecturalComponent opType={"new"}/>
-                </Route>
-                <Route path={'/architecture/:id/edit'}>
-                  <Architecture opType={"edit"}/>
-                </Route>
-                <Route path={'/architecture/:id'}>
-                  <Architecture opType={"view"}/>
-                </Route>
-                <Route path={'/component/:id/edit'}>
-                  <ArchitecturalComponent opType={"edit"}/>
-                </Route>
-                <Route path={'/component/:id'}>
-                  <ArchitecturalComponent opType={"view"}/>
-                </Route>
+                <Route exact path='/architectures' component={ArchitectureList}/>
                 <Route exact path='/' component={Home}/>
                 <Route 
                   default 
