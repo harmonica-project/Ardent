@@ -1,0 +1,15 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "SLR extraction tool API",
+  "main": "api.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node api.js"
+  },
+  "author": "Nicolas Six",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
