@@ -1,9 +1,9 @@
 import { Form, Jumbotron, Button, Container, Table } from 'react-bootstrap';
-import { Component, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaPen, FaTimes } from 'react-icons/fa';
-import { architectures } from '../../assets/js/fakeData';
 import { useParams, useHistory } from 'react-router-dom';
 import util from '../../assets/js/util';
+import dbApi from '../../assets/js/dbApi';
 
 const ArchitecturalComponent = ({opType}) => {
     const formUpdateHandler = () => {
@@ -32,20 +32,7 @@ const ArchitecturalComponent = ({opType}) => {
                 return 'Edit';
         }
     }
-
-    // Temporary
-    const initArchitecturalComponent = compId => {
-        for(var i = 0; i < architectures.length; i++) {
-            for (var j = 0; j < architectures[i].components.length; j++) {
-                if(parseInt(architectures[i].components[j].id) === parseInt(compId)) {
-                    return architectures[i].components[j];
-                }
-            }
-        }
-        
-        return {}
-    }
-
+    
     const getForm = () => {
         if(pageOp === 'view' || pageOp === 'edit') {
             if (util.JSONEmpty(architecturalComponent)) {
@@ -120,7 +107,18 @@ const ArchitecturalComponent = ({opType}) => {
     const history = useHistory();
     const [pageOp, setPageOp] = useState(opType);
     const [formBtnLabel, setFormBtnLabel] = useState(initialLabel)
-    const [architecturalComponent, setArchitecturalComponent] = useState(initArchitecturalComponent(cid))
+    const [architecturalComponent, setArchitecturalComponent] = useState([])
+
+    useEffect(() => {
+        dbApi.getComponent(cid)
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    console.log(data.result)
+                    setArchitecturalComponent(data.result)
+                }
+            })
+    }, [])
 
     return <Container>{getForm()}</Container>
 }

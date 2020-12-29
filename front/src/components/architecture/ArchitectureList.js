@@ -1,8 +1,9 @@
 import { Button, Container, Table } from 'react-bootstrap';
 import { FaPen, FaTimes } from 'react-icons/fa';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useHistory } from "react-router-dom";
-import { architectures } from '../../assets/js/fakeData';
+import dbApi from '../../assets/js/dbApi';
+import util from '../../assets/js/util';
 
 const ArchitectureList = () => {
     const history = useHistory();
@@ -20,7 +21,16 @@ const ArchitectureList = () => {
         }
     }
 
-    const [architecturesList, setArchitecturesList] = useState(architectures);
+    const [architecturesList, setArchitecturesList] = useState([]);
+    useEffect(() => {
+        dbApi.getArchitectures()
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    setArchitecturesList(data.result);
+                }
+            })
+    }, [])
 
     return (
         <Container>
@@ -43,8 +53,8 @@ const ArchitectureList = () => {
                             <tr key={"arch_" + i} hidden={a.show === false ? true : false}>
                                 <td style={{cursor:"pointer"}} onClick={() => history.push("/architecture/" + a.id)}>{a.id}</td>
                                 <td style={{cursor:"pointer"}} onClick={() => history.push("/architecture/" + a.id)}>{a.paper}</td>
-                                <td style={{cursor:"pointer"}} onClick={() => history.push("/architecture/" + a.id)}>{a.desc}</td>
-                                <td style={{cursor:"pointer"}} onClick={() => history.push("/architecture/" + a.id)}>{a.doneBy}</td>
+                                <td style={{cursor:"pointer"}} onClick={() => history.push("/architecture/" + a.id)}>{a.description}</td>
+                                <td style={{cursor:"pointer"}} onClick={() => history.push("/architecture/" + a.id)}>{util.getUser(a.doneBy)}</td>
                                 <td>
                                     <Button size="sm" variant="secondary" onClick={() => history.push("/architecture/" + a.id + "/edit")}><FaPen/></Button>&nbsp;
                                     <Button size="sm" variant="danger"><FaTimes/></Button>
