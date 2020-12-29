@@ -64,7 +64,6 @@ const Architecture = ({opType}) => {
                 break;
 
             case 'formArchitectureDoneBy':
-                console.log(e.target)
                 setArchitecture({
                     ...architecture,
                     doneBy: e.target.value
@@ -145,13 +144,15 @@ const Architecture = ({opType}) => {
     const [architecture, setArchitecture] = useState([])
 
     useEffect(() => {
-        dbApi.getArchitecture(aid)
-            .then(response => response.json())
-            .then(data => {
-                if(data.success) {
-                    setArchitecture(data.result)
-                }
+        if(opType !== 'new') {
+                dbApi.getArchitecture(aid)
+                .then(response => response.json())
+                .then(data => {
+                    if(data.success) {
+                        setArchitecture(data.result)
+                    }
             })
+        }
     }, [])
 
     return <Container>{getForm()}</Container>

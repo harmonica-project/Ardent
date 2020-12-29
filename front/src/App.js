@@ -42,14 +42,14 @@ class App extends Component {
                 <Route path={'/architecture/:aid/component/:cid'}>
                   <ArchitecturalComponent opType={"view"}/>
                 </Route>
+                <Route exact path={'/architecture/new'}>
+                  <Architecture opType={"new"}/>
+                </Route>
                 <Route path={'/architecture/:aid/edit'}>
                   <Architecture opType={"edit"}/>
                 </Route>
                 <Route path={'/architecture/:aid'}>
                   <Architecture opType={"view"}/>
-                </Route>
-                <Route exact path={'/architecture/new'}>
-                  <Architecture opType={"new"}/>
                 </Route>
                 <Route exact path='/architectures' component={ArchitectureList}/>
                 <Route exact path='/' component={Home}/>

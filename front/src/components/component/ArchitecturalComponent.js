@@ -32,7 +32,7 @@ const ArchitecturalComponent = ({opType}) => {
                 return 'Edit';
         }
     }
-    
+
     const getForm = () => {
         if(pageOp === 'view' || pageOp === 'edit') {
             if (util.JSONEmpty(architecturalComponent)) {
@@ -114,7 +114,6 @@ const ArchitecturalComponent = ({opType}) => {
             .then(response => response.json())
             .then(data => {
                 if(data.success) {
-                    console.log(data.result)
                     setArchitecturalComponent(data.result)
                 }
             })
