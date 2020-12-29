@@ -27,6 +27,22 @@ module.exports = {
             return err;
         }
     },
+    getComponents: async () => {
+        try {
+            return await client.query("SELECT * FROM components");
+        }
+        catch(err) {
+            return err;
+        }
+    },
+    getComponentsNames: async () => {
+        try {
+            return await client.query("SELECT DISTINCT name FROM components");
+        }
+        catch(err) {
+            return err;
+        }
+    },
     getArchitecture: async architectureId => {
         try {
             const components = await client.query("SELECT * FROM components WHERE architecture_id = $1", [architectureId]);
@@ -66,4 +82,28 @@ module.exports = {
                 errorMsg: 'Failed connexion to DB: ' + err
             };
         }
-    }}
+    },
+    storeArchitecture: async architecture => {
+        try {
+            const foundArchitecture = await client.query("SELECT * FROM architectures WHERE id = $1 OR paper = $2", [architecture.id, architecture.paper]);
+            if(foundArchitecture["rows"].length === 0) {
+                const result = await client.query("INSERT INTO architectures VALUES ($1, $2, $3, $4)", [architecture.id, architecture.paper, architecture.description, architecture.doneBy])
+                return {success: true}
+            }
+            else {
+                console.log('Already exists')
+                return {
+                    success: false,
+                    errorMsg: 'Architecture already exists.'
+                };
+            }
+        }
+        catch(err) {
+            console.log('error: ' + err)
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    }
+}

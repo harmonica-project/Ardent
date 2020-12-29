@@ -1,8 +1,9 @@
 import { useParams, useHistory } from 'react-router-dom';
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, createRef } from 'react';
 import { Button, Container, Jumbotron, Form, Table } from 'react-bootstrap';
 import { FaPen, FaTimes } from 'react-icons/fa';
 import { UserContext } from '../../App';
+import { v4 } from 'uuid';
 import util from '../../assets/js/util';
 import dbApi from '../../assets/js/dbApi';
 
@@ -18,16 +19,37 @@ const Architecture = ({opType}) => {
     }
 
     const formBtnHandler = id => {
-        if (pageOp === 'edit') {
-            setPageOp('view');
-            setFormBtnLabel('Edit')
-            history.push('/architecture/' + id);
-        } 
-        else if (pageOp === 'view') {
-            setPageOp('edit');
-            setFormBtnLabel('Save')
-            history.push('/architecture/' + id + '/edit')
+        switch(pageOp) {
+            case 'edit':
+                setPageOp('view');
+                setFormBtnLabel('Edit')
+                history.push('/architecture/' + id);
+                break;
+            case 'view': 
+                setPageOp('edit');
+                setFormBtnLabel('Save')
+                history.push('/architecture/' + id + '/edit');
+                break;
+            case 'new':
+                saveNewArchitecture();
+                break;
+            default:
+                return;
         }
+    }
+
+    const saveNewArchitecture = () => {
+        const newArchitecture = {
+            id: v4(),
+            paper: refs.inputPaper.current.value,
+            description: refs.inputDesc.current.value,
+            doneBy: parseInt(refs.inputDoneBy.current.value)
+        }
+
+        console.log(dbApi.saveArchitecture(newArchitecture))
+        /*setPageOp('edit');
+        setFormBtnLabel('Save')
+        history.push('/architecture/' + id + '/edit');*/
     }
 
     const getComponentArray = (arch) => {
@@ -86,15 +108,15 @@ const Architecture = ({opType}) => {
                 <hr/>
                 <Form.Group controlId="formArchitecturePaper">
                     <Form.Label>Associated paper</Form.Label>
-                    <Form.Control type="text" placeholder="Unknown" defaultValue={pageOp === 'new' ? '' : architecture.paper} disabled={pageOp === 'view' ? true : false}/>
+                    <Form.Control ref={refs.inputPaper} type="text" placeholder="Unknown" defaultValue={pageOp === 'new' ? '' : architecture.paper} disabled={pageOp === 'view' ? true : false}/>
                 </Form.Group>
                 <Form.Group controlId="formArchitectureDesc">
                     <Form.Label>Architecture description</Form.Label>
-                    <Form.Control as="textarea" rows="5" placeholder="Unknown" defaultValue={pageOp === 'new' ? '' : architecture.description} disabled={pageOp === 'view' ? true : false}/>
+                    <Form.Control ref={refs.inputDesc} as="textarea" rows="5" placeholder="Unknown" defaultValue={pageOp === 'new' ? '' : architecture.description} disabled={pageOp === 'view' ? true : false}/>
                 </Form.Group>
                 <Form.Label>Writer</Form.Label>
                 <Form.Group controlId="formArchitectureDoneBy">
-                    <Form.Control as="select" disabled={pageOp === 'view' ? true : false} defaultValue={pageOp === 'new' ? user : architecture.doneBy}>
+                    <Form.Control ref={refs.inputDoneBy} as="select" disabled={pageOp === 'view' ? true : false} defaultValue={pageOp === 'new' ? user : architecture.doneBy}>
                         <option value={0}>Anonymous</option>
                         <option value={1}>Nicolas Six</option>
                         <option value={2}>Nicolas Herbaut</option>
@@ -107,7 +129,7 @@ const Architecture = ({opType}) => {
                         <tr>
                         <th>#</th>
                         <th>Name</th>
-                        <th hidden={pageOp === 'view' ? true : false}></th>
+                        <th hidden={pageOp === 'view'}></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -116,7 +138,7 @@ const Architecture = ({opType}) => {
                 </Table>
                 <Button variant="secondary" onClick={() => history.push("/architectures/")}>Return</Button>&nbsp;
                 <Button onClick={formBtnHandler.bind(this, architecture.id)}>{formBtnLabel}</Button>&nbsp;
-                <Button variant="success" onClick={() => history.push("/architecture/" + aid + "/component/new")} hidden={pageOp === 'view' ? true : false}>Add component</Button>
+                <Button variant="success" onClick={() => history.push("/architecture/" + aid + "/component/new")} hidden={pageOp !== 'edit'}>Add component</Button>
             </Form>
         )
     }
@@ -142,6 +164,11 @@ const Architecture = ({opType}) => {
     const [pageOp, setPageOp] = useState(opType);
     const [formBtnLabel, setFormBtnLabel] = useState(initialLabel)
     const [architecture, setArchitecture] = useState([])
+    const refs = {
+        inputDesc: createRef(),
+        inputPaper: createRef(),
+        inputDoneBy: createRef()
+    }
 
     useEffect(() => {
         if(opType !== 'new') {

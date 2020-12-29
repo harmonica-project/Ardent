@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const db = require('./db');
+const bodyParser = require('body-parser')
 
 const parseDBResults = res => {
     if(res["rows"]) {
@@ -17,6 +18,12 @@ const parseDBResults = res => {
     }
 }
 
+// configure the app to use bodyParser()
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
+app.use(bodyParser.json());
+
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -25,6 +32,29 @@ app.use(function(req, res, next) {
 
 app.get('/architectures', (req, res) => {
     db.getArchitectures().then((queryResult) => {
+        const parsedResult = parseDBResults(queryResult);
+        if(parsedResult.success) res.status(200).send(parsedResult);
+        else res.status(500).send(parsedResult);
+    })
+});
+
+app.post('/architecture', (req, res) => {
+    db.storeArchitecture(req.body).then((parsedResult) => {
+        if(parsedResult.success) res.status(200).send(parsedResult);
+        else res.status(500).send(parsedResult);
+    })
+});
+
+app.get('/components', (req, res) => {
+    db.getComponents().then((queryResult) => {
+        const parsedResult = parseDBResults(queryResult);
+        if(parsedResult.success) res.status(200).send(parsedResult);
+        else res.status(500).send(parsedResult);
+    })
+});
+
+app.get('/components_names', (req, res) => {
+    db.getComponentsNames().then((queryResult) => {
         const parsedResult = parseDBResults(queryResult);
         if(parsedResult.success) res.status(200).send(parsedResult);
         else res.status(500).send(parsedResult);
