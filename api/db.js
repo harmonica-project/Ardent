@@ -83,11 +83,26 @@ module.exports = {
             };
         }
     },
+    deleteArchitecture: async architectureId => {
+        try {
+            await client.query("DELETE FROM architectures WHERE id = $1", [architectureId]);
+            
+            return {
+                success: true
+            }
+        }
+        catch(err) {
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
     storeArchitecture: async architecture => {
         try {
             const foundArchitecture = await client.query("SELECT * FROM architectures WHERE id = $1 OR paper = $2", [architecture.id, architecture.paper]);
             if(foundArchitecture["rows"].length === 0) {
-                const result = await client.query("INSERT INTO architectures VALUES ($1, $2, $3, $4)", [architecture.id, architecture.paper, architecture.description, architecture.doneBy])
+                await client.query("INSERT INTO architectures VALUES ($1, $2, $3, $4)", [architecture.id, architecture.paper, architecture.description, architecture.doneBy])
                 return {success: true}
             }
             else {
@@ -97,6 +112,34 @@ module.exports = {
                     errorMsg: 'Architecture already exists.'
                 };
             }
+        }
+        catch(err) {
+            console.log('error: ' + err)
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
+    deleteComponent: async componentId => {
+        try {
+            await client.query("DELETE FROM components WHERE id = $1", [componentId]);
+            
+            return {
+                success: true
+            }
+        }
+        catch(err) {
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
+    storeComponent: async component => {
+        try {
+            await client.query("INSERT INTO components VALUES ($1, $2, $3, $4)", [component.id, component.name, component.architectureId, component.description])
+            return {success: true};
         }
         catch(err) {
             console.log('error: ' + err)

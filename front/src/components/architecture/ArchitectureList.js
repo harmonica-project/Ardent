@@ -32,6 +32,36 @@ const ArchitectureList = () => {
             })
     }, [])
 
+    const removeArchitecture = architectureId => {
+        var newArchitecturesList = [...architecturesList];
+        var index = -1;
+        
+        for(var i = 0; i < newArchitecturesList.length; i++) {
+            if(newArchitecturesList[i].id === architectureId)  {
+                index = i;
+                break;
+            }
+        }
+
+        if (index > -1) {
+            newArchitecturesList.splice(index, 1);
+        }
+
+        setArchitecturesList(newArchitecturesList);
+    }
+
+    const deleteArchitectureBtnHandler = architectureId => {
+        if(window.confirm("Deletion of architecture " + architectureId + " is definitive. Confirm?")) {
+            dbApi.deleteArchitecture(architectureId)
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    removeArchitecture(architectureId);
+                }
+            })
+        }
+    }
+
     return (
         <Container>
             <h1>Architectures</h1>
@@ -57,7 +87,7 @@ const ArchitectureList = () => {
                                 <td style={{cursor:"pointer"}} onClick={() => history.push("/architecture/" + a.id)}>{util.getUser(a.doneBy)}</td>
                                 <td>
                                     <Button size="sm" variant="secondary" onClick={() => history.push("/architecture/" + a.id + "/edit")}><FaPen/></Button>&nbsp;
-                                    <Button size="sm" variant="danger"><FaTimes/></Button>
+                                    <Button size="sm" variant="danger" onClick={deleteArchitectureBtnHandler.bind(this, a.id)}><FaTimes/></Button>
                                 </td>
                             </tr>
                         )

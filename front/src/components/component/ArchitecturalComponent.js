@@ -1,7 +1,8 @@
 import { Form, Jumbotron, Button, Container, Table, InputGroup } from 'react-bootstrap';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createRef } from 'react';
 import { FaPen, FaTimes } from 'react-icons/fa';
 import { useParams, useHistory } from 'react-router-dom';
+import { v4 } from 'uuid';
 import util from '../../assets/js/util';
 import dbApi from '../../assets/js/dbApi';
 
@@ -11,16 +12,43 @@ const ArchitecturalComponent = ({opType}) => {
     }
     
     const formBtnHandler = (aid, cid) => {
-        if (pageOp === 'edit') {
-            setPageOp('view');
-            setFormBtnLabel('Edit')
-            history.push('/architecture/' + aid + "/component/" + cid);
-        } 
-        else if (pageOp === 'view') {
-            setPageOp('edit');
-            setFormBtnLabel('Save')
-            history.push('/architecture/' + aid + "/component/" + cid + '/edit')
+        switch(pageOp) {
+            case 'edit':
+                setPageOp('view');
+                setFormBtnLabel('Edit')
+                history.push('/architecture/' + aid + "/component/" + cid);
+                break;
+            case 'view': 
+                setPageOp('edit');
+                setFormBtnLabel('Save')
+                history.push('/architecture/' + aid + "/component/" + cid + '/edit')
+                break;
+            case 'new':
+                saveNewComponent(aid);
+                break;
+            default:
+                return;
         }
+    }
+
+    const saveNewComponent = aid => {
+        const generatedId = v4();
+        const newComponent = {
+            id: generatedId,
+            name: (componentNameAsInput ? refs.inputTextName.current.value : refs.inputSelectName.current.value),
+            architectureId: aid,
+            description: refs.inputDesc.current.value
+        }
+
+        dbApi.saveComponent(newComponent)
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    history.push('/architecture/' + aid + '/component/' + generatedId + "/edit");
+                    setArchitecturalComponent(newComponent);
+                    setPageOp('edit');
+                }
+            })
     }
 
     const getLabel = () => {
@@ -53,15 +81,19 @@ const ArchitecturalComponent = ({opType}) => {
                 <p>Component name</p>
                 <Form inline>
                     <Button onClick={handleComponentNameAsInput} style={{marginRight: "5px"}} hidden={pageOp === 'view'}>{componentNameAsInput ? "Click to use existing component name" : "Click to add a new component name"}</Button>
-                    <Form.Control type="text" style={{flexGrow: '1'}} placeholder="Unknown" hidden={!componentNameAsInput} disabled={pageOp === 'view'}></Form.Control>
-                    <Form.Control as="select" style={{flexGrow: '1'}} hidden={componentNameAsInput} disabled={pageOp === 'view'}>
+                    <Form.Control ref={refs.inputTextName} type="text" style={{flexGrow: '1'}} placeholder="Unknown" hidden={!componentNameAsInput} disabled={pageOp === 'view'}></Form.Control>
+                    <Form.Control ref={refs.inputSelectName}  as="select" style={{flexGrow: '1'}} hidden={componentNameAsInput} disabled={pageOp === 'view'}>
                         {
                             componentsNames.map(nameJson => {
-                                return <option selected={nameJson.name === architecturalComponent["name"]} value={nameJson.name}>{nameJson.name}</option>
+                                return <option key={"name_" + nameJson.name} selected={nameJson.name === architecturalComponent["name"]} value={nameJson.name}>{nameJson.name}</option>
                             })
                         }
                     </Form.Control>
                 </Form><br/>
+                <Form.Group controlId="formComponentDesc">
+                    <Form.Label>Component description</Form.Label>
+                    <Form.Control ref={refs.inputDesc} as="textarea" rows="5" placeholder="Unknown" defaultValue={pageOp === 'new' ? '' : architecturalComponent.description} disabled={pageOp === 'view' ? true : false}/>
+                </Form.Group>
                 <p>Properties</p>
                 <Table striped bordered hover size="sm">
                     <thead>
@@ -76,11 +108,24 @@ const ArchitecturalComponent = ({opType}) => {
                         { getPropertiesArray(architecturalComponent) }
                     </tbody>
                 </Table>
-                <Button variant="secondary" onClick={() => history.push("/architecture/" + aid)}>Return</Button>&nbsp;
-                <Button onClick={formBtnHandler.bind(this, aid, cid)}>{formBtnLabel}</Button>&nbsp;
-                <Button variant="success" onClick={() => history.push("/architecture/" + aid + "/component/" + cid + "/property/new")} hidden={pageOp !== 'edit'}>Add property</Button>
+                <Button style={{marginRight: '5px'}}  variant="secondary" onClick={() => history.push("/architecture/" + aid)}>Return</Button>
+                <Button style={{marginRight: '5px'}}  onClick={formBtnHandler.bind(this, aid, cid)}>{formBtnLabel}</Button>
+                <Button style={{marginRight: '5px'}}  variant="success" onClick={() => history.push("/architecture/" + aid + "/component/" + cid + "/property/new")} hidden={pageOp !== 'edit'}>Add property</Button>
+                <Button variant="danger" onClick={deleteComponentBtnHandler.bind(this, cid, aid)} hidden={pageOp === 'new'}>Delete component</Button>
             </Form>
         )
+    }
+
+    const deleteComponentBtnHandler = (componentId, aid) => {
+        if(window.confirm("Deletion of component " + componentId + " is definitive. Confirm?")) {
+            dbApi.deleteComponent(componentId)
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    history.push('/architecture/' + aid);
+                }
+            })
+        }
     }
 
     const getPropertiesArray = (comp) => {
@@ -123,6 +168,11 @@ const ArchitecturalComponent = ({opType}) => {
     const [architecturalComponent, setArchitecturalComponent] = useState([])
     const [componentsNames, setComponentsNames] = useState([])
     const [componentNameAsInput, setComponentNameAsInput] = useState(false)
+    const refs = {
+        inputSelectName: createRef(),
+        inputTextName: createRef(),
+        inputDesc: createRef()
+    }
 
     useEffect(() => {
         if(opType !== 'new') {

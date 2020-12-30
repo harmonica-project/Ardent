@@ -39,29 +39,80 @@ const Architecture = ({opType}) => {
     }
 
     const saveNewArchitecture = () => {
+        const generatedId = v4();
         const newArchitecture = {
-            id: v4(),
+            id: generatedId,
             paper: refs.inputPaper.current.value,
             description: refs.inputDesc.current.value,
             doneBy: parseInt(refs.inputDoneBy.current.value)
         }
 
-        console.log(dbApi.saveArchitecture(newArchitecture))
-        /*setPageOp('edit');
-        setFormBtnLabel('Save')
-        history.push('/architecture/' + id + '/edit');*/
+        dbApi.saveArchitecture(newArchitecture)
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    history.push('/architecture/' + generatedId + '/edit');
+                    setArchitecture(newArchitecture);
+                    setPageOp('edit');
+                }
+            })
     }
 
-    const getComponentArray = (arch) => {
-        if(arch["components"]) {
-            return arch.components.map((c, i) => {
+    const deleteArchitectureBtnHandler = architectureId => {
+        if(window.confirm("Deletion of architecture " + architectureId + " is definitive. Confirm?")) {
+            dbApi.deleteArchitecture(architectureId)
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    history.push('/architectures');
+                }
+            })
+        }
+    }
+
+    const deleteComponentBtnHandler = componentId => {
+        if(window.confirm("Deletion of component " + componentId + " is definitive. Confirm?")) {
+            dbApi.deleteComponent(componentId)
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    removeComponent(componentId);
+                }
+            })
+        }
+    }
+
+    const removeComponent = componentId => {
+        var newComponentsList = [...architecture.components];
+        var index = -1;
+        
+        for(var i = 0; i < newComponentsList.length; i++) {
+            if(newComponentsList[i].id === componentId)  {
+                index = i;
+                break;
+            }
+        }
+
+        if (index > -1) {
+            newComponentsList.splice(index, 1);
+        }
+
+        setArchitecture({
+            ...architecture,
+            components: newComponentsList
+        });
+    }
+
+    const getComponentArray = () => {
+        if(architecture) {
+            return architecture.components.map((c, i) => {
                 return(
                     <tr key={"comp_" + i}>
                         <td style={{cursor:"pointer"}} onClick={() => history.push("/architecture/" + aid + "/component/" + c.id)}>{c.id}</td>
                         <td style={{cursor:"pointer"}} onClick={() => history.push("/architecture/" + aid + "/component/" + c.id)}>{c.name}</td>
                         <td hidden={pageOp === 'view' ? true : false}>
                             <Button variant="secondary" size="sm" onClick={() => history.push("/architecture/" + aid + "/component/" + c.id + "/edit")}><FaPen/></Button>&nbsp;
-                            <Button variant="danger" size="sm"><FaTimes/></Button>
+                            <Button variant="danger" size="sm"onClick={deleteComponentBtnHandler.bind(this, c.id)}><FaTimes/></Button>
                         </td>
                     </tr>
                 )
@@ -136,9 +187,10 @@ const Architecture = ({opType}) => {
                         { getComponentArray(architecture) }
                     </tbody>
                 </Table>
-                <Button variant="secondary" onClick={() => history.push("/architectures/")}>Return</Button>&nbsp;
-                <Button onClick={formBtnHandler.bind(this, architecture.id)}>{formBtnLabel}</Button>&nbsp;
-                <Button variant="success" onClick={() => history.push("/architecture/" + aid + "/component/new")} hidden={pageOp !== 'edit'}>Add component</Button>
+                <Button style={{marginRight: '5px'}} variant="secondary" onClick={() => history.push("/architectures/")}>Return</Button>
+                <Button style={{marginRight: '5px'}} onClick={formBtnHandler.bind(this, architecture.id)}>{formBtnLabel}</Button>
+                <Button style={{marginRight: '5px'}} variant="success" onClick={() => history.push("/architecture/" + aid + "/component/new")} hidden={pageOp !== 'edit'}>Add component</Button>
+                <Button variant="danger" onClick={deleteArchitectureBtnHandler.bind(this, aid)} hidden={pageOp === 'new'}>Delete architecture</Button>
             </Form>
         )
     }

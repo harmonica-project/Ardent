@@ -41,6 +41,28 @@ const dbApi = {
         }
         return fetch(API_URL + '/architecture/', requestOptions);
     },
+    deleteArchitecture: architectureId => {
+        const requestOptions = {
+            method: 'DELETE',
+            headers: defaultHeaders
+        }
+        return fetch(API_URL + '/architecture/' + architectureId, requestOptions);
+    },
+    saveComponent: component => {
+        const requestOptions = {
+            method: 'POST',
+            headers: defaultHeaders,
+            body: JSON.stringify(component)
+        }
+        return fetch(API_URL + '/component/', requestOptions);
+    },
+    deleteComponent: componentId => {
+        const requestOptions = {
+            method: 'DELETE',
+            headers: defaultHeaders
+        }
+        return fetch(API_URL + '/component/' + componentId, requestOptions);
+    },
     getComponent: componentId => {
         const requestOptions = {
             method: 'GET',
