@@ -1,27 +1,20 @@
-import { Button, Container, Table } from 'react-bootstrap';
+import { Button, Container, Form } from 'react-bootstrap';
 import { FaPen, FaTimes } from 'react-icons/fa';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createRef } from 'react';
 import { useHistory } from "react-router-dom";
+import BootstrapTable from 'react-bootstrap-table-next';
+import ToolkitProvider, { Search } from 'react-bootstrap-table2-toolkit';
+import paginationFactory from 'react-bootstrap-table2-paginator';
 import dbApi from '../../assets/js/dbApi';
 import util from '../../assets/js/util';
 
 const ArchitectureList = () => {
     const history = useHistory();
-    
-    const searchChangeHandler = e => {
-        var term = e.target.value;
-
-        if(term !== "") {
-            var newArchitecturesList = [...architecturesList];
-            for (var i = 0; i < newArchitecturesList.length; i++) {
-                if (newArchitecturesList[i].paper.includes(term)) newArchitecturesList[i]["show"] = true;
-                else newArchitecturesList[i]["show"] = false;
-            }
-            setArchitecturesList(newArchitecturesList);
-        }
-    }
+    const { SearchBar } = Search;
 
     const [architecturesList, setArchitecturesList] = useState([]);
+    const xlsFileRef = createRef();
+
     useEffect(() => {
         dbApi.getArchitectures()
             .then(response => response.json())
@@ -62,39 +55,94 @@ const ArchitectureList = () => {
         }
     }
 
+    const actionsGenerator = architectureId => {
+        return(
+            <div>
+                <Button size="sm" variant="secondary" onClick={() => history.push("/architecture/" + architectureId + "/edit")}><FaPen/></Button>&nbsp;
+                <Button size="sm" variant="danger" onClick={deleteArchitectureBtnHandler.bind(this, architectureId)}><FaTimes/></Button>
+            </div>
+        )
+    }
+
+    const reduceDesc = desc => {
+        if (desc.length < 100) return desc;
+        else {
+            return desc.substring(0,100) + " [...]";
+        }
+    }
+
+    const columns = [{
+            dataField: 'id',
+            text: '#'
+        }, {
+            dataField: 'paper',
+            text: 'Paper name',
+            sort: true
+        }, {
+            dataField: 'description',
+            text: 'Description',
+            sort: true,
+            formatter: reduceDesc
+        }, {
+            dataField: 'doneBy',
+            text: 'Done by',
+            sort: true,
+            formatter: util.getUser
+        }, {
+            dataField: 'id',
+            text: 'Actions',
+            sort: true,
+            formatter: actionsGenerator
+     }];
+
+    const rowEvents = {
+        onClick: (e, row, rowIndex) => {
+            if(e.target.tagName === "TD") {
+                history.push("/architecture/" + row.id)
+            }
+        }
+    };
+
+    const uploadXLS = () => {
+        if(xlsFileRef.current.files[0]) {
+            dbApi.uploadXLS(xlsFileRef.current.files[0])
+        }
+    }
+
     return (
         <Container>
             <h1>Architectures</h1>
             <hr/>
-            <input type="text" className="form-control" placeholder="Search by paper name..." onChange={searchChangeHandler.bind(this)}></input><br/>
-            <Table striped bordered hover size="sm">
-                <thead>
-                    <tr>
-                    <th>#</th>
-                    <th>Paper</th>
-                    <th>Description</th>
-                    <th>Done by</th>
-                    <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    { architecturesList.map((a, i) => {
-                        return(
-                            <tr key={"arch_" + i} hidden={a.show === false ? true : false}>
-                                <td style={{cursor:"pointer"}} onClick={() => history.push("/architecture/" + a.id)}>{a.id}</td>
-                                <td style={{cursor:"pointer"}} onClick={() => history.push("/architecture/" + a.id)}>{a.paper}</td>
-                                <td style={{cursor:"pointer"}} onClick={() => history.push("/architecture/" + a.id)}>{a.description}</td>
-                                <td style={{cursor:"pointer"}} onClick={() => history.push("/architecture/" + a.id)}>{util.getUser(a.doneBy)}</td>
-                                <td>
-                                    <Button size="sm" variant="secondary" onClick={() => history.push("/architecture/" + a.id + "/edit")}><FaPen/></Button>&nbsp;
-                                    <Button size="sm" variant="danger" onClick={deleteArchitectureBtnHandler.bind(this, a.id)}><FaTimes/></Button>
-                                </td>
-                            </tr>
-                        )
-                    }) }
-                </tbody>
-            </Table>
-            <Button variant="success" onClick={() => history.push('/architecture/new')}>New architecture</Button>
+            <ToolkitProvider
+                keyField="id"
+                data={ architecturesList }
+                columns={ columns }
+                search
+            >
+                {
+                    props => (
+                    <div>
+                        <SearchBar 
+                            { ...props.searchProps }
+                            delay={ 1000 }
+                            placeholder="Search something in the table ..."
+                        />
+                        <BootstrapTable
+                        { ...props.baseProps }
+                        pagination={ paginationFactory() }
+                        rowEvents={ rowEvents }
+                        />
+                    </div>
+                    )
+                }
+            </ToolkitProvider>
+            <Button variant="success" onClick={() => history.push('/architecture/new')}>New architecture</Button><hr/>
+            <Form>
+                <h5>Direct generation of empty architectures through XLS (parsif.al) file</h5>
+                <Form.File ref={xlsFileRef} /><br/>
+                <Button variant="success" onClick={uploadXLS}>Upload</Button>
+            </Form>
+            <br/>
         </Container>
     )
 }

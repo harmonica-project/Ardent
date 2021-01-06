@@ -104,7 +104,7 @@ const Architecture = ({opType}) => {
     }
 
     const getComponentArray = () => {
-        if(architecture) {
+        if(architecture["components"]) {
             return architecture.components.map((c, i) => {
                 return(
                     <tr key={"comp_" + i}>

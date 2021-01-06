@@ -10,8 +10,13 @@
   "author": "Nicolas Six",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^1.19.0",
     "express": "^4.17.1",
+    "express-fileupload": "^1.2.0",
+    "multer": "^1.4.2",
     "nodemon": "^2.0.6",
-    "pg": "^8.5.1"
+    "pg": "^8.5.1",
+    "uuid": "^8.3.2",
+    "xlsx-to-json": "^0.3.0"
   }
 }
