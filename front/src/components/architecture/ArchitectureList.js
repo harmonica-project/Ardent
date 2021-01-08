@@ -16,15 +16,22 @@ const ArchitectureList = () => {
     const xlsFileRef = createRef();
 
     useEffect(() => {
+        getArchitectures()
+    }, [])
+
+    const getArchitectures = () => {
         dbApi.getArchitectures()
-            .then(response => response.json())
-            .then(data => {
+            .then(({data, status}) => {
+                console.log(status)
                 if(data.success) {
                     setArchitecturesList(data.result);
                 }
             })
-    }, [])
-
+            .catch(error => {
+                if(error.response.status === 401) util.loginFailedHandler(history);
+            })
+    }
+    
     const removeArchitecture = architectureId => {
         var newArchitecturesList = [...architecturesList];
         var index = -1;
@@ -46,11 +53,13 @@ const ArchitectureList = () => {
     const deleteArchitectureBtnHandler = architectureId => {
         if(window.confirm("Deletion of architecture " + architectureId + " is definitive. Confirm?")) {
             dbApi.deleteArchitecture(architectureId)
-            .then(response => response.json())
-            .then(data => {
+            .then(({data}) => {
                 if(data.success) {
                     removeArchitecture(architectureId);
                 }
+            })
+            .catch(error => {
+                if(error.response.status === 401) util.loginFailedHandler(history);
             })
         }
     }
@@ -84,7 +93,7 @@ const ArchitectureList = () => {
             sort: true,
             formatter: reduceDesc
         }, {
-            dataField: 'doneBy',
+            dataField: 'done_by',
             text: 'Done by',
             sort: true,
             formatter: util.getUser
@@ -106,6 +115,14 @@ const ArchitectureList = () => {
     const uploadXLS = () => {
         if(xlsFileRef.current.files[0]) {
             dbApi.uploadXLS(xlsFileRef.current.files[0])
+                .then(({data}) => {
+                    if(data.success) {
+                        getArchitectures()
+                    }
+                })
+                .catch(error => {
+                    if(error.response.status === 401) util.loginFailedHandler(history);
+                })
         }
     }
 

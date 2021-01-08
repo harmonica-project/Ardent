@@ -1,132 +1,43 @@
+import axios from 'axios';
+
 const API_URL = "http://localhost:8080"
-const defaultHeaders = {    
-    'Accept': 'application/json',
-    'Content-Type': 'application/json'
+const getAuthInfo = () => {
+    const authInfo = {
+        auth: {
+            username: localStorage.getItem("username"),
+            password: localStorage.getItem("password")
+        }
+    }
+
+    if (authInfo.auth.username && authInfo.auth.password) return authInfo;
+    return {}
 }
 
 const dbApi = {
-    getArchitectures: () => {
-        const requestOptions = {
-            method: 'GET',
-            headers: defaultHeaders
-        }
-        return fetch(API_URL + '/architectures', requestOptions);
-    },
-    getComponents: () => {
-        const requestOptions = {
-            method: 'GET',
-            headers: defaultHeaders
-        }
-        return fetch(API_URL + '/components', requestOptions);
-    },
-    getComponentsNames: () => {
-        const requestOptions = {
-            method: 'GET',
-            headers: defaultHeaders
-        }
-        return fetch(API_URL + '/components_names', requestOptions);
-    },
-    getPropertiesNames: cname => {
-        const requestOptions = {
-            method: 'GET',
-            headers: defaultHeaders
-        }
-        return fetch(API_URL + '/properties_names/' + cname, requestOptions);
-    },
-    getPropertyValues: pkey => {
-        const requestOptions = {
-            method: 'GET',
-            headers: defaultHeaders
-        }
-        return fetch(API_URL + '/properties_values/' + pkey, requestOptions);
-    },
-    getArchitecture: architectureId => {
-        const requestOptions = {
-            method: 'GET',
-            headers: defaultHeaders
-        }
-        return fetch(API_URL + '/architecture/' + architectureId, requestOptions);
-    },
-    saveArchitecture: architecture => {
-        const requestOptions = {
-            method: 'POST',
-            headers: defaultHeaders,
-            body: JSON.stringify(architecture)
-        }
-        return fetch(API_URL + '/architecture/', requestOptions);
-    },
-    saveProperty: property => {
-        const requestOptions = {
-            method: 'POST',
-            headers: defaultHeaders,
-            body: JSON.stringify(property)
-        }
-        return fetch(API_URL + '/property/', requestOptions);
-    },
-    saveConnection: connection => {
-        const requestOptions = {
-            method: 'POST',
-            headers: defaultHeaders,
-            body: JSON.stringify(connection)
-        }
-        return fetch(API_URL + '/connection/', requestOptions);
-    },
-    deleteArchitecture: architectureId => {
-        const requestOptions = {
-            method: 'DELETE',
-            headers: defaultHeaders
-        }
-        return fetch(API_URL + '/architecture/' + architectureId, requestOptions);
-    },
-    deleteProperty: propertyId => {
-        const requestOptions = {
-            method: 'DELETE',
-            headers: defaultHeaders
-        }
-        return fetch(API_URL + '/property/' + propertyId, requestOptions);
-    },
-    deleteConnection: connectionId => {
-        const requestOptions = {
-            method: 'DELETE',
-            headers: defaultHeaders
-        }
-        return fetch(API_URL + '/connection/' + connectionId, requestOptions);
-    },
-    saveComponent: component => {
-        const requestOptions = {
-            method: 'POST',
-            headers: defaultHeaders,
-            body: JSON.stringify(component)
-        }
-        return fetch(API_URL + '/component/', requestOptions);
-    },
-    deleteComponent: componentId => {
-        const requestOptions = {
-            method: 'DELETE',
-            headers: defaultHeaders
-        }
-        return fetch(API_URL + '/component/' + componentId, requestOptions);
-    },
-    getComponent: componentId => {
-        const requestOptions = {
-            method: 'GET',
-            headers: defaultHeaders
-        }
-        return fetch(API_URL + '/component/' + componentId, requestOptions);
-    },
-    uploadXLS: fileData => {
-        console.log(fileData)
+    loginUser: authInfo => { return axios.get(API_URL + '/login', authInfo, {withCredentials: true}) },
+    getArchitectures: () => { return axios.get(API_URL + '/architectures', getAuthInfo(), {withCredentials: true}) },
+    getComponents: () => { return axios.get(API_URL + '/components', getAuthInfo(), {withCredentials: true}) },
+    getComponentsNames: () => { return axios.get(API_URL + '/components_names', getAuthInfo(), {withCredentials: true}) },
+    getPropertiesNames: cname => { return axios.get(API_URL + '/properties_names/' + cname, getAuthInfo(), {withCredentials: true}) },
+    getPropertyValues: pkey => { return axios.get(API_URL + '/properties_values/' + pkey, getAuthInfo(), {withCredentials: true}) },
+    getArchitecture: architectureId => { return axios.get(API_URL + '/architecture/' + architectureId, getAuthInfo(), {withCredentials: true}) },
+    saveArchitecture: architecture => { return axios.post(API_URL + '/architecture', architecture, getAuthInfo(), {withCredentials: true}) },
+    saveProperty: property => { return axios.post(API_URL + '/property', property, getAuthInfo(), {withCredentials: true}) },
+    saveConnection: connection => { return axios.post(API_URL + '/connection', connection, getAuthInfo(), {withCredentials: true}) },
+    deleteArchitecture: architectureId => { return axios.delete(API_URL + '/architecture/' + architectureId, getAuthInfo(), {withCredentials: true}) },
+    deleteProperty: propertyId => { return axios.delete(API_URL + '/property/' + propertyId, getAuthInfo(), {withCredentials: true}) },
+    deleteConnection: connectionId => { return axios.delete(API_URL + '/connection/' + connectionId, getAuthInfo(), {withCredentials: true}) },
+    saveComponent: component => { return axios.post(API_URL + '/component', component, getAuthInfo(), {withCredentials: true}) },
+    deleteComponent: componentId => { return axios.delete(API_URL + '/component/' + componentId, getAuthInfo(), {withCredentials: true}) },
+    getComponent: componentId => { return axios.get(API_URL + '/component/' + componentId, getAuthInfo(), {withCredentials: true}) },
+    uploadXLS: fileData => { 
         const formData = new FormData(); 
         formData.append( 
             "xlsArchitectures", 
             fileData, 
             fileData.name 
           ); 
-        const requestOptions = {
-            method: 'POST',
-            body: formData
-        }
-        return fetch(API_URL + '/xls/', requestOptions);
+        return axios.post(API_URL + '/xls/', formData, getAuthInfo(), {withCredentials: true}) 
     }
 }
 

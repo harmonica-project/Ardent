@@ -19,7 +19,7 @@ const Home = () => {
                 And if you need help, feel free to PM me on Slack <a href="https://app.slack.com/client/TEG1QQZ0A/DTCQNE7KR">@Nicolas Six</a>.
             </p>
             <p>
-            <Button variant="primary" onClick={() => history.push("/architectures")}>Go to architectures</Button>
+            {localStorage.getItem("currentUser") ? <Button variant="primary" onClick={() => history.push("/architectures")}>Go to architectures</Button> : <Button variant="primary" onClick={() => history.push("/login")}>Login to start</Button>}
             </p>
         </Jumbotron>
     </Container>

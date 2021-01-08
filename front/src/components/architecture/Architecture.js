@@ -44,17 +44,19 @@ const Architecture = ({opType}) => {
             id: generatedId,
             paper: refs.inputPaper.current.value,
             description: refs.inputDesc.current.value,
-            doneBy: parseInt(refs.inputDoneBy.current.value)
+            done_by: parseInt(refs.inputDoneBy.current.value)
         }
 
         dbApi.saveArchitecture(newArchitecture)
-            .then(response => response.json())
-            .then(data => {
+            .then(({data}) => {
                 if(data.success) {
                     history.push('/architecture/' + generatedId + '/edit');
                     setArchitecture(newArchitecture);
                     setPageOp('edit');
                 }
+            })
+            .catch(error => {
+                if(error.response.status === 401) util.loginFailedHandler(history);
             })
     }
 
@@ -67,17 +69,22 @@ const Architecture = ({opType}) => {
                     history.push('/architectures');
                 }
             })
+            .catch(error => {
+                if(error.response.status === 401) util.loginFailedHandler(history);
+            })
         }
     }
 
     const deleteComponentBtnHandler = componentId => {
         if(window.confirm("Deletion of component " + componentId + " is definitive. Confirm?")) {
             dbApi.deleteComponent(componentId)
-            .then(response => response.json())
-            .then(data => {
+            .then(({data})=> {
                 if(data.success) {
                     removeComponent(componentId);
                 }
+            })
+            .catch(error => {
+                if(error.response.status === 401) util.loginFailedHandler(history);
             })
         }
     }
@@ -139,7 +146,7 @@ const Architecture = ({opType}) => {
             case 'formArchitectureDoneBy':
                 setArchitecture({
                     ...architecture,
-                    doneBy: e.target.value
+                    done_by: e.target.value
                 })
         }
     }
@@ -155,7 +162,7 @@ const Architecture = ({opType}) => {
         return (
             <Form onChange={formUpdateHandler.bind(this)}>
                 <h1>{pageOp === 'new' ? 'Create an architecture' : 'Architecture #' + architecture.id}</h1>
-                {pageOp === 'new' ? '' : <p className="lead">By {util.getUser(architecture.doneBy)}</p>}
+                {pageOp === 'new' ? '' : <p className="lead">By {util.getUser(architecture.done_by)}</p>}
                 <hr/>
                 <Form.Group controlId="formArchitecturePaper">
                     <Form.Label>Associated paper</Form.Label>
@@ -167,11 +174,11 @@ const Architecture = ({opType}) => {
                 </Form.Group>
                 <Form.Label>Writer</Form.Label>
                 <Form.Group controlId="formArchitectureDoneBy">
-                    <Form.Control ref={refs.inputDoneBy} as="select" disabled={pageOp === 'view' ? true : false} defaultValue={pageOp === 'new' ? user : architecture.doneBy}>
-                        <option value={0}>Anonymous</option>
-                        <option value={1}>Nicolas Six</option>
-                        <option value={2}>Nicolas Herbaut</option>
-                        <option value={3}>Claudia Negri Ribalta</option>
+                    <Form.Control ref={refs.inputDoneBy} as="select" disabled={pageOp === 'view' ? true : false} defaultValue={pageOp === 'new' ? user : architecture.done_by}>
+                        <option value={""}>Anonymous</option>
+                        <option value={"six"}>Nicolas Six</option>
+                        <option value={"herbaut"}>Nicolas Herbaut</option>
+                        <option value={"negri"}>Claudia Negri Ribalta</option>
                     </Form.Control>
                 </Form.Group>
                 <p>Components</p>
@@ -225,12 +232,14 @@ const Architecture = ({opType}) => {
     useEffect(() => {
         if(opType !== 'new') {
                 dbApi.getArchitecture(aid)
-                .then(response => response.json())
-                .then(data => {
-                    if(data.success) {
-                        setArchitecture(data.result)
-                    }
-            })
+                    .then(({data}) => {
+                        if(data.success) {
+                            setArchitecture(data.result)
+                        }
+                    })
+                    .catch(error => {
+                        if(error.response.status === 401) util.loginFailedHandler(history);
+                    })
         }
     }, [])
 

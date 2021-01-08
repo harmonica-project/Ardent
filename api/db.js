@@ -1,4 +1,5 @@
 const { query } = require("express");
+
 var pg = require("pg")
 
 // THOSE ARE DEFAULT LOGINS FOR TEST ONLY - NOT SUITABLE FOR PRODUCTION
@@ -155,7 +156,7 @@ module.exports = {
         try {
             const foundArchitecture = await client.query("SELECT * FROM architectures WHERE id = $1 OR paper = $2", [architecture.id, architecture.paper]);
             if(foundArchitecture["rows"].length === 0) {
-                await client.query("INSERT INTO architectures VALUES ($1, $2, $3, $4)", [architecture.id, architecture.paper, architecture.description, architecture.doneBy])
+                await client.query("INSERT INTO architectures VALUES ($1, $2, $3, $4)", [architecture.id, architecture.paper, architecture.description, architecture.done_by])
                 return {success: true}
             }
             else {

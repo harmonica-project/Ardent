@@ -37,13 +37,21 @@ const ArchitecturalComponent = ({opType}) => {
         }
 
         dbApi.saveComponent(newComponent)
-            .then(response => response.json())
-            .then(data => {
+            .then(({data}) => {
                 if(data.success) {
                     history.push('/architecture/' + aid + '/component/' + generatedId + "/edit");
-                    setArchitecturalComponent(newComponent);
+                    setArchitecturalComponent({
+                        ...newComponent,
+                        properties: [],
+                        connections: []
+                    });
+                    getComponentsNames();
+                    getReferenceArchitecture();
                     setPageOp('edit');
                 }
+            })
+            .catch(error => {
+                if(error.response.status === 401) util.loginFailedHandler(history);
             })
     }
 
@@ -145,20 +153,21 @@ const ArchitecturalComponent = ({opType}) => {
         }
 
         dbApi.saveConnection(newConnection)
-                .then(response => response.json())
-                .then(data => {
+                .then(({data}) => {
                     if(data.success) {
                         var newAc = {...architecturalComponent};
                         newAc["connections"].push(newConnection);
                         setArchitecturalComponent(newAc);
                     }
                 })
+                .catch(error => {
+                    if(error.response.status === 401) util.loginFailedHandler(history);
+                })
     }
 
     const deleteConnectionBtnHandler = connectionId => {
         dbApi.deleteConnection(connectionId)
-            .then(response => response.json())
-            .then(data => {
+            .then(({data}) => {
                 if(data.success) {
                     var newAc = {...architecturalComponent};
                     console.log(newAc)
@@ -172,6 +181,9 @@ const ArchitecturalComponent = ({opType}) => {
                     setArchitecturalComponent(newAc);
                 }
             })
+            .catch(error => {
+                if(error.response.status === 401) util.loginFailedHandler(history);
+            })
     }
 
     const saveProperty = () => {
@@ -184,13 +196,15 @@ const ArchitecturalComponent = ({opType}) => {
         }
 
         dbApi.saveProperty(newProperty)
-                .then(response => response.json())
-                .then(data => {
+                .then(({data}) => {
                     if(data.success) {
                         var newAc = {...architecturalComponent};
                         newAc["properties"].push(newProperty);
                         setArchitecturalComponent(newAc);
                     }
+                })
+                .catch(error => {
+                    if(error.response.status === 401) util.loginFailedHandler(history);
                 })
     }
 
@@ -199,11 +213,13 @@ const ArchitecturalComponent = ({opType}) => {
         else {
             setHiddenValueField(false);
             dbApi.getPropertyValues(refs.inputPropertyTextKey.current.value)
-                .then(response => response.json())
-                .then(data => {
+                .then(({data}) => {
                     if(data.success) {
                         setPropertiesValues(data.result)
                     }
+                })
+                .catch(error => {
+                    if(error.response.status === 401) util.loginFailedHandler(history);
                 })
         }
     }
@@ -211,17 +227,19 @@ const ArchitecturalComponent = ({opType}) => {
     const deleteComponentBtnHandler = (componentId, aid) => {
         if(window.confirm("Deletion of component " + componentId + " is definitive. Confirm?")) {
             dbApi.deleteComponent(componentId)
-            .then(response => response.json())
-            .then(data => {
+            .then(({data}) => {
                 if(data.success) {
                     history.push('/architecture/' + aid);
                 }
+            })
+            .catch(error => {
+                if(error.response.status === 401) util.loginFailedHandler(history);
             })
         }
     }
 
     const getPropertiesTable = () => {
-        if(architecturalComponent["properties"].length > 0) {
+        if(architecturalComponent["properties"] && architecturalComponent["properties"].length > 0) {
             return (
                 <Table striped bordered hover size="sm">
                     <thead>
@@ -255,7 +273,7 @@ const ArchitecturalComponent = ({opType}) => {
     }
 
     const getConnectionsTable = () => {
-        if(architecturalComponent["connections"].length > 0) {
+        if(architecturalComponent["connections"] && architecturalComponent["connections"].length > 0) {
             return (
                 <Table striped bordered hover size="sm">
                     <thead>
@@ -290,8 +308,7 @@ const ArchitecturalComponent = ({opType}) => {
 
     const deletePropertyBtnHandler = propertyId => {
         dbApi.deleteProperty(propertyId)
-            .then(response => response.json())
-            .then(data => {
+            .then(({data}) => {
                 if(data.success) {
                     var newAc = {...architecturalComponent};
                     for(var i = 0; i < newAc["properties"].length; i++) {
@@ -303,6 +320,9 @@ const ArchitecturalComponent = ({opType}) => {
 
                     setArchitecturalComponent(newAc);
                 }
+            })
+            .catch(error => {
+                if(error.response.status === 401) util.loginFailedHandler(history);
             })
     }
 
@@ -327,12 +347,39 @@ const ArchitecturalComponent = ({opType}) => {
 
     const updateAvailableProperties = componentName => {
         dbApi.getPropertiesNames(componentName)
-        .then(response => response.json())
-        .then(data => {
+        .then(({data}) => {
             if(data.success) {
                 setPropertiesKeys(data.result)
             }
         })
+        .catch(error => {
+            if(error.response.status === 401) util.loginFailedHandler(history);
+        })
+    }
+
+    const getComponentsNames = () => {
+        dbApi.getComponentsNames()
+            .then(({data}) => {
+                if(data.success) {
+                    setComponentsNames(data.result)
+                }
+            })
+            .catch(error => {
+                if(error.response.status === 401) util.loginFailedHandler(history);
+            })
+    }
+
+    const getReferenceArchitecture = () => { 
+        dbApi.getArchitecture(aid)
+            .then(({data}) => {
+                if(data.success) {
+                    console.log(data.result)
+                    setReferenceArchitecture(data.result)
+                }
+            })
+            .catch(error => {
+                if(error.response.status === 401) util.loginFailedHandler(history);
+            })
     }
 
     let { cid, aid } = useParams();
@@ -359,31 +406,19 @@ const ArchitecturalComponent = ({opType}) => {
     useEffect(() => {
         if(opType !== 'new') {
             dbApi.getComponent(cid)
-            .then(response => response.json())
-            .then(data => {
-                if(data.success) {
-                    setArchitecturalComponent(data.result);
-                    updateAvailableProperties(data.result.name);
-                }
-            })
+                .then(({data}) => {
+                    if(data.success) {
+                        setArchitecturalComponent(data.result);
+                        updateAvailableProperties(data.result.name);
+                    }
+                })
+                .catch(error => {
+                    if(error.response.status === 401) util.loginFailedHandler(history);
+                })
         }
 
-        dbApi.getComponentsNames()
-            .then(response => response.json())
-            .then(data => {
-                if(data.success) {
-                    setComponentsNames(data.result)
-                }
-            })
-
-        dbApi.getArchitecture(aid)
-            .then(response => response.json())
-            .then(data => {
-                if(data.success) {
-                    console.log(data.result)
-                    setReferenceArchitecture(data.result)
-                }
-            })
+        getComponentsNames();
+        getReferenceArchitecture();
     }, [])
 
     return <Container>{getForm()}</Container>
