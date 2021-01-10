@@ -1,7 +1,6 @@
-import { Navbar, Nav, Form } from 'react-bootstrap';
+import { Navbar, Nav } from 'react-bootstrap';
 import { useState, useEffect } from 'react';
 import util from '../../assets/js/util';
-import dbApi from '../../assets/js/dbApi';
 import './navbar.css';
 
 const NavbarComponent = () => {

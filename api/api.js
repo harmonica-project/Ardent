@@ -42,7 +42,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+    res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
     res.header("Access-Control-Allow-Headers", "content-type, authorization");
     res.header("Access-Control-Allow-Credentials", true);
@@ -57,9 +57,7 @@ app.use(function(req, res, next) {
 
 app.use(basicAuth({
     users: {
-        six: '3dsVgj!D',
-        negri: 'H%MTy9EA',
-        herbaut: '(qskF639'
+        //Define here usernames and passwords
     }
 }));
 
@@ -150,6 +148,22 @@ app.post('/component', authorizedOnly, (req, res) => {
         if(parsedResult.success) res.status(200).send(parsedResult);
         else res.status(500).send(parsedResult);
     })
+});
+
+app.put('/component/:id', authorizedOnly, (req, res) => {
+    const newComponent = req.body;
+    if(newComponent.name.length > 0 && newComponent.architectureId && newComponent.id) {
+        db.modifyComponent(newComponent).then((parsedResult) => {
+            if(parsedResult.success) res.status(200).send(parsedResult);
+            else res.status(500).send(parsedResult);
+        })
+    }
+    else {
+        res.status(500).send({
+            success: false,
+            errorMsg: "Missing fields."
+        })
+    }
 });
 
 app.post('/xls', authorizedOnly, async (req, res) => {

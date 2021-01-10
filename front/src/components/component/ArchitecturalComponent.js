@@ -1,6 +1,6 @@
-import { Form, Jumbotron, Button, Container, Table, InputGroup } from 'react-bootstrap';
+import { Form, Jumbotron, Button, Container, Table } from 'react-bootstrap';
 import { useState, useEffect, createRef } from 'react';
-import { FaPen, FaTimes } from 'react-icons/fa';
+import { FaTimes } from 'react-icons/fa';
 import { useParams, useHistory } from 'react-router-dom';
 import { v4 } from 'uuid';
 import util from '../../assets/js/util';
@@ -10,9 +10,7 @@ const ArchitecturalComponent = ({opType}) => {
     const formBtnHandler = (aid, cid) => {
         switch(pageOp) {
             case 'edit':
-                setPageOp('view');
-                setFormBtnLabel('Edit')
-                history.push('/architecture/' + aid + "/component/" + cid);
+                saveExistingComponent(aid, cid)
                 break;
             case 'view': 
                 setPageOp('edit');
@@ -27,6 +25,32 @@ const ArchitecturalComponent = ({opType}) => {
         }
     }
 
+    const saveExistingComponent = (aid, cid) => {
+        const newComponent = {
+            id: cid,
+            name: (componentNameAsInput ? refs.inputTextName.current.value : refs.inputSelectName.current.value),
+            architectureId: aid,
+            description: refs.inputDesc.current.value
+        }
+
+        dbApi.saveExistingComponent(newComponent)
+            .then(({data}) => {
+                if(data.success) {
+                    setPageOp('view');
+                    setFormBtnLabel('Edit')
+                    history.push('/architecture/' + aid + "/component/" + cid);
+                    setArchitecturalComponent({
+                        ...architecturalComponent,
+                        ...newComponent
+                    });
+                    getComponentsNames();
+                }
+            })
+            .catch(error => {
+                if(error.response.status === 401) util.loginFailedHandler(history);
+            })
+    }
+
     const saveNewComponent = aid => {
         const generatedId = v4();
         const newComponent = {
@@ -36,7 +60,7 @@ const ArchitecturalComponent = ({opType}) => {
             description: refs.inputDesc.current.value
         }
 
-        dbApi.saveComponent(newComponent)
+        dbApi.saveNewComponent(newComponent)
             .then(({data}) => {
                 if(data.success) {
                     history.push('/architecture/' + aid + '/component/' + generatedId + "/edit");
@@ -62,6 +86,8 @@ const ArchitecturalComponent = ({opType}) => {
                 return 'Save';
             case 'view':
                 return 'Edit';
+            default:
+                return 'Undefined';
         }
     }
 
@@ -69,13 +95,25 @@ const ArchitecturalComponent = ({opType}) => {
         setComponentNameAsInput(!componentNameAsInput);
     }
 
+    const getComponentSelectOptions = () => {
+        const alreadyOut = [];
+
+        return (
+            componentsNames.map(nameJson => {
+                if(!alreadyOut.includes(nameJson.name)) {
+                    alreadyOut.push(nameJson.name);
+                    return <option key={"name_" + nameJson.name} selected={nameJson.name === architecturalComponent["name"]} value={nameJson.name}>{nameJson.name}</option>
+                }
+                return false;
+            })
+        )
+    }
     const getForm = () => {
         if(pageOp === 'view' || pageOp === 'edit') {
             if (util.JSONEmpty(architecturalComponent)) {
                 return architecturalComponentNotFoundContainer()                   
             }
         }
-
 
         return (
             <div>
@@ -88,9 +126,7 @@ const ArchitecturalComponent = ({opType}) => {
                         <Form.Control onChange={handleComponentNameChange.bind(this)} ref={refs.inputTextName} type="text" style={{flexGrow: '1'}} placeholder="Unknown" hidden={!componentNameAsInput} disabled={pageOp === 'view'}></Form.Control>
                         <Form.Control onChange={handleComponentNameChange.bind(this)} ref={refs.inputSelectName}  as="select" style={{flexGrow: '1'}} hidden={componentNameAsInput} disabled={pageOp === 'view'}>
                             {
-                                componentsNames.map(nameJson => {
-                                    return <option key={"name_" + nameJson.name} selected={nameJson.name === architecturalComponent["name"]} value={nameJson.name}>{nameJson.name}</option>
-                                })
+                                getComponentSelectOptions()
                             }
                         </Form.Control>
                     </Form><br/>
@@ -170,7 +206,6 @@ const ArchitecturalComponent = ({opType}) => {
             .then(({data}) => {
                 if(data.success) {
                     var newAc = {...architecturalComponent};
-                    console.log(newAc)
                     for(var i = 0; i < newAc["connections"].length; i++) {
                         if (newAc["connections"][i].id === connectionId) {
                             newAc["connections"].splice(i, 1);
@@ -272,6 +307,16 @@ const ArchitecturalComponent = ({opType}) => {
         }
     }
 
+    const getComponentName = id => {
+        if(componentsNames) {
+            for(var i = 0; i < componentsNames.length; i++) {
+                if(componentsNames[i].id === id) return componentsNames[i].name;
+            }
+        }
+        
+        return "Unknown (ID: " + id + ")";
+    }
+
     const getConnectionsTable = () => {
         if(architecturalComponent["connections"] && architecturalComponent["connections"].length > 0) {
             return (
@@ -289,8 +334,8 @@ const ArchitecturalComponent = ({opType}) => {
                             return (
                                 <tr key={"prop_" + i}>
                                     <td>{c.id}</td>
-                                    <td>{c.first_component}</td>
-                                    <td>{c.second_component}</td>
+                                    <td>{getComponentName(c.first_component)}</td>
+                                    <td>{getComponentName(c.second_component)}</td>
                                     <td hidden={pageOp === 'view' ? true : false}>
                                         <Button variant="danger" size="sm"><FaTimes onClick={deleteConnectionBtnHandler.bind(this, c.id)} /></Button>
                                     </td>
@@ -373,7 +418,6 @@ const ArchitecturalComponent = ({opType}) => {
         dbApi.getArchitecture(aid)
             .then(({data}) => {
                 if(data.success) {
-                    console.log(data.result)
                     setReferenceArchitecture(data.result)
                 }
             })

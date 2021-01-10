@@ -15,6 +15,8 @@ const Architecture = ({opType}) => {
                 return 'Save';
             case 'view':
                 return 'Edit';
+            default:
+                return 'Undefined';
         }
     }
 
@@ -148,11 +150,14 @@ const Architecture = ({opType}) => {
                     ...architecture,
                     done_by: e.target.value
                 })
+                break;
+
+            default:
+                return;
         }
     }
 
     const getForm = () => {
-        var a = false;
         if(pageOp === 'view' || pageOp === 'edit') {
             if (util.JSONEmpty(architecture)) {
                 return architectureNotFoundContainer()                   

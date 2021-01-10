@@ -1,13 +1,11 @@
-const { query } = require("express");
-
 var pg = require("pg")
 
 // THOSE ARE DEFAULT LOGINS FOR TEST ONLY - NOT SUITABLE FOR PRODUCTION
-const DB_HOST = 'localhost';
-const DB_PORT = '5432'
-const DB_USER = 'postgres';
-const DB_PWD = 'root';
-const DB_DATABASE = 'slr';
+const DB_HOST = '<DB_HOST>';
+const DB_PORT = '<DB_PORT>'
+const DB_USER = '<DB_USER>';
+const DB_PWD = '<DB_PWD>';
+const DB_DATABASE = '<DB_DATABASE>';
 
 const client = new pg.Client({
     user: DB_USER,
@@ -38,7 +36,7 @@ module.exports = {
     },
     getComponentsNames: async () => {
         try {
-            return await client.query("SELECT DISTINCT name FROM components");
+            return await client.query("SELECT DISTINCT name, id FROM components");
         }
         catch(err) {
             return err;
@@ -240,6 +238,19 @@ module.exports = {
     storeComponent: async component => {
         try {
             await client.query("INSERT INTO components VALUES ($1, $2, $3, $4)", [component.id, component.name, component.architectureId, component.description])
+            return {success: true};
+        }
+        catch(err) {
+            console.log('error: ' + err)
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
+    modifyComponent: async component => {
+        try {
+            await client.query("UPDATE components SET (name, architecture_id, description) = ($1, $2, $3) WHERE id = $4", [component.name, component.architectureId, component.description, component.id])
             return {success: true};
         }
         catch(err) {

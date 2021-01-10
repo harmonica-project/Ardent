@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = "http://localhost:8080"
+const API_URL = "<API_URL>"
 const getAuthInfo = () => {
     const authInfo = {
         auth: {
@@ -27,7 +27,8 @@ const dbApi = {
     deleteArchitecture: architectureId => { return axios.delete(API_URL + '/architecture/' + architectureId, getAuthInfo(), {withCredentials: true}) },
     deleteProperty: propertyId => { return axios.delete(API_URL + '/property/' + propertyId, getAuthInfo(), {withCredentials: true}) },
     deleteConnection: connectionId => { return axios.delete(API_URL + '/connection/' + connectionId, getAuthInfo(), {withCredentials: true}) },
-    saveComponent: component => { return axios.post(API_URL + '/component', component, getAuthInfo(), {withCredentials: true}) },
+    saveNewComponent: component => { return axios.post(API_URL + '/component', component, getAuthInfo(), {withCredentials: true}) },
+    saveExistingComponent: component => { return axios.put(API_URL + '/component/' + component.id, component, getAuthInfo(), {withCredentials: true}) },
     deleteComponent: componentId => { return axios.delete(API_URL + '/component/' + componentId, getAuthInfo(), {withCredentials: true}) },
     getComponent: componentId => { return axios.get(API_URL + '/component/' + componentId, getAuthInfo(), {withCredentials: true}) },
     uploadXLS: fileData => { 
