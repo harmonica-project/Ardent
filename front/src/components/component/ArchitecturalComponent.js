@@ -36,17 +36,18 @@ const ArchitecturalComponent = ({opType}) => {
         dbApi.saveExistingComponent(newComponent)
             .then(({data}) => {
                 if(data.success) {
-                    setPageOp('view');
-                    setFormBtnLabel('Edit')
-                    history.push('/architecture/' + aid + "/component/" + cid);
                     setArchitecturalComponent({
                         ...architecturalComponent,
                         ...newComponent
                     });
                     getComponentsNames();
+                    setPageOp('view');
+                    setFormBtnLabel('Edit')
+                    history.push('/architecture/' + aid + "/component/" + cid);
                 }
             })
             .catch(error => {
+                console.log(error)
                 if(error.response.status === 401) util.loginFailedHandler(history);
             })
     }
@@ -63,15 +64,19 @@ const ArchitecturalComponent = ({opType}) => {
         dbApi.saveNewComponent(newComponent)
             .then(({data}) => {
                 if(data.success) {
-                    history.push('/architecture/' + aid + '/component/' + generatedId + "/edit");
                     setArchitecturalComponent({
                         ...newComponent,
                         properties: [],
                         connections: []
                     });
+                    setLoaded({
+                        ...loaded,
+                        architecturalComponent: true
+                    });
                     getComponentsNames();
                     getReferenceArchitecture();
                     setPageOp('edit');
+                    history.push('/architecture/' + aid + '/component/' + generatedId + "/edit");
                 }
             })
             .catch(error => {
@@ -113,7 +118,7 @@ const ArchitecturalComponent = ({opType}) => {
             if (util.JSONEmpty(architecturalComponent)) {
                 return architecturalComponentNotFoundContainer()                   
             }
-            if(!loaded.architecturalComponent) return (<div/>)
+            if(!loaded.architecturalComponent) return (<div>Loading ...</div>)
         }
 
         return (
@@ -223,26 +228,28 @@ const ArchitecturalComponent = ({opType}) => {
     }
 
     const saveProperty = () => {
-        const generatedId = v4();
-        const newProperty = {
-            id: generatedId,
-            key: refs.inputPropertyTextKey.current.value,
-            value: refs.inputPropertyTextValue.current.value,
-            component_id: architecturalComponent.id
-        }
+        if(refs.inputPropertyTextKey.current.value.length > 0 && refs.inputPropertyTextValue.current.value.length > 0) {
+            const generatedId = v4();
+            const newProperty = {
+                id: generatedId,
+                key: refs.inputPropertyTextKey.current.value,
+                value: refs.inputPropertyTextValue.current.value,
+                component_id: architecturalComponent.id
+            }
 
-        dbApi.saveProperty(newProperty)
-                .then(({data}) => {
-                    if(data.success) {
-                        var newAc = {...architecturalComponent};
-                        newAc["properties"].push(newProperty);
-                        setArchitecturalComponent(newAc);
-                    }
-                })
-                .catch(error => {
-                    if(error.response.status === 401) util.loginFailedHandler(history);
-                })
-    }
+            dbApi.saveProperty(newProperty)
+                    .then(({data}) => {
+                        if(data.success) {
+                            var newAc = {...architecturalComponent};
+                            newAc["properties"].push(newProperty);
+                            setArchitecturalComponent(newAc);
+                        }
+                    })
+                    .catch(error => {
+                        if(error.response.status === 401) util.loginFailedHandler(history);
+                    })
+        }
+        }
 
     const handleInputPropertyKeyChange = () => {
         if(refs.inputPropertyTextKey.current.value === "") setHiddenValueField(true);
