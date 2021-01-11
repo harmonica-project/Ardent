@@ -12,7 +12,7 @@ import { BrowserRouter as Router, Route, Switch, Redirect } from "react-router-d
 import Architecture from './components/architecture/Architecture';
 import ArchitecturalComponent from './components/component/ArchitecturalComponent';
 import Login from './components/login/Login';
-
+import Parameters from './components/parameters/Parameters';
 export const UserContext = createContext(0);
 
 const ProtectedRoute = ({ component: Comp, path, ...rest }) => {
@@ -55,6 +55,7 @@ class App extends Component {
                   <Architecture opType={"view"}/>
                 </ProtectedRoute>
                 <ProtectedRoute exact path='/architectures' component={ArchitectureList}/>
+                <ProtectedRoute exact path='/parameters' component={Parameters}/>
                 <Route exact path='/login' component={Login}/>
                 <Route exact path='/' component={Home}/>
                 <Route 

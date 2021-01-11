@@ -4,6 +4,7 @@ import { useState, useEffect, createRef } from 'react';
 import { useHistory } from "react-router-dom";
 import BootstrapTable from 'react-bootstrap-table-next';
 import ToolkitProvider, { Search } from 'react-bootstrap-table2-toolkit';
+import filterFactory, { selectFilter } from 'react-bootstrap-table2-filter';
 import paginationFactory from 'react-bootstrap-table2-paginator';
 import dbApi from '../../assets/js/dbApi';
 import util from '../../assets/js/util';
@@ -21,8 +22,7 @@ const ArchitectureList = () => {
 
     const getArchitectures = () => {
         dbApi.getArchitectures()
-            .then(({data, status}) => {
-                console.log(status)
+            .then(({data}) => {
                 if(data.success) {
                     setArchitecturesList(data.result);
                 }
@@ -82,7 +82,23 @@ const ArchitectureList = () => {
 
     const columns = [{
             dataField: 'id',
-            text: '#'
+            text: '#',
+            formatter: util.reduceUUID,
+            hidden: (!util.inDebugMode())
+        }, {
+            dataField: 'status',
+            text: 'Status',
+            sort: true,
+            formatter: util.getStatusLabel,
+            filter: selectFilter({
+                options: {
+                    'done': 'Done',
+                    'progress': 'In progress',
+                    'help': 'Need help',
+                    'added': 'Just added',
+                    'unknown': 'Unknown'
+                }
+            })
         }, {
             dataField: 'paper',
             text: 'Paper name',
@@ -93,6 +109,11 @@ const ArchitectureList = () => {
             sort: true,
             formatter: reduceDesc
         }, {
+            dataField: 'added_by',
+            text: 'Added by',
+            sort: true,
+            formatter: util.getUser
+        },{
             dataField: 'done_by',
             text: 'Done by',
             sort: true,
@@ -148,6 +169,7 @@ const ArchitectureList = () => {
                         { ...props.baseProps }
                         pagination={ paginationFactory() }
                         rowEvents={ rowEvents }
+                        filter={ filterFactory() }
                         />
                     </div>
                     )

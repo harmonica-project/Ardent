@@ -23,9 +23,7 @@ const Architecture = ({opType}) => {
     const formBtnHandler = id => {
         switch(pageOp) {
             case 'edit':
-                setPageOp('view');
-                setFormBtnLabel('Edit')
-                history.push('/architecture/' + id);
+                saveExistingArchitecture(id);
                 break;
             case 'view': 
                 setPageOp('edit');
@@ -40,21 +38,25 @@ const Architecture = ({opType}) => {
         }
     }
 
-    const saveNewArchitecture = () => {
-        const generatedId = v4();
+    const saveExistingArchitecture = id => {
         const newArchitecture = {
-            id: generatedId,
+            id: id,
             paper: refs.inputPaper.current.value,
             description: refs.inputDesc.current.value,
-            done_by: parseInt(refs.inputDoneBy.current.value)
+            done_by: refs.inputDoneBy.current.value,
+            status: refs.inputStatus.current.value
         }
 
-        dbApi.saveArchitecture(newArchitecture)
+        dbApi.saveExistingArchitecture(newArchitecture)
             .then(({data}) => {
                 if(data.success) {
-                    history.push('/architecture/' + generatedId + '/edit');
-                    setArchitecture(newArchitecture);
-                    setPageOp('edit');
+                    setPageOp('view');
+                    setFormBtnLabel('Edit')
+                    history.push('/architecture/' + id);
+                    setArchitecture({
+                        ...architecture,
+                        ...newArchitecture
+                    });
                 }
             })
             .catch(error => {
@@ -62,11 +64,37 @@ const Architecture = ({opType}) => {
             })
     }
 
+    const saveNewArchitecture = () => {
+        const generatedId = v4();
+        const newArchitecture = {
+            id: generatedId,
+            paper: refs.inputPaper.current.value,
+            description: refs.inputDesc.current.value,
+            added_by: localStorage.getItem("currentUser"),
+            done_by: localStorage.getItem("currentUser")
+        }
+
+        dbApi.saveNewArchitecture(newArchitecture)
+            .then(({data}) => {
+                if(data.success) {
+                    history.push('/architecture/' + generatedId + '/edit');
+                    setArchitecture({
+                        ...newArchitecture,
+                        status: 'added'
+                    });
+                    setPageOp('edit');
+                }
+            })
+            .catch(error => {
+                console.log(error)
+                if(error.response.status === 401) util.loginFailedHandler(history);
+            })
+    }
+
     const deleteArchitectureBtnHandler = architectureId => {
         if(window.confirm("Deletion of architecture " + architectureId + " is definitive. Confirm?")) {
             dbApi.deleteArchitecture(architectureId)
-            .then(response => response.json())
-            .then(data => {
+            .then(({data}) => {
                 if(data.success) {
                     history.push('/architectures');
                 }
@@ -117,7 +145,7 @@ const Architecture = ({opType}) => {
             return architecture.components.map((c, i) => {
                 return(
                     <tr key={"comp_" + i}>
-                        <td style={{cursor:"pointer"}} onClick={() => history.push("/architecture/" + aid + "/component/" + c.id)}>{c.id}</td>
+                        <td hidden={!util.inDebugMode()} style={{cursor:"pointer"}} onClick={() => history.push("/architecture/" + aid + "/component/" + c.id)}>{util.reduceUUID(c.id)}</td>
                         <td style={{cursor:"pointer"}} onClick={() => history.push("/architecture/" + aid + "/component/" + c.id)}>{c.name}</td>
                         <td hidden={pageOp === 'view' ? true : false}>
                             <Button variant="secondary" size="sm" onClick={() => history.push("/architecture/" + aid + "/component/" + c.id + "/edit")}><FaPen/></Button>&nbsp;
@@ -166,39 +194,60 @@ const Architecture = ({opType}) => {
 
         return (
             <Form onChange={formUpdateHandler.bind(this)}>
-                <h1>{pageOp === 'new' ? 'Create an architecture' : 'Architecture #' + architecture.id}</h1>
-                {pageOp === 'new' ? '' : <p className="lead">By {util.getUser(architecture.done_by)}</p>}
+                <h1>{pageOp === 'new' ? 'Create an architecture' : 'Architecture #' + util.reduceUUID(architecture.id)}<div hidden={pageOp === 'new'} className="float-right">{util.getStatusLabel(architecture.status)}</div></h1>
+                {pageOp === 'new' ? '' : <p className="lead">Added by <i>{util.getUser(architecture.added_by)}</i>, done by <i>{util.getUser(architecture.done_by)}</i>.</p>}
                 <hr/>
                 <Form.Group controlId="formArchitecturePaper">
                     <Form.Label>Associated paper</Form.Label>
-                    <Form.Control ref={refs.inputPaper} type="text" placeholder="Unknown" defaultValue={pageOp === 'new' ? '' : architecture.paper} disabled={pageOp === 'view' ? true : false}/>
+                    <Form.Control ref={refs.inputPaper} type="text" placeholder="Unknown" defaultValue={pageOp === 'new' ? '' : architecture.paper} disabled={pageOp === 'view'}/>
                 </Form.Group>
                 <Form.Group controlId="formArchitectureDesc">
                     <Form.Label>Architecture description</Form.Label>
-                    <Form.Control ref={refs.inputDesc} as="textarea" rows="5" placeholder="Unknown" defaultValue={pageOp === 'new' ? '' : architecture.description} disabled={pageOp === 'view' ? true : false}/>
+                    <Form.Control ref={refs.inputDesc} as="textarea" rows="5" placeholder="Unknown" defaultValue={pageOp === 'new' ? '' : architecture.description} disabled={pageOp === 'view'}/>
                 </Form.Group>
-                <Form.Label>Writer</Form.Label>
-                <Form.Group controlId="formArchitectureDoneBy">
-                    <Form.Control ref={refs.inputDoneBy} as="select" disabled={pageOp === 'view' ? true : false} defaultValue={pageOp === 'new' ? user : architecture.done_by}>
-                        <option value={""}>Anonymous</option>
-                        <option value={"six"}>Nicolas Six</option>
-                        <option value={"herbaut"}>Nicolas Herbaut</option>
-                        <option value={"negri"}>Claudia Negri Ribalta</option>
-                    </Form.Control>
-                </Form.Group>
-                <p>Components</p>
-                <Table striped bordered hover size="sm">
-                    <thead>
-                        <tr>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th hidden={pageOp === 'view'}></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        { getComponentArray(architecture) }
-                    </tbody>
-                </Table>
+                <div hidden={pageOp === 'new'}>
+                    <Form.Label>Added by</Form.Label>
+                    <Form.Group controlId="formArchitectureAddedBy">
+                        <Form.Control ref={refs.inputAddedBy} as="select" disabled={true} defaultValue={architecture.added_by}>
+                            <option value={""}>Anonymous</option>
+                            <option value={"six"}>Nicolas Six</option>
+                            <option value={"herbaut"}>Nicolas Herbaut</option>
+                            <option value={"negri"}>Claudia Negri Ribalta</option>
+                        </Form.Control>
+                    </Form.Group>
+                    <Form.Label>Done by</Form.Label>
+                    <Form.Group controlId="formArchitectureDoneBy">
+                        <Form.Control ref={refs.inputDoneBy} as="select" disabled={pageOp === 'view' ? true : false} defaultValue={architecture.done_by}>
+                            <option value={""}>Anonymous</option>
+                            <option value={"six"}>Nicolas Six</option>
+                            <option value={"herbaut"}>Nicolas Herbaut</option>
+                            <option value={"negri"}>Claudia Negri Ribalta</option>
+                        </Form.Control>
+                    </Form.Group>
+                    <Form.Label>Status</Form.Label>
+                    <Form.Group controlId="formArchitectureStatus">
+                        <Form.Control ref={refs.inputStatus} as="select" disabled={pageOp === 'view' ? true : false} defaultValue={architecture.status}>
+                            <option value={"done"}>Done</option>
+                            <option value={"progress"}>In progress</option>
+                            <option value={"added"}>Just added</option>
+                            <option value={"help"}>Need help</option>
+                            <option value={""}>Unknown</option>
+                        </Form.Control>
+                    </Form.Group>
+                    <p>Components</p>
+                    <Table striped bordered hover size="sm">
+                        <thead>
+                            <tr>
+                            <th hidden={!util.inDebugMode()}>#</th>
+                            <th>Name</th>
+                            <th hidden={pageOp === 'view'}></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            { getComponentArray(architecture) }
+                        </tbody>
+                    </Table>
+                </div>
                 <Button style={{marginRight: '5px'}} variant="secondary" onClick={() => history.push("/architectures/")}>Return</Button>
                 <Button style={{marginRight: '5px'}} onClick={formBtnHandler.bind(this, architecture.id)}>{formBtnLabel}</Button>
                 <Button style={{marginRight: '5px'}} variant="success" onClick={() => history.push("/architecture/" + aid + "/component/new")} hidden={pageOp !== 'edit'}>Add component</Button>
@@ -231,7 +280,9 @@ const Architecture = ({opType}) => {
     const refs = {
         inputDesc: createRef(),
         inputPaper: createRef(),
-        inputDoneBy: createRef()
+        inputDoneBy: createRef(),
+        inputAddedBy: createRef(),
+        inputStatus: createRef()
     }
 
     useEffect(() => {

@@ -42,6 +42,7 @@ const NavbarComponent = () => {
             <Navbar.Collapse id="basic-navbar-nav">
                 <Nav.Link href="/">Home</Nav.Link>
                 <Nav.Link href="/architectures">Architectures</Nav.Link>
+                <Nav.Link href="/parameters">Parameters</Nav.Link>
             </Navbar.Collapse>
             { getAuthPart() }
         </Navbar>

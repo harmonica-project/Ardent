@@ -113,13 +113,14 @@ const ArchitecturalComponent = ({opType}) => {
             if (util.JSONEmpty(architecturalComponent)) {
                 return architecturalComponentNotFoundContainer()                   
             }
+            if(!loaded.architecturalComponent) return (<div/>)
         }
 
         return (
             <div>
                 <Form>
-                    <h1>{pageOp === 'new' ? 'Create a component' : 'Component #' + architecturalComponent.id}</h1>
-                    <p className="lead">In architecture #{aid}</p>
+                    <h1>{pageOp === 'new' ? 'Create a component' : 'Component #' + util.reduceUUID(architecturalComponent.id)}</h1>
+                    <p className="lead">In architecture #{util.reduceUUID(aid)}</p>
                     <hr/><p>Component name</p>
                     <Form inline>
                         <Button onClick={handleComponentNameAsInput} style={{marginRight: "5px"}} hidden={pageOp === 'view'}>{componentNameAsInput ? "Click to use existing component name" : "Click to add a new component name"}</Button>
@@ -279,7 +280,7 @@ const ArchitecturalComponent = ({opType}) => {
                 <Table striped bordered hover size="sm">
                     <thead>
                         <tr>
-                        <th>#</th>
+                        <th hidden={!util.inDebugMode()}>#</th>
                         <th>Key</th>
                         <th>Value</th>
                         <th hidden={pageOp === 'view' ? true : false}></th>
@@ -289,7 +290,7 @@ const ArchitecturalComponent = ({opType}) => {
                         {architecturalComponent["properties"].map((p, i) => {
                             return (
                                 <tr key={"prop_" + i}>
-                                    <td>{p.id}</td>
+                                    <td hidden={!util.inDebugMode()}>{util.reduceUUID(p.id)}</td>
                                     <td>{p.key}</td>
                                     <td>{p.value}</td>
                                     <td hidden={pageOp === 'view' ? true : false}>
@@ -323,7 +324,7 @@ const ArchitecturalComponent = ({opType}) => {
                 <Table striped bordered hover size="sm">
                     <thead>
                         <tr>
-                        <th>#</th>
+                        <th hidden={!util.inDebugMode()}>#</th>
                         <th>Component 1</th>
                         <th>Component 2</th>
                         <th hidden={pageOp === 'view' ? true : false}></th>
@@ -333,7 +334,7 @@ const ArchitecturalComponent = ({opType}) => {
                         {architecturalComponent["connections"].map((c, i) => {
                             return (
                                 <tr key={"prop_" + i}>
-                                    <td>{c.id}</td>
+                                    <td hidden={!util.inDebugMode()}>{util.reduceUUID(c.id)}</td>
                                     <td>{getComponentName(c.first_component)}</td>
                                     <td>{getComponentName(c.second_component)}</td>
                                     <td hidden={pageOp === 'view' ? true : false}>
@@ -438,6 +439,9 @@ const ArchitecturalComponent = ({opType}) => {
     const [propertiesValues, setPropertiesValues] = useState([])
     const [componentNameAsInput, setComponentNameAsInput] = useState(false)
     const [hiddenValueField, setHiddenValueField] = useState(true);
+    const [loaded, setLoaded] = useState({
+        architecturalComponent: false
+    })
     const refs = {
         inputSelectName: createRef(),
         inputTextName: createRef(),
@@ -454,6 +458,10 @@ const ArchitecturalComponent = ({opType}) => {
                     if(data.success) {
                         setArchitecturalComponent(data.result);
                         updateAvailableProperties(data.result.name);
+                        setLoaded({
+                            ...loaded,
+                            architecturalComponent: true
+                        })
                     }
                 })
                 .catch(error => {
