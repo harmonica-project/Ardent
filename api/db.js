@@ -154,7 +154,7 @@ module.exports = {
         try {
             const foundArchitecture = await client.query("SELECT * FROM architectures WHERE id = $1 OR paper = $2", [architecture.id, architecture.paper]);
             if(foundArchitecture["rows"].length === 0) {
-                await client.query("INSERT INTO architectures VALUES ($1, $2, $3, $4)", [architecture.id, architecture.paper, architecture.description, architecture.done_by])
+                await client.query("INSERT INTO architectures VALUES ($1, $2, $3, $4, $5, 'added')", [architecture.id, architecture.paper, architecture.description, architecture.done_by, architecture.added_by])
                 return {success: true}
             }
             else {
@@ -251,6 +251,19 @@ module.exports = {
     modifyComponent: async component => {
         try {
             await client.query("UPDATE components SET (name, architecture_id, description) = ($1, $2, $3) WHERE id = $4", [component.name, component.architectureId, component.description, component.id])
+            return {success: true};
+        }
+        catch(err) {
+            console.log('error: ' + err)
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
+    modifyArchitecture: async architecture => {
+        try {
+            await client.query("UPDATE architectures SET (paper, description, done_by, status) = ($1, $2, $3, $4) WHERE id = $5", [architecture.paper, architecture.description, architecture.done_by, architecture.status, architecture.id])
             return {success: true};
         }
         catch(err) {
