@@ -96,6 +96,13 @@ app.get('/architectures', authorizedOnly, (req, res) => {
     })
 });
 
+app.get('/papers', authorizedOnly, (req, res) => {
+    db.getPapers().then(parsedResult => {
+        if(parsedResult.success) res.status(200).send(parsedResult);
+        else res.status(500).send(parsedResult);
+    })
+});
+
 app.post('/architecture', authorizedOnly, (req, res) => {
     const newArchitecture = req.body;
     if(newArchitecture.paper && newArchitecture.added_by && newArchitecture.done_by) {

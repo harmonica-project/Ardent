@@ -1,0 +1,84 @@
+import React from 'react';
+import PropTypes from 'prop-types';
+import clsx from 'clsx';
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  TextField,
+  makeStyles
+} from '@material-ui/core';
+import { Autocomplete } from '@material-ui/lab';
+
+const useStyles = makeStyles((theme) => ({
+  root: {},
+  importButton: {
+    marginRight: theme.spacing(1)
+  }
+}));
+
+const Toolbar = ({
+  setTitleFilter, papers, className, ...rest
+}) => {
+  const [inputValue, setInputValue] = React.useState('');
+  const classes = useStyles();
+  const options = papers.map((option) => {
+    const firstLetter = option.name[0].toUpperCase();
+    return {
+      firstLetter: /[0-9]/.test(firstLetter) ? '0-9' : firstLetter,
+      ...option
+    };
+  });
+
+  return (
+    <div
+      className={clsx(classes.root, className)}
+      {...rest}
+    >
+      <Box
+        display="flex"
+        justifyContent="flex-end"
+      >
+        <Button className={classes.importButton}>
+          Import papers from Parsif.al
+        </Button>
+        <Button
+          color="primary"
+          variant="contained"
+        >
+          Add paper
+        </Button>
+      </Box>
+      <Box mt={3}>
+        <Card>
+          <CardContent>
+            <Box>
+              <Autocomplete
+                id="papers"
+                options={options.sort((a, b) => -b.firstLetter.localeCompare(a.firstLetter))}
+                groupBy={(option) => option.firstLetter}
+                getOptionLabel={(option) => option.name}
+                style={{ width: '100%' }}
+                renderInput={(params) => <TextField {...params} label="Search paper" variant="outlined" />}
+                inputValue={inputValue}
+                onInputChange={(event, newInputValue) => {
+                  setInputValue(newInputValue);
+                  setTitleFilter(newInputValue);
+                }}
+              />
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
+    </div>
+  );
+};
+
+Toolbar.propTypes = {
+  className: PropTypes.string,
+  papers: PropTypes.array.isRequired,
+  setTitleFilter: PropTypes.func.isRequired
+};
+
+export default Toolbar;

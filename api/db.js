@@ -26,6 +26,40 @@ module.exports = {
             return err;
         }
     },
+    getPapers: async () => {
+        try {
+            var queryResult = await client.query(
+                `SELECT papers.*, array_agg(architectures.id || ';' || architectures.name || ';' || architectures.description) architectures 
+                FROM papers 
+                INNER JOIN architectures on papers.id = architectures.paper_id 
+                GROUP BY papers.id`
+            );
+
+            var results = queryResult["rows"];
+
+            for(var i = 0; i < results.length; i++) {
+                for(var j = 0; j < results[i].architectures.length; j++) {
+                    var content = results[i].architectures[j].split(';');
+                    results[i].architectures[j] = {
+                        id: content[0],
+                        name: content[1],
+                        description: content[2]
+                    }
+                }
+            }
+
+            return {
+                success: true,
+                result: results
+            };
+        }
+        catch(err) {
+            return {
+                success: false,
+                errorMsg: 'Request failed: ' + err 
+            };
+        }
+    },
     getComponents: async () => {
         try {
             return await client.query("SELECT * FROM components");
