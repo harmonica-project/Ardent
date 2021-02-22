@@ -12,7 +12,7 @@ const App = () => {
 
   // TEMP
   localStorage.setItem('username', 'six');
-  localStorage.getItem('password', 'six');
+  localStorage.setItem('password', 'six');
   return (
     <ThemeProvider theme={theme}>
       <GlobalStyles />

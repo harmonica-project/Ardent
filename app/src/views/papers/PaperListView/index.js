@@ -8,6 +8,7 @@ import Page from 'src/components/Page';
 import Results from './Results';
 import Toolbar from './Toolbar';
 import APIRequestMethods from '../../../utils/APIRequest';
+import PaperModal from './PaperModal';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -23,6 +24,8 @@ const PapersListView = () => {
   const [papers, setPapers] = useState([]);
   const [displayedPapers, setDisplayedPapers] = useState([]);
   const [titleFilter, setTitleFilter] = useState('');
+  const [openModal, setOpenModal] = React.useState(false);
+
   const fillDisplayedPapers = () => {
     if (!titleFilter.length) setDisplayedPapers(papers);
     else {
@@ -37,6 +40,12 @@ const PapersListView = () => {
       setDisplayedPapers(newDisplayedPapers);
     }
   };
+
+  const actionHandler = (actionType, id) => {
+    console.log(actionType, id);
+    setOpenModal(true);
+  };
+
   const getPapers = () => {
     APIRequestMethods.getPapers()
       .then(({ data }) => {
@@ -68,9 +77,10 @@ const PapersListView = () => {
       <Container maxWidth={false}>
         <Toolbar setTitleFilter={setTitleFilter} papers={papers} />
         <Box mt={3}>
-          <Results papers={displayedPapers} />
+          <Results papers={displayedPapers} actionHandler={actionHandler} />
         </Box>
       </Container>
+      <PaperModal open={openModal} setOpen={setOpenModal} />
     </Page>
   );
 };

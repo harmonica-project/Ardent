@@ -100,8 +100,7 @@ const useRowStyles = makeStyles({
   },
 });
 
-function Row(props) {
-  const { row } = props;
+function Row({ row, actionHandler }) {
   const [open, setOpen] = React.useState(false);
   const classes = useRowStyles();
 
@@ -122,7 +121,7 @@ function Row(props) {
         <TableCell align="center">{parseUserKey(row.added_by)}</TableCell>
         <TableCell align="center">{parseUserKey(row.updated_by)}</TableCell>
         <TableCell align="center"><DisplayStatus status={row.status} /></TableCell>
-        <TableCell align="center"><TableActionCell viewAction={console.log} editAction={console.log} deleteAction={console.log} /></TableCell>
+        <TableCell align="center"><TableActionCell id={row.id} actionHandler={actionHandler} /></TableCell>
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={11}>
@@ -175,9 +174,10 @@ Row.propTypes = {
       }),
     ).isRequired
   }).isRequired,
+  actionHandler: PropTypes.func.isRequired
 };
 
-export default function Results({ papers }) {
+export default function Results({ papers, actionHandler }) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
@@ -215,7 +215,7 @@ export default function Results({ papers }) {
             ? papers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             : papers
           ).map((row) => (
-            <Row key={row.name} row={row} />
+            <Row key={row.name} row={row} actionHandler={actionHandler} />
           ))}
         </TableBody>
         <TableFooter>
@@ -242,5 +242,6 @@ export default function Results({ papers }) {
 }
 
 Results.propTypes = {
-  papers: PropTypes.array.isRequired
+  papers: PropTypes.array.isRequired,
+  actionHandler: PropTypes.func.isRequired
 };
