@@ -1,6 +1,23 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import Modal from '@material-ui/core/Modal';
+import {
+  FormControl,
+  TextField,
+  Box,
+  Typography,
+  Select,
+  MenuItem,
+  FormHelperText,
+  InputLabel,
+  Grid,
+  Button,
+  Modal
+} from '@material-ui/core/';
+import {
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  Visibility as VisibilityIcon
+} from '@material-ui/icons/';
 import PropTypes from 'prop-types';
 
 function getModalStyle() {
@@ -15,38 +32,296 @@ function getModalStyle() {
 }
 
 const useStyles = makeStyles((theme) => ({
-  paper: {
+  body: {
     position: 'absolute',
-    width: 400,
+    width: '80%',
     backgroundColor: theme.palette.background.paper,
-    border: '2px solid #000',
     boxShadow: theme.shadows[5],
-    padding: theme.spacing(2, 4, 3),
+    padding: theme.spacing(2, 4, 3)
+  },
+  form: {
+    display: 'flex',
+    flexWrap: 'wrap'
+  },
+  headerButton: {
+    margin: theme.spacing(1),
   },
 }));
 
-export default function PaperModal({ open, setOpen }) {
+export default function PaperModal({ modalProps, setModalProps, actionModalHandler }) {
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
   const [modalStyle] = React.useState(getModalStyle);
 
   const handleClose = () => {
-    setOpen(false);
+    setModalProps({
+      ...modalProps,
+      open: false
+    });
+  };
+
+  const handleSwitchClick = () => {
+    if (modalProps.actionType === 'new') return;
+    if (modalProps.actionType === 'edit') {
+      setModalProps({
+        ...modalProps,
+        actionType: 'view'
+      });
+    } else if (modalProps.actionType === 'view') {
+      setModalProps({
+        ...modalProps,
+        actionType: 'edit'
+      });
+    }
+  };
+
+  const getModalHeader = () => {
+    if (modalProps.actionType === 'new') {
+      return (
+        <Typography variant="h2" component="h2" gutterBottom>
+          {modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)}
+        </Typography>
+      );
+    }
+
+    return (
+      <Box display="flex" className={classes.boxMargin}>
+        <Box width="100%">
+          <Typography variant="h2" component="h2" gutterBottom>
+            {modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)}
+          </Typography>
+        </Box>
+        <Box flexShrink={0} className={classes.boxMargin}>
+          <Button
+            variant="contained"
+            style={{ backgroundColor: '#f50057', color: 'white' }}
+            className={classes.headerButton}
+            startIcon={<DeleteIcon />}
+            onClick={() => actionModalHandler('delete')}
+          >
+            Delete
+          </Button>
+          <Button
+            color="primary"
+            variant="contained"
+            hidden={modalProps.actionType === 'new'}
+            startIcon={modalProps.actionType === 'edit' ? <EditIcon /> : <VisibilityIcon />}
+            className={classes.headerButton}
+            onClick={() => handleSwitchClick()}
+          >
+            {modalProps.actionType === 'edit' ? 'Switch to view' : 'Switch to edit'}
+          </Button>
+        </Box>
+      </Box>
+    );
+  };
+
+  const displayPaperSubtitle = () => {
+    if (modalProps.actionType !== 'new') {
+      return (
+        <Typography variant="subtitle1" gutterBottom>
+          <i>
+            &rdquo;
+            {modalProps.paper.name}
+            &rdquo;
+          </i>
+        </Typography>
+      );
+    }
+    return (<span />);
+  };
+
+  const setPaperTypeDefault = () => {
+    const definedValues = ['inproceedings', 'article', 'book'];
+
+    if (modalProps.actionType === 'new') return '';
+    if (definedValues.includes(modalProps.paper.paper_type)) return modalProps.paper.paper_type;
+    return 'other';
   };
 
   const body = (
-    <div style={modalStyle} className={classes.paper}>
-      <h2 id="simple-modal-title">Text in a modal</h2>
-      <p id="simple-modal-description">
-        Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
-      </p>
-    </div>
+    <Box style={modalStyle} className={classes.body}>
+      <Typography variant="h2" component="h2" gutterBottom>
+        {getModalHeader()}
+      </Typography>
+      {displayPaperSubtitle()}
+      <form noValidate className={classes.form}>
+        <Grid container spacing={4}>
+          <Grid container item xs={6}>
+            <Grid container item xs={4}>
+              <FormControl className={classes.formControl} style={{ width: '100%' }} margin="normal">
+                <InputLabel shrink id="added-by-select-label" disabled={modalProps.actionType === 'view'}>
+                  Added by
+                </InputLabel>
+                <Select
+                  labelId="added-by-select-label"
+                  id="added-by-select"
+                  disabled
+                  defaultValue={modalProps.actionType === 'new' ? localStorage.getItem('username') : modalProps.paper.added_by}
+                  className={classes.selectEmpty}
+                >
+                  <MenuItem value="six">Nicolas Six</MenuItem>
+                  <MenuItem value="negri">Claudia Negri Ribalta</MenuItem>
+                  <MenuItem value="herbaut">Nicolas Herbaut</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid container item xs={4}>
+              <FormControl className={classes.formControl} style={{ width: '100%' }} margin="normal">
+                <InputLabel shrink id="updated-by-select-label" disabled={modalProps.actionType === 'view'}>
+                  Updated by
+                </InputLabel>
+                <Select
+                  labelId="updated-by-select-label"
+                  id="updated-by-select"
+                  disabled={modalProps.actionType === 'view'}
+                  defaultValue={modalProps.actionType === 'new' ? localStorage.getItem('username') : modalProps.paper.updated_by}
+                  className={classes.selectEmpty}
+                >
+                  <MenuItem value="six">Nicolas Six</MenuItem>
+                  <MenuItem value="negri">Claudia Negri Ribalta</MenuItem>
+                  <MenuItem value="herbaut">Nicolas Herbaut</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid container item xs={4}>
+              <FormControl className={classes.formControl} style={{ width: '100%' }} margin="normal">
+                <InputLabel shrink id="status-select-label" disabled={modalProps.actionType === 'view'}>
+                  Status
+                </InputLabel>
+                <Select
+                  labelId="status-select-label"
+                  id="status-select"
+                  disabled={modalProps.actionType === 'view'}
+                  defaultValue={modalProps.actionType === 'new' ? 0 : modalProps.paper.status}
+                  className={classes.selectEmpty}
+                >
+                  <MenuItem value={0}>Just added</MenuItem>
+                  <MenuItem value={1}>In progress</MenuItem>
+                  <MenuItem value={2}>Done</MenuItem>
+                  <MenuItem value={3}>Need help</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid>
+              <TextField
+                id="name-field"
+                label="Paper name"
+                placeholder="Enter paper name"
+                fullWidth
+                margin="normal"
+                multiline
+                disabled={modalProps.actionType === 'view'}
+                defaultValue={modalProps.actionType === 'new' ? '' : modalProps.paper.name}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+              <TextField
+                id="doi-field"
+                label="DOI"
+                placeholder="Enter DOI"
+                fullWidth
+                margin="normal"
+                disabled={modalProps.actionType === 'view'}
+                defaultValue={modalProps.actionType === 'new' ? '' : modalProps.paper.doi}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+              <TextField
+                id="authors-field"
+                label="Authors"
+                placeholder="Enter authors"
+                fullWidth
+                margin="normal"
+                disabled={modalProps.actionType === 'view'}
+                defaultValue={modalProps.actionType === 'new' ? '' : modalProps.paper.authors}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+              <FormControl className={classes.formControl} style={{ width: '100%' }} margin="normal">
+                <InputLabel shrink id="paper-type-select-label" disabled={modalProps.actionType === 'view'}>
+                  Paper type
+                </InputLabel>
+                <Select
+                  labelId="paper-type-select-label"
+                  id="paper-type-select"
+                  disabled={modalProps.actionType === 'view'}
+                  defaultValue={setPaperTypeDefault()}
+                  className={classes.selectEmpty}
+                >
+                  <MenuItem value="other">
+                    <em>Other</em>
+                  </MenuItem>
+                  <MenuItem value="article">Journal article</MenuItem>
+                  <MenuItem value="book">Book</MenuItem>
+                  <MenuItem value="inproceedings">Conference paper</MenuItem>
+                </Select>
+                <FormHelperText disabled={modalProps.actionType === 'view'}>
+                  Select
+                  <i>
+                    &nbsp;
+                    Other
+                    &nbsp;
+                  </i>
+                  if your type is not present.
+                </FormHelperText>
+              </FormControl>
+              <TextField
+                id="journal-field"
+                label="Journal (id. the support where the publication were made)"
+                placeholder="Enter journal"
+                fullWidth
+                margin="normal"
+                disabled={modalProps.actionType === 'view'}
+                defaultValue={modalProps.actionType === 'new' ? '' : modalProps.paper.journal}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+            </Grid>
+          </Grid>
+          <Grid container item xs={6}>
+            <TextField
+              id="abstract-field"
+              label="Abstract"
+              placeholder="Enter paper abstract"
+              fullWidth
+              margin="normal"
+              multiline
+              rows={11}
+              disabled={modalProps.actionType === 'view'}
+              defaultValue={modalProps.actionType === 'new' ? '' : modalProps.paper.abstract}
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+            <TextField
+              id="comments-field"
+              label="Comments"
+              placeholder="Enter optional comments"
+              fullWidth
+              margin="normal"
+              multiline
+              rows={8}
+              disabled={modalProps.actionType === 'view'}
+              defaultValue={modalProps.actionType === 'new' ? '' : modalProps.paper.comments}
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+          </Grid>
+        </Grid>
+      </form>
+    </Box>
   );
 
   return (
     <div>
       <Modal
-        open={open}
+        open={modalProps.open}
         onClose={handleClose}
         aria-labelledby="simple-modal-title"
         aria-describedby="simple-modal-description"
@@ -58,6 +333,30 @@ export default function PaperModal({ open, setOpen }) {
 }
 
 PaperModal.propTypes = {
-  open: PropTypes.bool.isRequired,
-  setOpen: PropTypes.func.isRequired
+  modalProps: PropTypes.shape({
+    open: PropTypes.bool.isRequired,
+    paper: PropTypes.shape({
+      id: PropTypes.string,
+      doi: PropTypes.string,
+      name: PropTypes.string,
+      authors: PropTypes.string,
+      abstract: PropTypes.string,
+      journal: PropTypes.string,
+      paper_type: PropTypes.string,
+      added_by: PropTypes.string,
+      updated_by: PropTypes.string,
+      status: PropTypes.number,
+      comments: PropTypes.string,
+      architectures: PropTypes.arrayOf(
+        PropTypes.shape({
+          id: PropTypes.string.isRequired,
+          name: PropTypes.string.isRequired,
+          description: PropTypes.string.isRequired,
+        }),
+      )
+    }),
+    actionType: PropTypes.string.isRequired
+  }).isRequired,
+  setModalProps: PropTypes.func.isRequired,
+  actionModalHandler: PropTypes.func.isRequired
 };

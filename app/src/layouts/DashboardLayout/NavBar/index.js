@@ -15,7 +15,8 @@ import {
   BarChart as BarChartIcon,
   Settings as SettingsIcon,
   Paperclip as PaperclipIcon,
-  Cpu as CpuIcon
+  Cpu as CpuIcon,
+  LogOut as LogOutIcon
 } from 'react-feather';
 import NavItem from './NavItem';
 
@@ -45,6 +46,11 @@ const items = [
     href: '/app/settings',
     icon: SettingsIcon,
     title: 'Settings'
+  },
+  {
+    href: '/login',
+    icon: LogOutIcon,
+    title: 'Logout'
   }
 ];
 

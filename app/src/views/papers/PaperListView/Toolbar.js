@@ -19,7 +19,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const Toolbar = ({
-  setTitleFilter, papers, className, ...rest
+  setTitleFilter, actionHandler, papers, className, ...rest
 }) => {
   const [inputValue, setInputValue] = React.useState('');
   const classes = useStyles();
@@ -46,6 +46,7 @@ const Toolbar = ({
         <Button
           color="primary"
           variant="contained"
+          onClick={() => actionHandler('new', null)}
         >
           Add paper
         </Button>
@@ -78,7 +79,8 @@ const Toolbar = ({
 Toolbar.propTypes = {
   className: PropTypes.string,
   papers: PropTypes.array.isRequired,
-  setTitleFilter: PropTypes.func.isRequired
+  setTitleFilter: PropTypes.func.isRequired,
+  actionHandler: PropTypes.func.isRequired
 };
 
 export default Toolbar;

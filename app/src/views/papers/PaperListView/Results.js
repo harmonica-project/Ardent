@@ -12,6 +12,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import TablePagination from '@material-ui/core/TablePagination';
 import TableFooter from '@material-ui/core/TableFooter';
+import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
@@ -20,6 +21,7 @@ import LastPageIcon from '@material-ui/icons/LastPage';
 import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import parseUserKey from '../../../utils/parseUserKey';
+import parsePaperType from '../../../utils/parsePaperType';
 import reduceLongText from '../../../utils/reduceLongText';
 import SubToolbar from './SubToolbar';
 import DisplayStatus from '../../../components/DisplayStatus';
@@ -104,6 +106,35 @@ function Row({ row, actionHandler }) {
   const [open, setOpen] = React.useState(false);
   const classes = useRowStyles();
 
+  const displayArchitecturesTable = () => {
+    return (
+      <Table size="small" aria-label="purchases">
+        <TableHead>
+          <TableRow>
+            <TableCell align="center">Name</TableCell>
+            <TableCell>Description</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {row.architectures.map((architectureRow) => (
+            <TableRow key={architectureRow.id}>
+              <TableCell align="center">{architectureRow.name}</TableCell>
+              <TableCell>{reduceLongText(architectureRow.description, 100)}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    );
+  };
+
+  const displayNoArchitecture = () => {
+    return (
+      <Typography variant="h6" color="textSecondary" gutterBottom component="div">
+        No architecture yet.
+      </Typography>
+    );
+  };
+
   return (
     <>
       <TableRow className={classes.root} key={row.id}>
@@ -117,7 +148,7 @@ function Row({ row, actionHandler }) {
         <TableCell>{reduceLongText(row.abstract, 100)}</TableCell>
         <TableCell align="center">{row.authors}</TableCell>
         <TableCell>{row.journal}</TableCell>
-        <TableCell align="center">{row.paper_type}</TableCell>
+        <TableCell align="center">{parsePaperType(row.paper_type)}</TableCell>
         <TableCell align="center">{parseUserKey(row.added_by)}</TableCell>
         <TableCell align="center">{parseUserKey(row.updated_by)}</TableCell>
         <TableCell align="center"><DisplayStatus status={row.status} /></TableCell>
@@ -129,22 +160,7 @@ function Row({ row, actionHandler }) {
             <Box style={{ padding: 20 }}>
               <Paper style={{ padding: 20 }}>
                 <SubToolbar />
-                <Table size="small" aria-label="purchases">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell align="center">Name</TableCell>
-                      <TableCell>Description</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {row.architectures.map((architectureRow) => (
-                      <TableRow key={architectureRow.id}>
-                        <TableCell align="center">{architectureRow.name}</TableCell>
-                        <TableCell>{reduceLongText(architectureRow.description, 100)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                { row.architectures.length ? displayArchitecturesTable() : displayNoArchitecture() }
               </Paper>
             </Box>
           </Collapse>
@@ -215,7 +231,7 @@ export default function Results({ papers, actionHandler }) {
             ? papers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             : papers
           ).map((row) => (
-            <Row key={row.name} row={row} actionHandler={actionHandler} />
+            <Row key={row.id} row={row} actionHandler={actionHandler} />
           ))}
         </TableBody>
         <TableFooter>

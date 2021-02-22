@@ -32,6 +32,7 @@ const APIRequestMethods = {
   saveNewComponent: (component) => { return axios.post(`${API_URL}/component`, component, getAuthInfo(), { withCredentials: true }); },
   saveExistingComponent: (component) => { return axios.put(`${API_URL}/component/${component.id}`, component, getAuthInfo(), { withCredentials: true }); },
   deleteComponent: (componentId) => { return axios.delete(`${API_URL}/component/${componentId}`, getAuthInfo(), { withCredentials: true }); },
+  deletePaper: (paperId) => { return axios.delete(`${API_URL}/paper/${paperId}`, getAuthInfo(), { withCredentials: true }); },
   getComponent: (componentId) => { return axios.get(`${API_URL}/component/${componentId}`, getAuthInfo(), { withCredentials: true }); },
   uploadXLS: (fileData) => {
     const formData = new FormData();

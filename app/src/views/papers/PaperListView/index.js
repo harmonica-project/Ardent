@@ -24,7 +24,47 @@ const PapersListView = () => {
   const [papers, setPapers] = useState([]);
   const [displayedPapers, setDisplayedPapers] = useState([]);
   const [titleFilter, setTitleFilter] = useState('');
-  const [openModal, setOpenModal] = React.useState(false);
+  const [modalProps, setModalProps] = useState({
+    open: false,
+    paper: {},
+    actionType: ''
+  });
+
+  const removePaperFromState = (paperId) => {
+    let i;
+    const newPapers = [...papers];
+    for (i = 0; i < papers.length; i++) {
+      if (papers[i].id === paperId) {
+        newPapers.splice(i, 1);
+        setPapers(newPapers);
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  const deletePaper = (paperId) => {
+    APIRequestMethods.deletePaper(paperId)
+      .then(({ data }) => {
+        if (data.success) {
+          removePaperFromState(paperId);
+          if (modalProps.open) {
+            setModalProps({
+              open: false,
+              paper: {},
+              actionType: ''
+            });
+          }
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        // TODO
+        console.log(titleFilter);
+        if (error.response.status === 401) console.log('unauthorized');
+      });
+  };
 
   const fillDisplayedPapers = () => {
     if (!titleFilter.length) setDisplayedPapers(papers);
@@ -41,9 +81,61 @@ const PapersListView = () => {
     }
   };
 
-  const actionHandler = (actionType, id) => {
-    console.log(actionType, id);
-    setOpenModal(true);
+  const findPaper = (paperId) => {
+    let i;
+    for (i = 0; i < papers.length; i++) {
+      if (papers[i].id === paperId) return papers[i];
+    }
+
+    return false;
+  };
+
+  const actionHandler = (actionType, paperId) => {
+    let paper;
+    if (paperId) paper = findPaper(paperId);
+
+    switch (actionType) {
+      case 'new':
+        setModalProps({
+          open: true,
+          actionType,
+          paper: {}
+        });
+        break;
+      case 'edit':
+      case 'view':
+        if (paper) {
+          setModalProps({
+            open: true,
+            actionType,
+            paper
+          });
+        }
+        break;
+
+      case 'delete':
+        // Can be replaced with a prettier modal later.
+        if (window.confirm('Paper deletion is irreversible. Associated architectures, components, and properties will also be deleted. Proceed?')) deletePaper(paperId);
+        break;
+
+      default:
+        console.error('No action were provided to the handler.');
+    }
+  };
+
+  const actionModalHandler = (actionType, newPaper) => {
+    console.log(newPaper);
+    console.log(modalProps);
+    console.log(actionType);
+
+    switch (actionType) {
+      case 'delete':
+        if (window.confirm('Paper deletion is irreversible. Associated architectures, components, and properties will also be deleted. Proceed?')) deletePaper(modalProps.paper.id);
+        break;
+
+      default:
+        console.error('No action were provided to the handler.');
+    }
   };
 
   const getPapers = () => {
@@ -75,12 +167,16 @@ const PapersListView = () => {
       title="Papers"
     >
       <Container maxWidth={false}>
-        <Toolbar setTitleFilter={setTitleFilter} papers={papers} />
+        <Toolbar setTitleFilter={setTitleFilter} actionHandler={actionHandler} papers={papers} />
         <Box mt={3}>
           <Results papers={displayedPapers} actionHandler={actionHandler} />
         </Box>
       </Container>
-      <PaperModal open={openModal} setOpen={setOpenModal} />
+      <PaperModal
+        modalProps={modalProps}
+        setModalProps={setModalProps}
+        actionModalHandler={actionModalHandler}
+      />
     </Page>
   );
 };

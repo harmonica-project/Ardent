@@ -9,7 +9,7 @@ const TableActionCell = ({
   actionHandler, id
 }) => {
   return (
-    <Box style={{ cursor: 'select' }}>
+    <Box style={{ cursor: 'pointer' }}>
       <VisibilityIcon onClick={() => actionHandler('view', id)} />
       <CreateIcon onClick={() => actionHandler('edit', id)} />
       <HighlightOffIcon onClick={() => actionHandler('delete', id)} />
