@@ -119,6 +119,22 @@ app.post('/architecture', authorizedOnly, (req, res) => {
     }
 });
 
+app.post('/paper', authorizedOnly, (req, res) => {
+    const newPaper = req.body;
+    if(newPaper.name && newPaper.authors && newPaper.added_by && newPaper.updated_by) {
+        db.storePaper(newPaper).then((parsedResult) => {
+            if(parsedResult.success) res.status(200).send(parsedResult);
+            else res.status(500).send(parsedResult);
+        })
+    }
+    else {
+        res.status(500).send({
+            success: false,
+            errorMsg: "Missing fields."
+        })
+    }
+});
+
 app.post('/property', authorizedOnly, (req, res) => {
     db.storeProperty(req.body).then((parsedResult) => {
         if(parsedResult.success) res.status(200).send(parsedResult);
@@ -242,6 +258,13 @@ app.post('/xls', authorizedOnly, async (req, res) => {
 
 app.delete('/component/:id', authorizedOnly, (req, res) => {
     db.deleteComponent(req.params.id).then((parsedResult) => {
+        if(parsedResult.success) res.status(200).send(parsedResult);
+        else res.status(500).send(parsedResult);
+    })
+});
+
+app.delete('/paper/:id', authorizedOnly, (req, res) => {
+    db.deletePaper(req.params.id).then((parsedResult) => {
         if(parsedResult.success) res.status(200).send(parsedResult);
         else res.status(500).send(parsedResult);
     })

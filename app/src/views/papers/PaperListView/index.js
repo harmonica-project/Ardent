@@ -66,6 +66,34 @@ const PapersListView = () => {
       });
   };
 
+  const saveNewPaper = (newPaper) => {
+    APIRequestMethods.saveNewPaper(newPaper)
+      .then(({ data }) => {
+        if (data.success) {
+          setPapers([
+            ...papers,
+            {
+              ...newPaper,
+              id: data.paperId,
+              status: 0,
+              architectures: []
+            }
+          ]);
+          setModalProps({
+            open: false,
+            paper: {},
+            actionType: ''
+          });
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        // TODO
+        console.log(titleFilter);
+        if (error.response.status === 401) console.log('unauthorized');
+      });
+  };
+
   const fillDisplayedPapers = () => {
     if (!titleFilter.length) setDisplayedPapers(papers);
     else {
@@ -124,13 +152,20 @@ const PapersListView = () => {
   };
 
   const actionModalHandler = (actionType, newPaper) => {
-    console.log(newPaper);
-    console.log(modalProps);
-    console.log(actionType);
-
     switch (actionType) {
       case 'delete':
         if (window.confirm('Paper deletion is irreversible. Associated architectures, components, and properties will also be deleted. Proceed?')) deletePaper(modalProps.paper.id);
+        break;
+
+      case 'new':
+        saveNewPaper({
+          ...newPaper,
+          added_by: localStorage.getItem('username')
+        });
+        break;
+
+      case 'edit':
+        console.log('Not implemented yet.');
         break;
 
       default:

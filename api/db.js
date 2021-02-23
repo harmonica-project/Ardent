@@ -31,20 +31,25 @@ module.exports = {
             var queryResult = await client.query(
                 `SELECT papers.*, array_agg(architectures.id || ';' || architectures.name || ';' || architectures.description) architectures 
                 FROM papers 
-                INNER JOIN architectures on papers.id = architectures.paper_id 
+                FULL JOIN architectures on papers.id = architectures.paper_id 
                 GROUP BY papers.id`
             );
 
             var results = queryResult["rows"];
 
             for(var i = 0; i < results.length; i++) {
-                for(var j = 0; j < results[i].architectures.length; j++) {
-                    var content = results[i].architectures[j].split(';');
-                    results[i].architectures[j] = {
-                        id: content[0],
-                        name: content[1],
-                        description: content[2]
+                if(results[i].architectures[0] != null) {
+                    for(var j = 0; j < results[i].architectures.length; j++) {
+                        var content = results[i].architectures[j].split(';');
+                        results[i].architectures[j] = {
+                            id: content[0],
+                            name: content[1],
+                            description: content[2]
+                        }
                     }
+                }
+                else {
+                    results[i].architectures = []
                 }
             }
 
@@ -54,6 +59,7 @@ module.exports = {
             };
         }
         catch(err) {
+            console.log(err);
             return {
                 success: false,
                 errorMsg: 'Request failed: ' + err 
@@ -154,6 +160,21 @@ module.exports = {
             };
         }
     },
+    deletePaper: async paperId => {
+        try {
+            await client.query("DELETE FROM papers WHERE id = $1", [paperId]);
+            
+            return {
+                success: true
+            }
+        }
+        catch(err) {
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
     deleteProperty: async propertyId => {
         try {
             await client.query("DELETE FROM properties WHERE id = $1", [propertyId]);
@@ -178,6 +199,44 @@ module.exports = {
             }
         }
         catch(err) {
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
+    storePaper: async paper => {
+        const newPaperId = uuidv4();
+        try {
+            const foundPaper = await client.query("SELECT * FROM papers WHERE id = $1 OR name = $2", [paper.id, paper.name]);
+            if(foundPaper["rows"].length === 0) {
+                await client.query(`
+                    INSERT INTO papers(id, name, doi, authors, paper_type, journal, added_by, updated_by, status, abstract, comments) 
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, $9, $10)`, 
+                    [
+                        newPaperId, 
+                        paper.name, 
+                        paper.doi, 
+                        paper.authors, 
+                        paper.paper_type, 
+                        paper.journal, 
+                        paper.added_by,
+                        paper.updated_by,
+                        paper.abstract,
+                        paper.comments
+                    ]
+                );
+                return { success: true, paperId: newPaperId}
+            }
+            else {
+                return {
+                    success: false,
+                    errorMsg: 'Paper already exists, or a paper already has its name.'
+                };
+            }
+        }
+        catch(err) {
+            console.log('error: ' + err)
             return {
                 success: false,
                 errorMsg: 'Failed connexion to DB: ' + err

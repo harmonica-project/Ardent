@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import {
   FormControl,
@@ -16,7 +16,8 @@ import {
 import {
   Delete as DeleteIcon,
   Edit as EditIcon,
-  Visibility as VisibilityIcon
+  Visibility as VisibilityIcon,
+  Save as SaveIcon
 } from '@material-ui/icons/';
 import PropTypes from 'prop-types';
 
@@ -52,11 +53,23 @@ export default function PaperModal({ modalProps, setModalProps, actionModalHandl
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
   const [modalStyle] = React.useState(getModalStyle);
+  const [innerPaper, setInnerPaper] = React.useState(modalProps.paper);
+
+  useEffect(() => {
+    setInnerPaper(modalProps.paper);
+  }, [modalProps.paper]);
 
   const handleClose = () => {
     setModalProps({
       ...modalProps,
       open: false
+    });
+  };
+
+  const handleInputChange = (key, value) => {
+    setInnerPaper({
+      ...innerPaper,
+      [key]: value
     });
   };
 
@@ -78,7 +91,7 @@ export default function PaperModal({ modalProps, setModalProps, actionModalHandl
   const getModalHeader = () => {
     if (modalProps.actionType === 'new') {
       return (
-        <Typography variant="h2" component="h2" gutterBottom>
+        <Typography variant="h2" component="h3" gutterBottom>
           {modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)}
         </Typography>
       );
@@ -87,7 +100,7 @@ export default function PaperModal({ modalProps, setModalProps, actionModalHandl
     return (
       <Box display="flex" className={classes.boxMargin}>
         <Box width="100%">
-          <Typography variant="h2" component="h2" gutterBottom>
+          <Typography variant="h2" gutterBottom>
             {modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)}
           </Typography>
         </Box>
@@ -157,6 +170,7 @@ export default function PaperModal({ modalProps, setModalProps, actionModalHandl
                   labelId="added-by-select-label"
                   id="added-by-select"
                   disabled
+                  displayEmpty
                   defaultValue={modalProps.actionType === 'new' ? localStorage.getItem('username') : modalProps.paper.added_by}
                   className={classes.selectEmpty}
                 >
@@ -175,9 +189,14 @@ export default function PaperModal({ modalProps, setModalProps, actionModalHandl
                   labelId="updated-by-select-label"
                   id="updated-by-select"
                   disabled={modalProps.actionType === 'view'}
-                  defaultValue={modalProps.actionType === 'new' ? localStorage.getItem('username') : modalProps.paper.updated_by}
+                  displayEmpty
+                  onChange={(e) => handleInputChange('updated_by', e.target.value)}
+                  defaultValue={modalProps.actionType === 'new' ? '' : modalProps.paper.updated_by}
                   className={classes.selectEmpty}
                 >
+                  <MenuItem value="" disabled>
+                    Updated by?
+                  </MenuItem>
                   <MenuItem value="six">Nicolas Six</MenuItem>
                   <MenuItem value="negri">Claudia Negri Ribalta</MenuItem>
                   <MenuItem value="herbaut">Nicolas Herbaut</MenuItem>
@@ -192,8 +211,10 @@ export default function PaperModal({ modalProps, setModalProps, actionModalHandl
                 <Select
                   labelId="status-select-label"
                   id="status-select"
-                  disabled={modalProps.actionType === 'view'}
+                  disabled={modalProps.actionType !== 'edit'}
+                  displayEmpty
                   defaultValue={modalProps.actionType === 'new' ? 0 : modalProps.paper.status}
+                  onChange={(e) => handleInputChange('status', e.target.value)}
                   className={classes.selectEmpty}
                 >
                   <MenuItem value={0}>Just added</MenuItem>
@@ -213,6 +234,7 @@ export default function PaperModal({ modalProps, setModalProps, actionModalHandl
                 multiline
                 disabled={modalProps.actionType === 'view'}
                 defaultValue={modalProps.actionType === 'new' ? '' : modalProps.paper.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
                 InputLabelProps={{
                   shrink: true,
                 }}
@@ -224,6 +246,7 @@ export default function PaperModal({ modalProps, setModalProps, actionModalHandl
                 fullWidth
                 margin="normal"
                 disabled={modalProps.actionType === 'view'}
+                onChange={(e) => handleInputChange('doi', e.target.value)}
                 defaultValue={modalProps.actionType === 'new' ? '' : modalProps.paper.doi}
                 InputLabelProps={{
                   shrink: true,
@@ -236,6 +259,7 @@ export default function PaperModal({ modalProps, setModalProps, actionModalHandl
                 fullWidth
                 margin="normal"
                 disabled={modalProps.actionType === 'view'}
+                onChange={(e) => handleInputChange('authors', e.target.value)}
                 defaultValue={modalProps.actionType === 'new' ? '' : modalProps.paper.authors}
                 InputLabelProps={{
                   shrink: true,
@@ -250,11 +274,14 @@ export default function PaperModal({ modalProps, setModalProps, actionModalHandl
                   id="paper-type-select"
                   disabled={modalProps.actionType === 'view'}
                   defaultValue={setPaperTypeDefault()}
+                  onChange={(e) => handleInputChange('paper_type', e.target.value)}
+                  displayEmpty
                   className={classes.selectEmpty}
                 >
-                  <MenuItem value="other">
-                    <em>Other</em>
+                  <MenuItem value="" disabled>
+                    Paper type?
                   </MenuItem>
+                  <MenuItem value="other">Other</MenuItem>
                   <MenuItem value="article">Journal article</MenuItem>
                   <MenuItem value="book">Book</MenuItem>
                   <MenuItem value="inproceedings">Conference paper</MenuItem>
@@ -276,6 +303,7 @@ export default function PaperModal({ modalProps, setModalProps, actionModalHandl
                 fullWidth
                 margin="normal"
                 disabled={modalProps.actionType === 'view'}
+                onChange={(e) => handleInputChange('journal', e.target.value)}
                 defaultValue={modalProps.actionType === 'new' ? '' : modalProps.paper.journal}
                 InputLabelProps={{
                   shrink: true,
@@ -293,6 +321,7 @@ export default function PaperModal({ modalProps, setModalProps, actionModalHandl
               multiline
               rows={11}
               disabled={modalProps.actionType === 'view'}
+              onChange={(e) => handleInputChange('abstract', e.target.value)}
               defaultValue={modalProps.actionType === 'new' ? '' : modalProps.paper.abstract}
               InputLabelProps={{
                 shrink: true,
@@ -307,6 +336,7 @@ export default function PaperModal({ modalProps, setModalProps, actionModalHandl
               multiline
               rows={8}
               disabled={modalProps.actionType === 'view'}
+              onChange={(e) => handleInputChange('comments', e.target.value)}
               defaultValue={modalProps.actionType === 'new' ? '' : modalProps.paper.comments}
               InputLabelProps={{
                 shrink: true,
@@ -314,6 +344,17 @@ export default function PaperModal({ modalProps, setModalProps, actionModalHandl
             />
           </Grid>
         </Grid>
+        {modalProps.actionType !== 'view' ? (
+          <Button
+            color="primary"
+            variant="contained"
+            startIcon={<SaveIcon />}
+            className={classes.headerButton}
+            onClick={() => actionModalHandler(modalProps.actionType, innerPaper)}
+          >
+            Save
+          </Button>
+        ) : <span />}
       </form>
     </Box>
   );

@@ -23,6 +23,7 @@ const APIRequestMethods = {
   getPropertyValues: (pkey) => { return axios.get(`${API_URL}/properties_values/${pkey}`, getAuthInfo(), { withCredentials: true }); },
   getArchitecture: (architectureId) => { return axios.get(`${API_URL}/architecture/${architectureId}`, getAuthInfo(), { withCredentials: true }); },
   saveNewArchitecture: (architecture) => { return axios.post(`${API_URL}/architecture`, architecture, getAuthInfo(), { withCredentials: true }); },
+  saveNewPaper: (paper) => { return axios.post(`${API_URL}/paper`, paper, getAuthInfo(), { withCredentials: true }); },
   saveExistingArchitecture: (architecture) => { return axios.put(`${API_URL}/architecture/${architecture.id}`, architecture, getAuthInfo(), { withCredentials: true }); },
   saveProperty: (property) => { return axios.post(`${API_URL}/property`, property, getAuthInfo(), { withCredentials: true }); },
   saveConnection: (connection) => { return axios.post(`${API_URL}/connection`, connection, getAuthInfo(), { withCredentials: true }); },
