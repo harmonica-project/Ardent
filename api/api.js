@@ -105,7 +105,7 @@ app.get('/papers', authorizedOnly, (req, res) => {
 
 app.post('/architecture', authorizedOnly, (req, res) => {
     const newArchitecture = req.body;
-    if(newArchitecture.paper && newArchitecture.added_by && newArchitecture.done_by) {
+    if(newArchitecture.name && newArchitecture.paper_id && newArchitecture.description) {
         db.storeArchitecture(newArchitecture).then((parsedResult) => {
             if(parsedResult.success) res.status(200).send(parsedResult);
             else res.status(500).send(parsedResult);
@@ -193,9 +193,26 @@ app.put('/component/:id', authorizedOnly, (req, res) => {
     }
 });
 
+app.put('/paper/:id', authorizedOnly, (req, res) => {
+    const newPaper = req.body;
+    if(newPaper.name && newPaper.name.length > 0 && newPaper.authors && newPaper.added_by && newPaper.updated_by) {
+        db.modifyPaper(newPaper).then((parsedResult) => {
+            if(parsedResult.success) res.status(200).send(parsedResult);
+            else res.status(500).send(parsedResult);
+        })
+    }
+    else {
+        res.status(500).send({
+            success: false,
+            errorMsg: "Missing fields."
+        })
+    }
+});
+
+
 app.put('/architecture/:id', authorizedOnly, (req, res) => {
     const newArchitecture = req.body;
-    if(newArchitecture.paper.length > 0 && newArchitecture.done_by && newArchitecture.status && newArchitecture.id) {
+    if(newArchitecture.description && newArchitecture.name && newArchitecture.id) {
         db.modifyArchitecture(newArchitecture).then((parsedResult) => {
             if(parsedResult.success) res.status(200).send(parsedResult);
             else res.status(500).send(parsedResult);

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8080';
+const API_URL = '<API url>';
 const getAuthInfo = () => {
   const authInfo = {
     auth: {
@@ -32,6 +32,7 @@ const APIRequestMethods = {
   deleteConnection: (connectionId) => { return axios.delete(`${API_URL}/connection/${connectionId}`, getAuthInfo(), { withCredentials: true }); },
   saveNewComponent: (component) => { return axios.post(`${API_URL}/component`, component, getAuthInfo(), { withCredentials: true }); },
   saveExistingComponent: (component) => { return axios.put(`${API_URL}/component/${component.id}`, component, getAuthInfo(), { withCredentials: true }); },
+  saveExistingPaper: (paper) => { return axios.put(`${API_URL}/paper/${paper.id}`, paper, getAuthInfo(), { withCredentials: true }); },
   deleteComponent: (componentId) => { return axios.delete(`${API_URL}/component/${componentId}`, getAuthInfo(), { withCredentials: true }); },
   deletePaper: (paperId) => { return axios.delete(`${API_URL}/paper/${paperId}`, getAuthInfo(), { withCredentials: true }); },
   getComponent: (componentId) => { return axios.get(`${API_URL}/component/${componentId}`, getAuthInfo(), { withCredentials: true }); },

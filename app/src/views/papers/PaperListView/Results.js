@@ -102,7 +102,7 @@ const useRowStyles = makeStyles({
   },
 });
 
-function Row({ row, actionHandler }) {
+function Row({ row, paperActionHandler, architectureActionHandler }) {
   const [open, setOpen] = React.useState(false);
   const classes = useRowStyles();
 
@@ -113,6 +113,7 @@ function Row({ row, actionHandler }) {
           <TableRow>
             <TableCell align="center">Name</TableCell>
             <TableCell>Description</TableCell>
+            <TableCell align="center">Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -120,6 +121,7 @@ function Row({ row, actionHandler }) {
             <TableRow key={architectureRow.id}>
               <TableCell align="center">{architectureRow.name}</TableCell>
               <TableCell>{reduceLongText(architectureRow.description, 100)}</TableCell>
+              <TableCell align="center"><TableActionCell item={{ ...architectureRow, paper_id: row.id }} actionHandler={architectureActionHandler} /></TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -152,14 +154,17 @@ function Row({ row, actionHandler }) {
         <TableCell align="center">{parseUserKey(row.added_by)}</TableCell>
         <TableCell align="center">{parseUserKey(row.updated_by)}</TableCell>
         <TableCell align="center"><DisplayStatus status={row.status} /></TableCell>
-        <TableCell align="center"><TableActionCell id={row.id} actionHandler={actionHandler} /></TableCell>
+        <TableCell align="center"><TableActionCell item={row} actionHandler={paperActionHandler} /></TableCell>
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={11}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box style={{ padding: 20 }}>
               <Paper style={{ padding: 20 }}>
-                <SubToolbar />
+                <SubToolbar
+                  architectureActionHandler={architectureActionHandler}
+                  paperId={row.id}
+                />
                 { row.architectures.length ? displayArchitecturesTable() : displayNoArchitecture() }
               </Paper>
             </Box>
@@ -190,10 +195,11 @@ Row.propTypes = {
       }),
     ).isRequired
   }).isRequired,
-  actionHandler: PropTypes.func.isRequired
+  paperActionHandler: PropTypes.func.isRequired,
+  architectureActionHandler: PropTypes.func.isRequired
 };
 
-export default function Results({ papers, actionHandler }) {
+export default function Results({ papers, paperActionHandler, architectureActionHandler }) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
@@ -231,7 +237,12 @@ export default function Results({ papers, actionHandler }) {
             ? papers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             : papers
           ).map((row) => (
-            <Row key={row.id} row={row} actionHandler={actionHandler} />
+            <Row
+              key={row.id}
+              row={row}
+              paperActionHandler={paperActionHandler}
+              architectureActionHandler={architectureActionHandler}
+            />
           ))}
         </TableBody>
         <TableFooter>
@@ -259,5 +270,6 @@ export default function Results({ papers, actionHandler }) {
 
 Results.propTypes = {
   papers: PropTypes.array.isRequired,
-  actionHandler: PropTypes.func.isRequired
+  architectureActionHandler: PropTypes.func.isRequired,
+  paperActionHandler: PropTypes.func.isRequired
 };

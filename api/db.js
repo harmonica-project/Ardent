@@ -1,4 +1,5 @@
 var pg = require("pg")
+const { v4: uuidv4 } = require('uuid');
 
 // THOSE ARE DEFAULT LOGINS FOR TEST ONLY - NOT SUITABLE FOR PRODUCTION
 const DB_HOST = '<DB_HOST>';
@@ -44,7 +45,8 @@ module.exports = {
                         results[i].architectures[j] = {
                             id: content[0],
                             name: content[1],
-                            description: content[2]
+                            description: content[2],
+                            paper_id: results[i].id
                         }
                     }
                 }
@@ -208,7 +210,7 @@ module.exports = {
     storePaper: async paper => {
         const newPaperId = uuidv4();
         try {
-            const foundPaper = await client.query("SELECT * FROM papers WHERE id = $1 OR name = $2", [paper.id, paper.name]);
+            const foundPaper = await client.query("SELECT * FROM papers WHERE name = $1", [paper.name]);
             if(foundPaper["rows"].length === 0) {
                 await client.query(`
                     INSERT INTO papers(id, name, doi, authors, paper_type, journal, added_by, updated_by, status, abstract, comments) 
@@ -226,7 +228,7 @@ module.exports = {
                         paper.comments
                     ]
                 );
-                return { success: true, paperId: newPaperId}
+                return { success: true, paperId: newPaperId }
             }
             else {
                 return {
@@ -245,17 +247,9 @@ module.exports = {
     },
     storeArchitecture: async architecture => {
         try {
-            const foundArchitecture = await client.query("SELECT * FROM architectures WHERE id = $1 OR paper = $2", [architecture.id, architecture.paper]);
-            if(foundArchitecture["rows"].length === 0) {
-                await client.query("INSERT INTO architectures VALUES ($1, $2, $3, $4, $5, 'added')", [architecture.id, architecture.paper, architecture.description, architecture.done_by, architecture.added_by])
-                return {success: true}
-            }
-            else {
-                return {
-                    success: false,
-                    errorMsg: 'Architecture already exists.'
-                };
-            }
+            const newArchitectureId = uuidv4();
+            await client.query("INSERT INTO architectures (id, name, description, paper_id) VALUES ($1, $2, $3, $4)", [newArchitectureId, architecture.name, architecture.description, architecture.paper_id])
+            return {success: true, architectureId: newArchitectureId}
         }
         catch(err) {
             console.log('error: ' + err)
@@ -354,9 +348,36 @@ module.exports = {
             };
         }
     },
+    modifyPaper: async paper => {
+        try {
+            await client.query(`
+            UPDATE papers SET (name, doi, authors, paper_type, journal, updated_by, status, abstract, comments) =
+            ($1, $2, $3, $4, $5, $6, $7, $8, $9) WHERE id = $10`, 
+            [
+                paper.name, 
+                paper.doi, 
+                paper.authors, 
+                paper.paper_type, 
+                paper.journal, 
+                paper.updated_by,
+                paper.status,
+                paper.abstract,
+                paper.comments,
+                paper.id
+            ])
+            return {success: true};
+        }
+        catch(err) {
+            console.log('error: ' + err)
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
     modifyArchitecture: async architecture => {
         try {
-            await client.query("UPDATE architectures SET (paper, description, done_by, status) = ($1, $2, $3, $4) WHERE id = $5", [architecture.paper, architecture.description, architecture.done_by, architecture.status, architecture.id])
+            await client.query("UPDATE architectures SET (name, description) = ($1, $2) WHERE id = $3", [architecture.name, architecture.description, architecture.id])
             return {success: true};
         }
         catch(err) {

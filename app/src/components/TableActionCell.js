@@ -6,19 +6,19 @@ import HighlightOffIcon from '@material-ui/icons/HighlightOff';
 import { Box } from '@material-ui/core';
 
 const TableActionCell = ({
-  actionHandler, id
+  actionHandler, item
 }) => {
   return (
     <Box style={{ cursor: 'pointer' }}>
-      <VisibilityIcon onClick={() => actionHandler('view', id)} />
-      <CreateIcon onClick={() => actionHandler('edit', id)} />
-      <HighlightOffIcon onClick={() => actionHandler('delete', id)} />
+      <VisibilityIcon onClick={() => actionHandler('view', item)} />
+      <CreateIcon onClick={() => actionHandler('edit', item)} />
+      <HighlightOffIcon onClick={() => actionHandler('delete', item)} />
     </Box>
   );
 };
 
 TableActionCell.propTypes = {
-  id: PropTypes.string.isRequired,
+  item: PropTypes.objectOf(PropTypes.any),
   actionHandler: PropTypes.func.isRequired
 };
 

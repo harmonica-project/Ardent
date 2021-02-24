@@ -9,6 +9,7 @@ import Results from './Results';
 import Toolbar from './Toolbar';
 import APIRequestMethods from '../../../utils/APIRequest';
 import PaperModal from './PaperModal';
+import ArchitectureModal from './ArchitectureModal';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -24,20 +25,91 @@ const PapersListView = () => {
   const [papers, setPapers] = useState([]);
   const [displayedPapers, setDisplayedPapers] = useState([]);
   const [titleFilter, setTitleFilter] = useState('');
-  const [modalProps, setModalProps] = useState({
+
+  const [paperModalProps, setPaperModalProps] = useState({
     open: false,
     paper: {},
+    actionType: ''
+  });
+
+  const [architectureModalProps, setArchitectureModalProps] = useState({
+    open: false,
+    architecture: {},
     actionType: ''
   });
 
   const removePaperFromState = (paperId) => {
     let i;
     const newPapers = [...papers];
-    for (i = 0; i < papers.length; i++) {
-      if (papers[i].id === paperId) {
+    for (i = 0; i < newPapers.length; i++) {
+      if (newPapers[i].id === paperId) {
         newPapers.splice(i, 1);
         setPapers(newPapers);
         return true;
+      }
+    }
+
+    return false;
+  };
+
+  const removeArchitectureFromState = (paperId, architectureId) => {
+    let i; let j;
+    const newPapers = [...papers];
+    for (i = 0; i < newPapers.length; i++) {
+      if (newPapers[i].id === paperId) {
+        for (j = 0; j < newPapers[i].architectures.length; j++) {
+          if (newPapers[i].architectures[j].id === architectureId) {
+            newPapers[i].architectures.splice(j, 1);
+            setPapers(newPapers);
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
+  };
+
+  const modifyPaperFromState = (newPaper) => {
+    let i;
+    const newPapers = [...papers];
+    for (i = 0; i < newPapers.length; i++) {
+      if (newPapers[i].id === newPaper.id) {
+        newPapers[i] = newPaper;
+        setPapers(newPapers);
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  const addArchitectureToState = (newArchitecture) => {
+    let i;
+    const newPapers = [...papers];
+    for (i = 0; i < newPapers.length; i++) {
+      if (newPapers[i].id === newArchitecture.paper_id) {
+        newPapers[i].architectures.push(newArchitecture);
+        setPapers(newPapers);
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  const modifyArchitectureFromState = (newArchitecture) => {
+    let i; let j;
+    const newPapers = [...papers];
+    for (i = 0; i < newPapers.length; i++) {
+      if (newPapers[i].id === newArchitecture.paper_id) {
+        for (j = 0; j < newPapers[i].architectures.length; j++) {
+          if (newPapers[i].architectures[j].id === newArchitecture.id) {
+            newPapers[i].architectures[j] = newArchitecture;
+            setPapers(newPapers);
+            return true;
+          }
+        }
       }
     }
 
@@ -49,10 +121,32 @@ const PapersListView = () => {
       .then(({ data }) => {
         if (data.success) {
           removePaperFromState(paperId);
-          if (modalProps.open) {
-            setModalProps({
+          if (paperModalProps.open) {
+            setPaperModalProps({
               open: false,
               paper: {},
+              actionType: ''
+            });
+          }
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        // TODO
+        console.log(titleFilter);
+        if (error.response.status === 401) console.log('unauthorized');
+      });
+  };
+
+  const deleteArchitecture = (paperId, architectureId) => {
+    APIRequestMethods.deleteArchitecture(architectureId)
+      .then(({ data }) => {
+        if (data.success) {
+          removeArchitectureFromState(paperId, architectureId);
+          if (setArchitectureModalProps.open) {
+            setArchitectureModalProps({
+              open: false,
+              architecture: {},
               actionType: ''
             });
           }
@@ -79,9 +173,69 @@ const PapersListView = () => {
               architectures: []
             }
           ]);
-          setModalProps({
+          setPaperModalProps({
             open: false,
             paper: {},
+            actionType: ''
+          });
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        // TODO
+        console.log(titleFilter);
+        if (error.response.status === 401) console.log('unauthorized');
+      });
+  };
+
+  const saveNewArchitecture = (newArchitecture) => {
+    APIRequestMethods.saveNewArchitecture(newArchitecture)
+      .then(({ data }) => {
+        if (data.success) {
+          addArchitectureToState({ ...newArchitecture, id: data.architectureId });
+          setArchitectureModalProps({
+            open: false,
+            architecture: {},
+            actionType: ''
+          });
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        // TODO
+        console.log(titleFilter);
+        if (error.response.status === 401) console.log('unauthorized');
+      });
+  };
+
+  const saveExistingPaper = (newPaper) => {
+    APIRequestMethods.saveExistingPaper(newPaper)
+      .then(({ data }) => {
+        if (data.success) {
+          modifyPaperFromState(newPaper);
+          setPaperModalProps({
+            open: false,
+            paper: {},
+            actionType: ''
+          });
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        // TODO
+        console.log(titleFilter);
+        if (error.response.status === 401) console.log('unauthorized');
+      });
+  };
+
+  const saveExistingArchitecture = (newArchitecture) => {
+    APIRequestMethods.saveExistingArchitecture(newArchitecture)
+      .then(({ data }) => {
+        if (data.success) {
+          modifyArchitectureFromState(newArchitecture);
+          setArchitectureModalProps({
+            open: false,
+            architecture: {},
             actionType: ''
           });
         }
@@ -109,22 +263,10 @@ const PapersListView = () => {
     }
   };
 
-  const findPaper = (paperId) => {
-    let i;
-    for (i = 0; i < papers.length; i++) {
-      if (papers[i].id === paperId) return papers[i];
-    }
-
-    return false;
-  };
-
-  const actionHandler = (actionType, paperId) => {
-    let paper;
-    if (paperId) paper = findPaper(paperId);
-
+  const paperActionHandler = (actionType, paper) => {
     switch (actionType) {
       case 'new':
-        setModalProps({
+        setPaperModalProps({
           open: true,
           actionType,
           paper: {}
@@ -133,7 +275,7 @@ const PapersListView = () => {
       case 'edit':
       case 'view':
         if (paper) {
-          setModalProps({
+          setPaperModalProps({
             open: true,
             actionType,
             paper
@@ -143,7 +285,7 @@ const PapersListView = () => {
 
       case 'delete':
         // Can be replaced with a prettier modal later.
-        if (window.confirm('Paper deletion is irreversible. Associated architectures, components, and properties will also be deleted. Proceed?')) deletePaper(paperId);
+        if (window.confirm('Paper deletion is irreversible. Associated architectures, components, and properties will also be deleted. Proceed?')) deletePaper(paper.id);
         break;
 
       default:
@@ -151,10 +293,38 @@ const PapersListView = () => {
     }
   };
 
-  const actionModalHandler = (actionType, newPaper) => {
+  const architectureActionHandler = (actionType, architecture) => {
+    switch (actionType) {
+      case 'new':
+        setArchitectureModalProps({
+          open: true,
+          actionType,
+          architecture: { paper_id: architecture.paper_id }
+        });
+        break;
+      case 'edit':
+      case 'view':
+        setArchitectureModalProps({
+          open: true,
+          actionType,
+          architecture
+        });
+        break;
+
+      case 'delete':
+        // Can be replaced with a prettier modal later.
+        if (window.confirm('Architecture deletion is irreversible. Associated components and properties will also be deleted. Proceed?')) deleteArchitecture(architecture.paper_id, architecture.id);
+        break;
+
+      default:
+        console.error('No action were provided to the handler.');
+    }
+  };
+
+  const paperActionModalHandler = (actionType, newPaper) => {
     switch (actionType) {
       case 'delete':
-        if (window.confirm('Paper deletion is irreversible. Associated architectures, components, and properties will also be deleted. Proceed?')) deletePaper(modalProps.paper.id);
+        if (window.confirm('Paper deletion is irreversible. Associated architectures, components, and properties will also be deleted. Proceed?')) deletePaper(paperModalProps.paper.id);
         break;
 
       case 'new':
@@ -165,7 +335,26 @@ const PapersListView = () => {
         break;
 
       case 'edit':
-        console.log('Not implemented yet.');
+        saveExistingPaper(newPaper);
+        break;
+
+      default:
+        console.error('No action were provided to the handler.');
+    }
+  };
+
+  const architectureActionModalHandler = (actionType, newArchitecture) => {
+    switch (actionType) {
+      case 'delete':
+        if (window.confirm('Architecture deletion is irreversible. Associated components and properties will also be deleted. Proceed?')) { deleteArchitecture(architectureModalProps.architecture.paper_id, architectureModalProps.architecture.id); }
+        break;
+
+      case 'new':
+        saveNewArchitecture(newArchitecture);
+        break;
+
+      case 'edit':
+        saveExistingArchitecture(newArchitecture);
         break;
 
       default:
@@ -202,15 +391,28 @@ const PapersListView = () => {
       title="Papers"
     >
       <Container maxWidth={false}>
-        <Toolbar setTitleFilter={setTitleFilter} actionHandler={actionHandler} papers={papers} />
+        <Toolbar
+          setTitleFilter={setTitleFilter}
+          actionHandler={paperActionHandler}
+          papers={papers}
+        />
         <Box mt={3}>
-          <Results papers={displayedPapers} actionHandler={actionHandler} />
+          <Results
+            papers={displayedPapers}
+            paperActionHandler={paperActionHandler}
+            architectureActionHandler={architectureActionHandler}
+          />
         </Box>
       </Container>
       <PaperModal
-        modalProps={modalProps}
-        setModalProps={setModalProps}
-        actionModalHandler={actionModalHandler}
+        modalProps={paperModalProps}
+        setModalProps={setPaperModalProps}
+        actionModalHandler={paperActionModalHandler}
+      />
+      <ArchitectureModal
+        modalProps={architectureModalProps}
+        setModalProps={setArchitectureModalProps}
+        actionModalHandler={architectureActionModalHandler}
       />
     </Page>
   );

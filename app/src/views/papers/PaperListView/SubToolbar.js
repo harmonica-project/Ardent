@@ -5,6 +5,7 @@ import {
   Typography,
   makeStyles
 } from '@material-ui/core';
+import PropTypes from 'prop-types';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -13,7 +14,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const SubToolbar = () => {
+const SubToolbar = ({ architectureActionHandler, paperId }) => {
   const classes = useStyles();
 
   return (
@@ -27,6 +28,7 @@ const SubToolbar = () => {
         <Button
           color="primary"
           variant="contained"
+          onClick={() => architectureActionHandler('new', { paper_id: paperId })}
         >
           Add architecture
         </Button>
@@ -36,3 +38,8 @@ const SubToolbar = () => {
 };
 
 export default SubToolbar;
+
+SubToolbar.propTypes = {
+  architectureActionHandler: PropTypes.func.isRequired,
+  paperId: PropTypes.string.isRequired
+};
