@@ -29,7 +29,7 @@ function getModalStyle() {
 const useStyles = makeStyles((theme) => ({
   body: {
     position: 'absolute',
-    width: '40%',
+    width: '60%',
     backgroundColor: theme.palette.background.paper,
     boxShadow: theme.shadows[5],
     padding: theme.spacing(2, 4, 3)

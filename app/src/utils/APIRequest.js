@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = '<API url>';
+const API_URL = '<< API URL >>';
 const getAuthInfo = () => {
   const authInfo = {
     auth: {

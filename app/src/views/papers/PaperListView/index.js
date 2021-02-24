@@ -5,9 +5,11 @@ import {
   makeStyles
 } from '@material-ui/core';
 import Page from 'src/components/Page';
+import MessageSnackbar from 'src/components/MessageSnackbar';
+import APIRequestMethods from 'src/utils/APIRequest';
+import handleErrorRequest from 'src/utils/handleErrorRequest';
 import Results from './Results';
 import Toolbar from './Toolbar';
-import APIRequestMethods from '../../../utils/APIRequest';
 import PaperModal from './PaperModal';
 import ArchitectureModal from './ArchitectureModal';
 
@@ -37,6 +39,22 @@ const PapersListView = () => {
     architecture: {},
     actionType: ''
   });
+
+  const [messageSnackbarProps, setMessageSnackbarProps] = useState({
+    open: false,
+    message: '',
+    duration: 0,
+    severity: 'information'
+  });
+
+  const displayMsg = (message, severity = 'success', duration = 6000) => {
+    setMessageSnackbarProps({
+      open: true,
+      severity,
+      duration,
+      message
+    });
+  };
 
   const removePaperFromState = (paperId) => {
     let i;
@@ -128,14 +146,10 @@ const PapersListView = () => {
               actionType: ''
             });
           }
+          displayMsg('Paper successfully deleted.');
         }
       })
-      .catch((error) => {
-        console.log(error);
-        // TODO
-        console.log(titleFilter);
-        if (error.response.status === 401) console.log('unauthorized');
-      });
+      .catch((error) => handleErrorRequest(error, displayMsg));
   };
 
   const deleteArchitecture = (paperId, architectureId) => {
@@ -150,14 +164,10 @@ const PapersListView = () => {
               actionType: ''
             });
           }
+          displayMsg('Architecture successfully deleted.');
         }
       })
-      .catch((error) => {
-        console.log(error);
-        // TODO
-        console.log(titleFilter);
-        if (error.response.status === 401) console.log('unauthorized');
-      });
+      .catch((error) => handleErrorRequest(error, displayMsg));
   };
 
   const saveNewPaper = (newPaper) => {
@@ -178,14 +188,10 @@ const PapersListView = () => {
             paper: {},
             actionType: ''
           });
+          displayMsg('Paper successfully added.');
         }
       })
-      .catch((error) => {
-        console.log(error);
-        // TODO
-        console.log(titleFilter);
-        if (error.response.status === 401) console.log('unauthorized');
-      });
+      .catch((error) => handleErrorRequest(error, displayMsg));
   };
 
   const saveNewArchitecture = (newArchitecture) => {
@@ -198,14 +204,10 @@ const PapersListView = () => {
             architecture: {},
             actionType: ''
           });
+          displayMsg('Architecture successfully added.');
         }
       })
-      .catch((error) => {
-        console.log(error);
-        // TODO
-        console.log(titleFilter);
-        if (error.response.status === 401) console.log('unauthorized');
-      });
+      .catch((error) => handleErrorRequest(error, displayMsg));
   };
 
   const saveExistingPaper = (newPaper) => {
@@ -218,14 +220,10 @@ const PapersListView = () => {
             paper: {},
             actionType: ''
           });
+          displayMsg('Paper successfully modified.');
         }
       })
-      .catch((error) => {
-        console.log(error);
-        // TODO
-        console.log(titleFilter);
-        if (error.response.status === 401) console.log('unauthorized');
-      });
+      .catch((error) => handleErrorRequest(error, displayMsg));
   };
 
   const saveExistingArchitecture = (newArchitecture) => {
@@ -238,14 +236,10 @@ const PapersListView = () => {
             architecture: {},
             actionType: ''
           });
+          displayMsg('Architecture successfully modified.');
         }
       })
-      .catch((error) => {
-        console.log(error);
-        // TODO
-        console.log(titleFilter);
-        if (error.response.status === 401) console.log('unauthorized');
-      });
+      .catch((error) => handleErrorRequest(error, displayMsg));
   };
 
   const fillDisplayedPapers = () => {
@@ -369,12 +363,7 @@ const PapersListView = () => {
           setPapers(data.result);
         }
       })
-      .catch((error) => {
-        console.log(error);
-        // TODO
-        console.log(titleFilter);
-        if (error.response.status === 401) console.log('unauthorized');
-      });
+      .catch((error) => handleErrorRequest(error, displayMsg));
   };
 
   useEffect(() => {
@@ -413,6 +402,10 @@ const PapersListView = () => {
         modalProps={architectureModalProps}
         setModalProps={setArchitectureModalProps}
         actionModalHandler={architectureActionModalHandler}
+      />
+      <MessageSnackbar
+        messageSnackbarProps={messageSnackbarProps}
+        setMessageSnackbarProps={setMessageSnackbarProps}
       />
     </Page>
   );
