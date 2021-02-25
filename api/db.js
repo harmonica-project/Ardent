@@ -2,11 +2,11 @@ var pg = require("pg")
 const { v4: uuidv4 } = require('uuid');
 
 // THOSE ARE DEFAULT LOGINS FOR TEST ONLY - NOT SUITABLE FOR PRODUCTION
-const DB_HOST = '<DB_HOST>';
-const DB_PORT = '<DB_PORT>'
-const DB_USER = '<DB_USER>';
-const DB_PWD = '<DB_PWD>';
-const DB_DATABASE = '<DB_DATABASE>';
+const DB_HOST = 'localhost';
+const DB_PORT = '5432'
+const DB_USER = 'postgres';
+const DB_PWD = 'root';
+const DB_DATABASE = 'slr';
 
 const client = new pg.Client({
     user: DB_USER,
