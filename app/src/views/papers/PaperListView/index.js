@@ -5,9 +5,19 @@ import {
   Container,
   makeStyles
 } from '@material-ui/core';
+import {
+  deleteArchitecture as deleteArchitectureRequest,
+  saveNewArchitecture as saveNewArchitectureRequest,
+  saveExistingArchitecture as saveExistingArchitectureRequest
+} from 'src/requests/architecture';
+import {
+  saveNewPaper as saveNewPaperRequest,
+  saveExistingPaper as saveExistingPaperRequest,
+  deletePaper as deletePaperRequest,
+  getPapers as getPapersRequest
+} from 'src/requests/paper';
 import Page from 'src/components/Page';
 import MessageSnackbar from 'src/components/MessageSnackbar';
-import APIRequestMethods from 'src/utils/APIRequest';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
 import Results from './Results';
 import Toolbar from './Toolbar';
@@ -137,7 +147,7 @@ const PapersListView = () => {
   };
 
   const deletePaper = (paperId) => {
-    APIRequestMethods.deletePaper(paperId)
+    deletePaperRequest(paperId)
       .then(({ data }) => {
         if (data.success) {
           removePaperFromState(paperId);
@@ -155,7 +165,7 @@ const PapersListView = () => {
   };
 
   const deleteArchitecture = (paperId, architectureId) => {
-    APIRequestMethods.deleteArchitecture(architectureId)
+    deleteArchitectureRequest(architectureId)
       .then(({ data }) => {
         if (data.success) {
           removeArchitectureFromState(paperId, architectureId);
@@ -173,7 +183,7 @@ const PapersListView = () => {
   };
 
   const saveNewPaper = (newPaper) => {
-    APIRequestMethods.saveNewPaper(newPaper)
+    saveNewPaperRequest(newPaper)
       .then(({ data }) => {
         if (data.success) {
           setPapers([
@@ -197,7 +207,7 @@ const PapersListView = () => {
   };
 
   const saveNewArchitecture = (newArchitecture) => {
-    APIRequestMethods.saveNewArchitecture(newArchitecture)
+    saveNewArchitectureRequest(newArchitecture)
       .then(({ data }) => {
         if (data.success) {
           addArchitectureToState({ ...newArchitecture, id: data.architectureId });
@@ -213,7 +223,7 @@ const PapersListView = () => {
   };
 
   const saveExistingPaper = (newPaper) => {
-    APIRequestMethods.saveExistingPaper(newPaper)
+    saveExistingPaperRequest(newPaper)
       .then(({ data }) => {
         if (data.success) {
           modifyPaperFromState(newPaper);
@@ -229,7 +239,7 @@ const PapersListView = () => {
   };
 
   const saveExistingArchitecture = (newArchitecture) => {
-    APIRequestMethods.saveExistingArchitecture(newArchitecture)
+    saveExistingArchitectureRequest(newArchitecture)
       .then(({ data }) => {
         if (data.success) {
           modifyArchitectureFromState(newArchitecture);
@@ -363,7 +373,7 @@ const PapersListView = () => {
   };
 
   const getPapers = () => {
-    APIRequestMethods.getPapers()
+    getPapersRequest()
       .then(({ data }) => {
         if (data.success) {
           setPapers(data.result);

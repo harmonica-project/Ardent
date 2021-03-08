@@ -34,7 +34,6 @@ const StudyProgress = ({ className, papers }) => {
       if (papers[i].status === 2) counter++;
     }
 
-    console.log((counter / papers.length) * 100);
     return counter;
   };
 

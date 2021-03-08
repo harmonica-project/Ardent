@@ -8,8 +8,7 @@ const xlsxj = require("xlsx-to-json");
 const { v4: uuidv4 } = require('uuid');
 const { storeArchitecture } = require('./db');
 const basicAuth = require('express-basic-auth');
-
-const userNames = ['six', 'negri', 'herbaut'];
+const { AUTH_USERS, USERNAMES } = require('./config');
 
 const parseDBResults = res => {
     if(res["rows"]) {
@@ -27,7 +26,7 @@ const parseDBResults = res => {
 }
 
 const authorizedOnly = (req, res, next) => {
-    if (userNames.includes(req.auth.user)) {
+    if (USERNAMES.includes(req.auth.user)) {
         next();
     }
     else {
@@ -55,11 +54,7 @@ app.use(function(req, res, next) {
     }
 });
 
-app.use(basicAuth({
-    users: {
-        //Define here usernames and passwords
-    }
-}));
+app.use(basicAuth(AUTH_USERS));
 
 app.get('/login', (req, res) => {
     switch(req.auth.user) {
@@ -97,6 +92,7 @@ app.get('/architectures', authorizedOnly, (req, res) => {
 });
 
 app.get('/papers', authorizedOnly, (req, res) => {
+    console.log('YO')
     db.getPapers().then(parsedResult => {
         if(parsedResult.success) res.status(200).send(parsedResult);
         else res.status(500).send(parsedResult);
@@ -170,17 +166,17 @@ app.delete('/connection/:id', authorizedOnly, (req, res) => {
     })
 });
 
-app.post('/component', authorizedOnly, (req, res) => {
-    db.storeComponent(req.body).then((parsedResult) => {
+app.post('/component_instance', authorizedOnly, (req, res) => {
+    db.storeComponentInstance(req.body).then((parsedResult) => {
         if(parsedResult.success) res.status(200).send(parsedResult);
         else res.status(500).send(parsedResult);
     })
 });
 
-app.put('/component/:id', authorizedOnly, (req, res) => {
+app.put('/component_instance/:id', authorizedOnly, (req, res) => {
     const newComponent = req.body;
     if(newComponent.name.length > 0 && newComponent.architectureId && newComponent.id) {
-        db.modifyComponent(newComponent).then((parsedResult) => {
+        db.modifyComponentInstance(newComponent).then((parsedResult) => {
             if(parsedResult.success) res.status(200).send(parsedResult);
             else res.status(500).send(parsedResult);
         })
@@ -273,8 +269,8 @@ app.post('/xls', authorizedOnly, async (req, res) => {
     })
 });
 
-app.delete('/component/:id', authorizedOnly, (req, res) => {
-    db.deleteComponent(req.params.id).then((parsedResult) => {
+app.delete('/component_instance/:id', authorizedOnly, (req, res) => {
+    db.deleteComponentInstance(req.params.id).then((parsedResult) => {
         if(parsedResult.success) res.status(200).send(parsedResult);
         else res.status(500).send(parsedResult);
     })
@@ -287,8 +283,8 @@ app.delete('/paper/:id', authorizedOnly, (req, res) => {
     })
 });
 
-app.get('/components', authorizedOnly, (req, res) => {
-    db.getComponents().then((queryResult) => {
+app.get('/components_instances', authorizedOnly, (req, res) => {
+    db.getComponentsInstances().then((queryResult) => {
         const parsedResult = parseDBResults(queryResult);
         if(parsedResult.success) res.status(200).send(parsedResult);
         else res.status(500).send(parsedResult);
@@ -337,9 +333,9 @@ app.get('/architecture/:id', authorizedOnly, (req, res) => {
     })
 });
 
-app.get('/component/:id', authorizedOnly, (req, res) => {
+app.get('/component_instance/:id', authorizedOnly, (req, res) => {
     var id = req.params.id;
-    db.getComponent(id).then((parsedResult) => {
+    db.getComponentInstance(id).then((parsedResult) => {
         if(parsedResult.success) res.status(200).send(parsedResult);
         else res.status(500).send(parsedResult);
     })

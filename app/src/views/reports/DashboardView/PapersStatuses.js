@@ -40,10 +40,9 @@ const PapersStatuses = ({ className, papers }) => {
   useEffect(() => {
     const newStatusesSums = getEmptySum();
     for (let i = 0; i < papers.length; i++) {
-      if (papers[i].status) newStatusesSums[parseInt(papers[i].status, 10)] += 1;
+      if (Object.keys(papers[i]).includes('status')) newStatusesSums[parseInt(papers[i].status, 10)] += 1;
       else newStatusesSums[4] += 1;
     }
-    console.log(newStatusesSums);
     setStatusesSums(newStatusesSums);
   }, [papers]);
 

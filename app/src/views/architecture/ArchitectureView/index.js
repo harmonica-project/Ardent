@@ -12,7 +12,9 @@ import {
 import { DataGrid } from '@material-ui/data-grid';
 import Page from 'src/components/Page';
 import PropTypes from 'prop-types';
-import APIRequestMethods from 'src/utils/APIRequest';
+import {
+  getArchitecture
+} from 'src/requests/architecture';
 import MessageSnackbar from 'src/components/MessageSnackbar';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
@@ -53,7 +55,7 @@ const ArchitectureView = () => {
   };
 
   useEffect(() => {
-    APIRequestMethods.getArchitecture(id)
+    getArchitecture(id)
       .then(({ data }) => {
         if (data.success) {
           setArchitecture(data.result);

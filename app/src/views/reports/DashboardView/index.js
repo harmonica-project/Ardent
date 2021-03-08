@@ -6,10 +6,12 @@ import {
 } from '@material-ui/core';
 import MessageSnackbar from 'src/components/MessageSnackbar';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
-import APIRequestMethods from 'src/utils/APIRequest';
 import Page from 'src/components/Page';
+import { getArchitectures } from 'src/requests/architecture';
+import { getComponentsNames } from 'src/requests/component';
+import { getPapers } from 'src/requests/paper';
 import ArchitectureSummary from './ArchitectureSummary';
-import Sales from './Sales';
+import Jumbo from './Jumbo';
 import PapersStatuses from './PapersStatuses';
 import PaperSummary from './PaperSummary';
 import ComponentSummary from './ComponentSummary';
@@ -47,7 +49,7 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    APIRequestMethods.getArchitectures()
+    getArchitectures()
       .then(({ data }) => {
         if (data.success) {
           setArchitectures(data.result);
@@ -55,20 +57,18 @@ const Dashboard = () => {
       })
       .catch((error) => handleErrorRequest(error, displayMsg));
 
-    APIRequestMethods.getComponentsNames()
+    getComponentsNames()
       .then(({ data }) => {
         if (data.success) {
           setComponents(data.result);
-          console.log(components);
         }
       })
       .catch((error) => handleErrorRequest(error, displayMsg));
 
-    APIRequestMethods.getPapers()
+    getPapers()
       .then(({ data }) => {
         if (data.success) {
           setPapers(data.result);
-          console.log(papers);
         }
       })
       .catch((error) => handleErrorRequest(error, displayMsg));
@@ -131,7 +131,7 @@ const Dashboard = () => {
             xl={9}
             xs={12}
           >
-            <Sales />
+            <Jumbo />
           </Grid>
           <Grid
             item

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import {
@@ -9,7 +9,8 @@ import {
   Hidden,
   List,
   Typography,
-  makeStyles
+  makeStyles,
+  Collapse
 } from '@material-ui/core';
 import {
   BarChart as BarChartIcon,
@@ -18,6 +19,10 @@ import {
   Cpu as CpuIcon,
   LogOut as LogOutIcon
 } from 'react-feather';
+import {
+  AccountTree as AccountTreeIcon,
+  FormatListBulleted as FormatListBulletedIcon
+} from '@material-ui/icons/';
 import NavItem from './NavItem';
 
 const user = {
@@ -25,34 +30,6 @@ const user = {
   jobTitle: 'Ph.D. student',
   name: 'Nicolas Six'
 };
-
-const items = [
-  {
-    href: '/app/dashboard',
-    icon: BarChartIcon,
-    title: 'Dashboard'
-  },
-  {
-    href: '/app/papers',
-    icon: PaperclipIcon,
-    title: 'Study papers'
-  },
-  {
-    href: '/app/analytics',
-    icon: CpuIcon,
-    title: 'Analytics'
-  },
-  {
-    href: '/app/settings',
-    icon: SettingsIcon,
-    title: 'Settings'
-  },
-  {
-    href: '/login',
-    icon: LogOutIcon,
-    title: 'Logout'
-  }
-];
 
 const useStyles = makeStyles(() => ({
   mobileDrawer: {
@@ -73,6 +50,54 @@ const useStyles = makeStyles(() => ({
 const NavBar = ({ onMobileClose, openMobile }) => {
   const classes = useStyles();
   const location = useLocation();
+
+  const [open, setOpen] = useState(false);
+
+  const handleOpen = () => {
+    setOpen(!open);
+  };
+
+  const items = [
+    {
+      href: '/app/dashboard',
+      icon: BarChartIcon,
+      title: 'Dashboard'
+    },
+    {
+      href: '/app/papers',
+      icon: PaperclipIcon,
+      title: 'Study papers'
+    },
+    {
+      href: '/app/analytics',
+      action: handleOpen,
+      openState: open,
+      icon: CpuIcon,
+      title: 'Analytics',
+      subitems: [
+        {
+          href: '/app/analytics',
+          icon: AccountTreeIcon,
+          title: 'Patterns identification'
+        },
+        {
+          href: '/app/components',
+          icon: FormatListBulletedIcon,
+          title: 'Components summary'
+        }
+      ]
+    },
+    {
+      href: '/app/settings',
+      icon: SettingsIcon,
+      title: 'Settings'
+    },
+    {
+      href: '/login',
+      icon: LogOutIcon,
+      title: 'Logout'
+    }
+  ];
 
   useEffect(() => {
     if (openMobile && onMobileClose) {
@@ -116,14 +141,43 @@ const NavBar = ({ onMobileClose, openMobile }) => {
       <Divider />
       <Box p={2}>
         <List>
-          {items.map((item) => (
-            <NavItem
-              href={item.href}
-              key={item.title}
-              title={item.title}
-              icon={item.icon}
-            />
-          ))}
+          {items.map((item) => {
+            if (item.subitems) {
+              return (
+                <div>
+                  <NavItem
+                    onClick={item.action}
+                    href={item.href}
+                    key={item.title}
+                    title={item.title}
+                    icon={item.icon}
+                    disableLink
+                  />
+                  <Collapse in={item.openState} timeout="auto" unmountOnExit>
+                    <List component="div" disablePadding>
+                      {item.subitems.map((subitem) => (
+                        <NavItem
+                          href={subitem.href}
+                          key={subitem.title}
+                          title={subitem.title}
+                          icon={subitem.icon}
+                          subitem
+                        />
+                      ))}
+                    </List>
+                  </Collapse>
+                </div>
+              );
+            }
+            return (
+              <NavItem
+                href={item.href}
+                key={item.title}
+                title={item.title}
+                icon={item.icon}
+              />
+            );
+          })}
         </List>
       </Box>
     </Box>

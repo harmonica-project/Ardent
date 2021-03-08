@@ -1,20 +1,7 @@
 var pg = require("pg")
 const { v4: uuidv4 } = require('uuid');
-
-// THOSE ARE DEFAULT LOGINS FOR TEST ONLY - NOT SUITABLE FOR PRODUCTION
-const DB_HOST = 'localhost';
-const DB_PORT = '5432'
-const DB_USER = 'postgres';
-const DB_PWD = 'root';
-const DB_DATABASE = 'slr';
-
-const client = new pg.Client({
-    user: DB_USER,
-    host: DB_HOST,
-    database: DB_DATABASE,
-    password: DB_PWD,
-    port: DB_PORT
-});
+const { DB_CONFIG } = require('./config');
+const client = new pg.Client(DB_CONFIG);
 
 client.connect();
 
@@ -68,9 +55,9 @@ module.exports = {
             };
         }
     },
-    getComponents: async () => {
+    getComponentsInstances: async () => {
         try {
-            return await client.query("SELECT * FROM components");
+            return await client.query("SELECT * FROM components_instances");
         }
         catch(err) {
             return err;
@@ -78,7 +65,7 @@ module.exports = {
     },
     getComponentsNames: async () => {
         try {
-            return await client.query("SELECT DISTINCT name, id FROM components");
+            return await client.query("SELECT DISTINCT name FROM components_instances");
         }
         catch(err) {
             return err;
@@ -87,7 +74,7 @@ module.exports = {
     getPropertiesNames: async componentName => {
         try {
             if(componentName) {
-                return await client.query("SELECT DISTINCT key from properties JOIN components on (properties.component_id = components.id) WHERE components.name = $1", [componentName]);
+                return await client.query("SELECT DISTINCT key from properties JOIN components_instances on (properties.component_id = components_instances.id) WHERE components_instances.name = $1", [componentName]);
             }
             else {
                 return await client.query("SELECT DISTINCT key from properties", [componentName]);
@@ -107,7 +94,7 @@ module.exports = {
     },
     getArchitecture: async architectureId => {
         try {
-            const components = await client.query("SELECT * FROM components WHERE architecture_id = $1", [architectureId]);
+            const components = await client.query("SELECT * FROM components_instances WHERE architecture_id = $1", [architectureId]);
             const architecture = await client.query("SELECT * FROM architectures WHERE id = $1", [architectureId]);
             
             return {
@@ -125,9 +112,9 @@ module.exports = {
             };
         }
     },
-    getComponent: async componentId => {
+    getComponentInstance: async componentId => {
         try {
-            const component = await client.query("SELECT * FROM components WHERE id = $1", [componentId]);
+            const component = await client.query("SELECT * FROM components_instances WHERE id = $1", [componentId]);
             const properties = await client.query("SELECT * FROM properties WHERE component_id = $1", [componentId]);
             const connections = await client.query("SELECT * FROM connections WHERE first_component = $1 OR second_component = $1", [componentId]);
             
@@ -307,9 +294,9 @@ module.exports = {
             };
         }
     },
-    deleteComponent: async componentId => {
+    deleteComponentInstance: async componentId => {
         try {
-            await client.query("DELETE FROM components WHERE id = $1", [componentId]);
+            await client.query("DELETE FROM components_instances WHERE id = $1", [componentId]);
             
             return {
                 success: true
@@ -322,9 +309,9 @@ module.exports = {
             };
         }
     },
-    storeComponent: async component => {
+    storeComponentInstance: async component => {
         try {
-            await client.query("INSERT INTO components VALUES ($1, $2, $3, $4)", [component.id, component.name, component.architectureId, component.description])
+            await client.query("INSERT INTO components_instances VALUES ($1, $2, $3, $4)", [component.id, component.name, component.architectureId, component.description])
             return {success: true};
         }
         catch(err) {
@@ -335,9 +322,9 @@ module.exports = {
             };
         }
     },
-    modifyComponent: async component => {
+    modifyComponentInstance: async component => {
         try {
-            await client.query("UPDATE components SET (name, architecture_id, description) = ($1, $2, $3) WHERE id = $4", [component.name, component.architectureId, component.description, component.id])
+            await client.query("UPDATE components_instances SET (name, architecture_id, description) = ($1, $2, $3) WHERE id = $4", [component.name, component.architectureId, component.description, component.id])
             return {success: true};
         }
         catch(err) {
