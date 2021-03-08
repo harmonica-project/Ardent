@@ -3,42 +3,35 @@ import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import {
   Avatar,
-  Box,
   Card,
   CardContent,
   Grid,
   Typography,
-  colors,
-  makeStyles
+  makeStyles,
+  Link
 } from '@material-ui/core';
-import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
-import MoneyIcon from '@material-ui/icons/Money';
+import DescriptionIcon from '@material-ui/icons/Description';
 
 const useStyles = makeStyles((theme) => ({
   root: {
     height: '100%'
   },
   avatar: {
-    backgroundColor: colors.red[600],
+    backgroundColor: '#6573c3',
     height: 56,
     width: 56
   },
-  differenceIcon: {
-    color: colors.red[900]
-  },
-  differenceValue: {
-    color: colors.red[900],
-    marginRight: theme.spacing(1)
+  link: {
+    paddingTop: theme.spacing(1)
   }
 }));
 
-const Budget = ({ className, ...rest }) => {
+const PaperSummary = ({ className, nbPapers }) => {
   const classes = useStyles();
 
   return (
     <Card
       className={clsx(classes.root, className)}
-      {...rest}
     >
       <CardContent>
         <Grid
@@ -52,47 +45,34 @@ const Budget = ({ className, ...rest }) => {
               gutterBottom
               variant="h6"
             >
-              BUDGET
+              PAPERS
             </Typography>
             <Typography
               color="textPrimary"
               variant="h3"
             >
-              $24,000
+              {nbPapers}
             </Typography>
           </Grid>
           <Grid item>
             <Avatar className={classes.avatar}>
-              <MoneyIcon />
+              <DescriptionIcon />
             </Avatar>
           </Grid>
         </Grid>
-        <Box
-          mt={2}
-          display="flex"
-          alignItems="center"
-        >
-          <ArrowDownwardIcon className={classes.differenceIcon} />
-          <Typography
-            className={classes.differenceValue}
-            variant="body2"
-          >
-            12%
-          </Typography>
-          <Typography
-            color="textSecondary"
-            variant="caption"
-          >
-            Since last month
-          </Typography>
-        </Box>
+        <Typography className={classes.link}>
+          <Link href="/app/papers">
+            Go to papers
+          </Link>
+        </Typography>
       </CardContent>
     </Card>
   );
 };
 
-Budget.propTypes = {
-  className: PropTypes.string
+PaperSummary.propTypes = {
+  className: PropTypes.string,
+  nbPapers: PropTypes.number
 };
 
-export default Budget;
+export default PaperSummary;

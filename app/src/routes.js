@@ -9,6 +9,7 @@ import NotFoundView from 'src/views/errors/NotFoundView';
 import AnalyticsView from 'src/views/analytics/AnalyticsView';
 import RegisterView from 'src/views/auth/RegisterView';
 import SettingsView from 'src/views/settings/SettingsView';
+import ArchitectureView from 'src/views/architecture/ArchitectureView';
 
 const routes = [
   {
@@ -18,6 +19,7 @@ const routes = [
       { path: 'analytics', element: <AnalyticsView /> },
       { path: 'dashboard', element: <DashboardView /> },
       { path: 'papers', element: <PaperListView /> },
+      { path: 'architecture/:id', element: <ArchitectureView /> },
       { path: 'settings', element: <SettingsView /> },
       { path: '*', element: <Navigate to="/404" /> }
     ]

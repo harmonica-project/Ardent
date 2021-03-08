@@ -8,28 +8,30 @@ import {
   Grid,
   Typography,
   makeStyles,
-  colors
+  Link
 } from '@material-ui/core';
-import AttachMoneyIcon from '@material-ui/icons/AttachMoney';
+import DeveloperBoardIcon from '@material-ui/icons/DeveloperBoard';
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   root: {
-    height: '100%'
+    height: '100%',
   },
   avatar: {
-    backgroundColor: colors.indigo[600],
+    backgroundColor: '#6573c3',
     height: 56,
     width: 56
+  },
+  link: {
+    paddingTop: theme.spacing(1)
   }
 }));
 
-const TotalProfit = ({ className, ...rest }) => {
+const ComponentSummary = ({ className, nbComponents }) => {
   const classes = useStyles();
 
   return (
     <Card
       className={clsx(classes.root, className)}
-      {...rest}
     >
       <CardContent>
         <Grid
@@ -43,28 +45,34 @@ const TotalProfit = ({ className, ...rest }) => {
               gutterBottom
               variant="h6"
             >
-              TOTAL PROFIT
+              DISTINCT COMPONENTS
             </Typography>
             <Typography
               color="textPrimary"
               variant="h3"
             >
-              $23,200
+              {nbComponents}
             </Typography>
           </Grid>
           <Grid item>
             <Avatar className={classes.avatar}>
-              <AttachMoneyIcon />
+              <DeveloperBoardIcon />
             </Avatar>
           </Grid>
         </Grid>
+        <Typography className={classes.link}>
+          <Link href="/app/components">
+            Go to components
+          </Link>
+        </Typography>
       </CardContent>
     </Card>
   );
 };
 
-TotalProfit.propTypes = {
-  className: PropTypes.string
+ComponentSummary.propTypes = {
+  className: PropTypes.string,
+  nbComponents: PropTypes.number
 };
 
-export default TotalProfit;
+export default ComponentSummary;

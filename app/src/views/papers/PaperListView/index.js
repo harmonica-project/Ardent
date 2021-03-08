@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -23,6 +24,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const PapersListView = () => {
+  const navigate = useNavigate();
   const classes = useStyles();
   const [papers, setPapers] = useState([]);
   const [displayedPapers, setDisplayedPapers] = useState([]);
@@ -356,6 +358,10 @@ const PapersListView = () => {
     }
   };
 
+  const architectureClickHandler = (architectureId) => {
+    navigate(`/app/architecture/${architectureId}`);
+  };
+
   const getPapers = () => {
     APIRequestMethods.getPapers()
       .then(({ data }) => {
@@ -390,6 +396,7 @@ const PapersListView = () => {
             papers={displayedPapers}
             paperActionHandler={paperActionHandler}
             architectureActionHandler={architectureActionHandler}
+            architectureClickHandler={architectureClickHandler}
           />
         </Box>
       </Container>

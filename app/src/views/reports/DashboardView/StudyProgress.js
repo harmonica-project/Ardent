@@ -9,8 +9,7 @@ import {
   Grid,
   LinearProgress,
   Typography,
-  makeStyles,
-  colors
+  makeStyles
 } from '@material-ui/core';
 import InsertChartIcon from '@material-ui/icons/InsertChartOutlined';
 
@@ -19,19 +18,29 @@ const useStyles = makeStyles(() => ({
     height: '100%'
   },
   avatar: {
-    backgroundColor: colors.orange[600],
+    backgroundColor: '#6573c3',
     height: 56,
     width: 56
   }
 }));
 
-const TasksProgress = ({ className, ...rest }) => {
+const StudyProgress = ({ className, papers }) => {
   const classes = useStyles();
+
+  const getSumFinishedPapers = () => {
+    let counter = 0;
+
+    for (let i = 0; i < papers.length; i++) {
+      if (papers[i].status === 2) counter++;
+    }
+
+    console.log((counter / papers.length) * 100);
+    return counter;
+  };
 
   return (
     <Card
       className={clsx(classes.root, className)}
-      {...rest}
     >
       <CardContent>
         <Grid
@@ -45,13 +54,14 @@ const TasksProgress = ({ className, ...rest }) => {
               gutterBottom
               variant="h6"
             >
-              TASKS PROGRESS
+              STUDY PROGRESS
             </Typography>
             <Typography
               color="textPrimary"
               variant="h3"
             >
-              75.5%
+              {((getSumFinishedPapers() / papers.length) * 100).toFixed(1)}
+              %
             </Typography>
           </Grid>
           <Grid item>
@@ -62,7 +72,7 @@ const TasksProgress = ({ className, ...rest }) => {
         </Grid>
         <Box mt={3}>
           <LinearProgress
-            value={75.5}
+            value={(getSumFinishedPapers() / papers.length) * 100}
             variant="determinate"
           />
         </Box>
@@ -71,8 +81,9 @@ const TasksProgress = ({ className, ...rest }) => {
   );
 };
 
-TasksProgress.propTypes = {
-  className: PropTypes.string
+StudyProgress.propTypes = {
+  className: PropTypes.string,
+  papers: PropTypes.array
 };
 
-export default TasksProgress;
+export default StudyProgress;

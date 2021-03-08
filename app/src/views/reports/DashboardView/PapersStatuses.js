@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { Doughnut } from 'react-chartjs-2';
@@ -13,9 +13,13 @@ import {
   makeStyles,
   useTheme
 } from '@material-ui/core';
-import LaptopMacIcon from '@material-ui/icons/LaptopMac';
-import PhoneIcon from '@material-ui/icons/Phone';
-import TabletIcon from '@material-ui/icons/Tablet';
+import {
+  PriorityHigh as PriorityHighIcon,
+  Cached as CachedIcon,
+  Done as DoneIcon,
+  HelpOutline as HelpOutlineIcon,
+  Clear as ClearIcon
+} from '@material-ui/icons/';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -23,25 +27,43 @@ const useStyles = makeStyles(() => ({
   }
 }));
 
-const TrafficByDevice = ({ className, ...rest }) => {
+const PapersStatuses = ({ className, papers }) => {
   const classes = useStyles();
   const theme = useTheme();
+
+  const getEmptySum = () => {
+    return [0, 0, 0, 0, 0];
+  };
+
+  const [statusesSums, setStatusesSums] = useState(getEmptySum());
+
+  useEffect(() => {
+    const newStatusesSums = getEmptySum();
+    for (let i = 0; i < papers.length; i++) {
+      if (papers[i].status) newStatusesSums[parseInt(papers[i].status, 10)] += 1;
+      else newStatusesSums[4] += 1;
+    }
+    console.log(newStatusesSums);
+    setStatusesSums(newStatusesSums);
+  }, [papers]);
 
   const data = {
     datasets: [
       {
-        data: [63, 15, 22],
+        data: statusesSums,
         backgroundColor: [
-          colors.indigo[500],
-          colors.red[600],
-          colors.orange[600]
+          '#3f51b5',
+          'orange',
+          'green',
+          '#f50057',
+          colors.grey[600],
         ],
         borderWidth: 8,
         borderColor: colors.common.white,
         hoverBorderColor: colors.common.white
       }
     ],
-    labels: ['Desktop', 'Tablet', 'Mobile']
+    labels: ['Just added', 'In progress', 'Done', 'Need help', 'Unknown']
   };
 
   const options = {
@@ -68,31 +90,42 @@ const TrafficByDevice = ({ className, ...rest }) => {
 
   const devices = [
     {
-      title: 'Desktop',
-      value: 63,
-      icon: LaptopMacIcon,
-      color: colors.indigo[500]
+      title: 'Just added',
+      value: statusesSums[0],
+      icon: PriorityHighIcon,
+      color: '#3f51b5'
     },
     {
-      title: 'Tablet',
-      value: 15,
-      icon: TabletIcon,
-      color: colors.red[600]
+      title: 'In progress',
+      value: statusesSums[1],
+      icon: CachedIcon,
+      color: 'orange'
     },
     {
-      title: 'Mobile',
-      value: 23,
-      icon: PhoneIcon,
-      color: colors.orange[600]
+      title: 'Done',
+      value: statusesSums[2],
+      icon: DoneIcon,
+      color: 'green'
+    },
+    {
+      title: 'Need help',
+      value: statusesSums[3],
+      icon: HelpOutlineIcon,
+      color: '#f50057'
+    },
+    {
+      title: 'Unknown',
+      value: statusesSums[4],
+      icon: ClearIcon,
+      color: colors.grey[600]
     }
   ];
 
   return (
     <Card
       className={clsx(classes.root, className)}
-      {...rest}
     >
-      <CardHeader title="Traffic by Device" />
+      <CardHeader title="Papers states" />
       <Divider />
       <CardContent>
         <Box
@@ -132,7 +165,6 @@ const TrafficByDevice = ({ className, ...rest }) => {
                 variant="h2"
               >
                 {value}
-                %
               </Typography>
             </Box>
           ))}
@@ -142,8 +174,9 @@ const TrafficByDevice = ({ className, ...rest }) => {
   );
 };
 
-TrafficByDevice.propTypes = {
-  className: PropTypes.string
+PapersStatuses.propTypes = {
+  className: PropTypes.string,
+  papers: PropTypes.array
 };
 
-export default TrafficByDevice;
+export default PapersStatuses;

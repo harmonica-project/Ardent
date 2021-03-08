@@ -1,18 +1,19 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Container,
   Grid,
   makeStyles
 } from '@material-ui/core';
+import MessageSnackbar from 'src/components/MessageSnackbar';
+import handleErrorRequest from 'src/utils/handleErrorRequest';
+import APIRequestMethods from 'src/utils/APIRequest';
 import Page from 'src/components/Page';
-import Budget from './Budget';
-import LatestOrders from './LatestOrders';
-import LatestProducts from './LatestProducts';
+import ArchitectureSummary from './ArchitectureSummary';
 import Sales from './Sales';
-import TasksProgress from './TasksProgress';
-import TotalCustomers from './TotalCustomers';
-import TotalProfit from './TotalProfit';
-import TrafficByDevice from './TrafficByDevice';
+import PapersStatuses from './PapersStatuses';
+import PaperSummary from './PaperSummary';
+import ComponentSummary from './ComponentSummary';
+import StudyProgress from './StudyProgress';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -25,6 +26,57 @@ const useStyles = makeStyles((theme) => ({
 
 const Dashboard = () => {
   const classes = useStyles();
+  const [papers, setPapers] = useState([]);
+  const [architectures, setArchitectures] = useState([]);
+  const [components, setComponents] = useState([]);
+
+  const [messageSnackbarProps, setMessageSnackbarProps] = useState({
+    open: false,
+    message: '',
+    duration: 0,
+    severity: 'information'
+  });
+
+  const displayMsg = (message, severity = 'success', duration = 6000) => {
+    setMessageSnackbarProps({
+      open: true,
+      severity,
+      duration,
+      message
+    });
+  };
+
+  useEffect(() => {
+    APIRequestMethods.getArchitectures()
+      .then(({ data }) => {
+        if (data.success) {
+          setArchitectures(data.result);
+        }
+      })
+      .catch((error) => handleErrorRequest(error, displayMsg));
+
+    APIRequestMethods.getComponentsNames()
+      .then(({ data }) => {
+        if (data.success) {
+          setComponents(data.result);
+          console.log(components);
+        }
+      })
+      .catch((error) => handleErrorRequest(error, displayMsg));
+
+    APIRequestMethods.getPapers()
+      .then(({ data }) => {
+        if (data.success) {
+          setPapers(data.result);
+          console.log(papers);
+        }
+      })
+      .catch((error) => handleErrorRequest(error, displayMsg));
+  }, []);
+
+  useEffect(() => {
+
+  }, []);
 
   return (
     <Page
@@ -43,7 +95,7 @@ const Dashboard = () => {
             xl={3}
             xs={12}
           >
-            <Budget />
+            <PaperSummary nbPapers={papers.length} />
           </Grid>
           <Grid
             item
@@ -52,7 +104,7 @@ const Dashboard = () => {
             xl={3}
             xs={12}
           >
-            <TotalCustomers />
+            <ArchitectureSummary nbArchitectures={architectures.length} />
           </Grid>
           <Grid
             item
@@ -61,7 +113,7 @@ const Dashboard = () => {
             xl={3}
             xs={12}
           >
-            <TasksProgress />
+            <ComponentSummary nbComponents={components.length} />
           </Grid>
           <Grid
             item
@@ -70,7 +122,7 @@ const Dashboard = () => {
             xl={3}
             xs={12}
           >
-            <TotalProfit />
+            <StudyProgress papers={papers} />
           </Grid>
           <Grid
             item
@@ -88,28 +140,14 @@ const Dashboard = () => {
             xl={3}
             xs={12}
           >
-            <TrafficByDevice />
-          </Grid>
-          <Grid
-            item
-            lg={4}
-            md={6}
-            xl={3}
-            xs={12}
-          >
-            <LatestProducts />
-          </Grid>
-          <Grid
-            item
-            lg={8}
-            md={12}
-            xl={9}
-            xs={12}
-          >
-            <LatestOrders />
+            <PapersStatuses papers={papers} />
           </Grid>
         </Grid>
       </Container>
+      <MessageSnackbar
+        messageSnackbarProps={messageSnackbarProps}
+        setMessageSnackbarProps={setMessageSnackbarProps}
+      />
     </Page>
   );
 };

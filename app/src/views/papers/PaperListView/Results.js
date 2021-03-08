@@ -102,7 +102,9 @@ const useRowStyles = makeStyles({
   },
 });
 
-function Row({ row, paperActionHandler, architectureActionHandler }) {
+function Row({
+  row, paperActionHandler, architectureActionHandler, architectureClickHandler
+}) {
   const [open, setOpen] = React.useState(false);
   const classes = useRowStyles();
 
@@ -119,8 +121,19 @@ function Row({ row, paperActionHandler, architectureActionHandler }) {
         <TableBody>
           {row.architectures.map((architectureRow) => (
             <TableRow key={architectureRow.id}>
-              <TableCell align="center">{architectureRow.name}</TableCell>
-              <TableCell>{reduceLongText(architectureRow.description, 100)}</TableCell>
+              <TableCell
+                style={{ cursor: 'pointer' }}
+                onClick={() => architectureClickHandler(architectureRow.id)}
+                align="center"
+              >
+                {architectureRow.name}
+              </TableCell>
+              <TableCell
+                style={{ cursor: 'pointer' }}
+                onClick={() => architectureClickHandler(architectureRow.id)}
+              >
+                {reduceLongText(architectureRow.description, 100)}
+              </TableCell>
               <TableCell align="center"><TableActionCell item={{ ...architectureRow, paper_id: row.id }} actionHandler={architectureActionHandler} /></TableCell>
             </TableRow>
           ))}
@@ -145,7 +158,7 @@ function Row({ row, paperActionHandler, architectureActionHandler }) {
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
-        <TableCell align="center">{row.doi}</TableCell>
+        <TableCell align="center"><a href={`https://doi.org/${row.doi}`}>{row.doi}</a></TableCell>
         <TableCell>{row.name}</TableCell>
         <TableCell>{reduceLongText(row.abstract, 100)}</TableCell>
         <TableCell align="center">{row.authors}</TableCell>
@@ -196,10 +209,13 @@ Row.propTypes = {
     ).isRequired
   }).isRequired,
   paperActionHandler: PropTypes.func.isRequired,
+  architectureClickHandler: PropTypes.func.isRequired,
   architectureActionHandler: PropTypes.func.isRequired
 };
 
-export default function Results({ papers, paperActionHandler, architectureActionHandler }) {
+export default function Results({
+  papers, paperActionHandler, architectureActionHandler, architectureClickHandler
+}) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
@@ -242,6 +258,7 @@ export default function Results({ papers, paperActionHandler, architectureAction
               row={row}
               paperActionHandler={paperActionHandler}
               architectureActionHandler={architectureActionHandler}
+              architectureClickHandler={architectureClickHandler}
             />
           ))}
         </TableBody>
@@ -271,5 +288,6 @@ export default function Results({ papers, paperActionHandler, architectureAction
 Results.propTypes = {
   papers: PropTypes.array.isRequired,
   architectureActionHandler: PropTypes.func.isRequired,
-  paperActionHandler: PropTypes.func.isRequired
+  paperActionHandler: PropTypes.func.isRequired,
+  architectureClickHandler: PropTypes.func.isRequired
 };
