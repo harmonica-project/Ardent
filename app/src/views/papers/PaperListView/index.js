@@ -3,7 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Container,
-  makeStyles
+  makeStyles,
+  Card,
+  CardContent,
+  Typography,
+  Button
 } from '@material-ui/core';
 import {
   deleteArchitecture as deleteArchitectureRequest,
@@ -30,6 +34,9 @@ const useStyles = makeStyles((theme) => ({
     minHeight: '100%',
     paddingBottom: theme.spacing(3),
     paddingTop: theme.spacing(3)
+  },
+  buttonMargin: {
+    marginRight: theme.spacing(1),
   }
 }));
 
@@ -397,34 +404,74 @@ const PapersListView = () => {
       title="Papers"
     >
       <Container maxWidth={false}>
-        <Toolbar
-          setTitleFilter={setTitleFilter}
-          actionHandler={paperActionHandler}
-          papers={papers}
+        {
+        displayedPapers.length
+          ? (
+            <Box>
+              <Toolbar
+                setTitleFilter={setTitleFilter}
+                actionHandler={paperActionHandler}
+                papers={papers}
+              />
+              <Box mt={3}>
+                {displayedPapers.length && (
+                <Results
+                  papers={displayedPapers}
+                  paperActionHandler={paperActionHandler}
+                  architectureActionHandler={architectureActionHandler}
+                  architectureClickHandler={architectureClickHandler}
+                />
+                )}
+              </Box>
+            </Box>
+          )
+          : (
+            <Box mt={3} align="center">
+              <Card>
+                <CardContent>
+                  <Typography variant="h1" component="div" gutterBottom>
+                    No paper yet.
+                  </Typography>
+                  <Typography variant="body1">
+                    <p>
+                      You can add a new paper by clicking the button below.
+                    </p>
+                  </Typography>
+                  <Box
+                    mt={3}
+                  >
+                    <Button
+                      className={classes.buttonMargin}
+                      color="primary"
+                      variant="contained"
+                      onClick={() => paperActionHandler('new', null)}
+                    >
+                      Add paper
+                    </Button>
+                    <Button>
+                      Import papers from Parsif.al
+                    </Button>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Box>
+          )
+      }
+        <PaperModal
+          modalProps={paperModalProps}
+          setModalProps={setPaperModalProps}
+          actionModalHandler={paperActionModalHandler}
         />
-        <Box mt={3}>
-          <Results
-            papers={displayedPapers}
-            paperActionHandler={paperActionHandler}
-            architectureActionHandler={architectureActionHandler}
-            architectureClickHandler={architectureClickHandler}
-          />
-        </Box>
+        <ArchitectureModal
+          modalProps={architectureModalProps}
+          setModalProps={setArchitectureModalProps}
+          actionModalHandler={architectureActionModalHandler}
+        />
+        <MessageSnackbar
+          messageSnackbarProps={messageSnackbarProps}
+          setMessageSnackbarProps={setMessageSnackbarProps}
+        />
       </Container>
-      <PaperModal
-        modalProps={paperModalProps}
-        setModalProps={setPaperModalProps}
-        actionModalHandler={paperActionModalHandler}
-      />
-      <ArchitectureModal
-        modalProps={architectureModalProps}
-        setModalProps={setArchitectureModalProps}
-        actionModalHandler={architectureActionModalHandler}
-      />
-      <MessageSnackbar
-        messageSnackbarProps={messageSnackbarProps}
-        setMessageSnackbarProps={setMessageSnackbarProps}
-      />
     </Page>
   );
 };

@@ -365,7 +365,7 @@ export default function PaperModal({ modalProps, setModalProps, actionModalHandl
         open={modalProps.open}
         onClose={handleClose}
         aria-labelledby="title"
-        aria-describedby="reader-description"
+        aria-describedby="paper-modal"
       >
         {body}
       </Modal>

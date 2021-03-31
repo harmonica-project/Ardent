@@ -9,12 +9,10 @@ import {
   Box,
   Button
 } from '@material-ui/core';
-import { DataGrid } from '@material-ui/data-grid';
 import {
   Delete as DeleteIcon
 } from '@material-ui/icons/';
 import Page from 'src/components/Page';
-import PropTypes from 'prop-types';
 import {
   getArchitecture,
   deleteArchitecture as deleteArchitectureRequest,
@@ -24,6 +22,8 @@ import MessageSnackbar from 'src/components/MessageSnackbar';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
 import ArchitectureModal from '../../papers/PaperListView/ArchitectureModal';
+import ComponentsTable from './ComponentsTable';
+import ComponentModal from './ComponentModal';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -35,6 +35,9 @@ const useStyles = makeStyles((theme) => ({
   architectureSubtitle: {
     marginBottom: theme.spacing(3),
     color: 'grey'
+  },
+  buttonMargin: {
+    marginRight: theme.spacing(1),
   }
 }));
 
@@ -47,6 +50,12 @@ const ArchitectureView = () => {
   const [architectureModalProps, setArchitectureModalProps] = useState({
     open: false,
     architecture: { components: [] },
+    actionType: ''
+  });
+
+  const [componentModalProps, setComponentModalProps] = useState({
+    open: false,
+    component: {},
     actionType: ''
   });
 
@@ -132,93 +141,90 @@ const ArchitectureView = () => {
 
   const ArchitectureHeader = () => {
     return (
-      <Card>
-        <CardContent>
-          <Box display="flex" className={classes.boxMargin}>
-            <Box width="100%">
-              <AppBreadcrumb
-                paperId={architecture.paper_id}
-                architectureId={architecture.id}
-              />
-              <Typography variant="h1">
-                {architecture.name}
-              </Typography>
-              <Typography variant="subtitle1" className={classes.architectureSubtitle}>
-                Architecture #
-                {architecture.id}
-              </Typography>
-              <Typography variant="body1">
-                Reader description -&nbsp;
-                {architecture.reader_description}
-              </Typography>
-              <Typography variant="body1">
-                Author description -&nbsp;
-                {architecture.author_description}
-              </Typography>
+      <div>
+        <Box display="flex" className={classes.boxMargin} width="100%" mb={3}>
+          <Button
+            color="primary"
+            variant="contained"
+            onClick={architectureEditHandler}
+            className={classes.buttonMargin}
+          >
+            Edit
+          </Button>
+          <Button
+            variant="contained"
+            style={{ backgroundColor: '#f50057', color: 'white' }}
+            startIcon={<DeleteIcon />}
+            onClick={() => {
+              if (window.confirm('Architecture deletion is irreversible. Associated components and properties will also be deleted. Proceed?')) {
+                deleteArchitecture(architecture.id);
+              }
+            }}
+          >
+            Delete
+          </Button>
+        </Box>
+        <Card>
+          <CardContent>
+            <Box display="flex" className={classes.boxMargin}>
+              <Box width="100%">
+                <AppBreadcrumb
+                  paperId={architecture.paper_id}
+                  architectureId={architecture.id}
+                />
+                <Typography variant="h1">
+                  {architecture.name}
+                </Typography>
+                <Typography variant="subtitle1" className={classes.architectureSubtitle}>
+                  Architecture #
+                  {architecture.id}
+                </Typography>
+                <Typography variant="body1">
+                  Reader description -&nbsp;
+                  {architecture.reader_description}
+                </Typography>
+                <Typography variant="body1">
+                  Author description -&nbsp;
+                  {architecture.author_description}
+                </Typography>
+              </Box>
             </Box>
-            <Box flexShrink={0}>
-              <Button
-                color="primary"
-                variant="contained"
-                onClick={architectureEditHandler}
-              >
-                Edit
-              </Button>
-            </Box>
-            &nbsp;
-            <Box flexShrink={0}>
-              <Button
-                variant="contained"
-                style={{ backgroundColor: '#f50057', color: 'white' }}
-                startIcon={<DeleteIcon />}
-                onClick={() => {
-                  if (window.confirm('Architecture deletion is irreversible. Associated components and properties will also be deleted. Proceed?')) {
-                    deleteArchitecture(architecture.id);
-                  }
-                }}
-              >
-                Delete
-              </Button>
-            </Box>
-          </Box>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     );
   };
 
-  const ComponentTable = ({ components }) => {
-    const columns = [
-      { field: 'name', headerName: 'Name', width: 300 },
-      { field: 'reader_description', headerName: 'Reader description', width: 700 },
-    ];
+  const componentActionHandler = (actionType, component) => {
+    switch (actionType) {
+      case 'new':
+        setComponentModalProps({
+          open: true,
+          actionType,
+          component: { }
+        });
+        break;
+      case 'edit':
+      case 'view':
+        setComponentModalProps({
+          open: true,
+          actionType,
+          component
+        });
+        break;
 
-    const displayComponentsTable = () => {
-      return (
-        <div style={{ width: '100%' }}>
-          <DataGrid rows={components} columns={columns} pageSize={10} autoHeight />
-        </div>
-      );
-    };
+      case 'delete':
+        // Can be replaced with a prettier modal later.
+        if (window.confirm('Component deletion is irreversible. Associated connections and properties will also be deleted. Proceed?')) console.log('todo: delete');
+        break;
 
-    return (
-      <Card>
-        <CardContent>
-          {
-              components && components.length
-                ? displayComponentsTable()
-                : (
-                  <Typography variant="h2">
-                    No components yet.
-                  </Typography>
-                )
-            }
-        </CardContent>
-      </Card>
-    );
+      default:
+        console.error('No action were provided to the handler.');
+    }
   };
 
-  ComponentTable.propTypes = {
-    components: PropTypes.array
+  const componentActionModalHandler = () => {
+    console.log('todo');
   };
 
   return (
@@ -228,8 +234,54 @@ const ArchitectureView = () => {
     >
       <Container maxWidth={false}>
         <ArchitectureHeader />
-        <br />
-        <ComponentTable components={architecture.components} />
+        {
+          architecture.components.length
+            ? (
+              <Box mt={3}>
+                <Box>
+                  <Button
+                    color="primary"
+                    variant="contained"
+                    onClick={() => componentActionHandler('new')}
+                  >
+                    New&nbsp;component
+                  </Button>
+                </Box>
+                <Box mt={3}>
+                  <ComponentsTable
+                    components={architecture.components}
+                    componentActionHandler={componentActionHandler}
+                    componentClickHandler={() => console.log('clicked (temp)')}
+                  />
+                </Box>
+              </Box>
+            )
+            : (
+              <Box mt={3}>
+                <Card>
+                  <CardContent align="center">
+                    <Typography variant="h1" component="div" gutterBottom>
+                      No component yet.
+                    </Typography>
+                    <Typography variant="body1">
+                      <p>
+                        You can add a new component by clicking the button below.
+                      </p>
+                    </Typography>
+                    <Box mt={3}>
+                      <Button
+                        color="primary"
+                        variant="contained"
+                        onClick={() => componentActionHandler('new')}
+                      >
+                        New&nbsp;component
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Box>
+            )
+        }
       </Container>
       <MessageSnackbar
         messageSnackbarProps={messageSnackbarProps}
@@ -240,6 +292,11 @@ const ArchitectureView = () => {
         setModalProps={setArchitectureModalProps}
         actionModalHandler={architectureActionModalHandler}
         doNotShowSwitch
+      />
+      <ComponentModal
+        modalProps={componentModalProps}
+        setModalProps={setComponentModalProps}
+        actionModalHandler={componentActionModalHandler}
       />
     </Page>
   );

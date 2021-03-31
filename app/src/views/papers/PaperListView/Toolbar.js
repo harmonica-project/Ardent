@@ -13,7 +13,7 @@ import { Autocomplete } from '@material-ui/lab';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
-  importButton: {
+  marginButton: {
     marginRight: theme.spacing(1)
   }
 }));
@@ -38,17 +38,17 @@ const Toolbar = ({
     >
       <Box
         display="flex"
-        justifyContent="flex-end"
       >
-        <Button className={classes.importButton}>
-          Import papers from Parsif.al
-        </Button>
         <Button
+          className={classes.marginButton}
           color="primary"
           variant="contained"
           onClick={() => actionHandler('new', null)}
         >
           Add paper
+        </Button>
+        <Button>
+          Import papers from Parsif.al
         </Button>
       </Box>
       <Box mt={3}>
