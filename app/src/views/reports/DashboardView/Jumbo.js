@@ -44,7 +44,7 @@ const Jumbo = ({ className }) => {
             {' '}
             <i>Study papers </i>
             tab, you can input papers, architectures, and components.
-            To input papers, you can do it manually by providing BIBTeX information, but also
+            To input papers, you can do it manually by providing BibTeX information, but also
             use an auto-importer from
             {' '}
             <a href="https://parsif.al">Parsif.al</a>

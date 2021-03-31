@@ -350,6 +350,7 @@ const PapersListView = () => {
   };
 
   const architectureActionModalHandler = (actionType, newArchitecture) => {
+    console.log(newArchitecture);
     switch (actionType) {
       case 'delete':
         if (window.confirm('Architecture deletion is irreversible. Associated components and properties will also be deleted. Proceed?')) { deleteArchitecture(architectureModalProps.architecture.paper_id, architectureModalProps.architecture.id); }

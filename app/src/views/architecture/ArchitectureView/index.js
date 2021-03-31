@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   makeStyles,
   Container,
@@ -10,14 +10,20 @@ import {
   Button
 } from '@material-ui/core';
 import { DataGrid } from '@material-ui/data-grid';
+import {
+  Delete as DeleteIcon
+} from '@material-ui/icons/';
 import Page from 'src/components/Page';
 import PropTypes from 'prop-types';
 import {
-  getArchitecture
+  getArchitecture,
+  deleteArchitecture as deleteArchitectureRequest,
+  saveExistingArchitecture as saveExistingArchitectureRequest
 } from 'src/requests/architecture';
 import MessageSnackbar from 'src/components/MessageSnackbar';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
+import ArchitectureModal from '../../papers/PaperListView/ArchitectureModal';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -35,8 +41,14 @@ const useStyles = makeStyles((theme) => ({
 const ArchitectureView = () => {
   const classes = useStyles();
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [architecture, setArchitecture] = useState({ components: [] });
+  const [architectureModalProps, setArchitectureModalProps] = useState({
+    open: false,
+    architecture: { components: [] },
+    actionType: ''
+  });
 
   const [messageSnackbarProps, setMessageSnackbarProps] = useState({
     open: false,
@@ -59,10 +71,64 @@ const ArchitectureView = () => {
       .then(({ data }) => {
         if (data.success) {
           setArchitecture(data.result);
+          setArchitectureModalProps({
+            ...architectureModalProps,
+            architecture: data.result
+          });
         }
       })
       .catch((error) => handleErrorRequest(error, displayMsg));
   }, []);
+
+  const saveExistingArchitecture = (newArchitecture) => {
+    saveExistingArchitectureRequest(newArchitecture)
+      .then(({ data }) => {
+        if (data.success) {
+          setArchitectureModalProps({
+            ...architectureModalProps,
+            open: false,
+            actionType: ''
+          });
+          setArchitecture(newArchitecture);
+          displayMsg('Architecture successfully modified.');
+        }
+      })
+      .catch((error) => handleErrorRequest(error, displayMsg));
+  };
+
+  const deleteArchitecture = async (architectureId) => {
+    deleteArchitectureRequest(architectureId)
+      .then(({ data }) => {
+        if (data.success) {
+          displayMsg('Architecture successfully deleted.');
+          navigate('/app/papers');
+        }
+      })
+      .catch((error) => handleErrorRequest(error, displayMsg));
+  };
+
+  const architectureActionModalHandler = (actionType, newArchitecture) => {
+    switch (actionType) {
+      case 'delete':
+        if (window.confirm('Architecture deletion is irreversible. Associated components and properties will also be deleted. Proceed?')) { deleteArchitecture(architectureModalProps.architecture.id); }
+        break;
+
+      case 'edit':
+        saveExistingArchitecture(newArchitecture);
+        break;
+
+      default:
+        console.error('No action were provided to the handler.');
+    }
+  };
+
+  const architectureEditHandler = () => {
+    setArchitectureModalProps({
+      ...architectureModalProps,
+      open: true,
+      actionType: 'edit'
+    });
+  };
 
   const ArchitectureHeader = () => {
     return (
@@ -82,16 +148,36 @@ const ArchitectureView = () => {
                 {architecture.id}
               </Typography>
               <Typography variant="body1">
-                Description -&nbsp;
-                {architecture.description}
+                Reader description -&nbsp;
+                {architecture.reader_description}
+              </Typography>
+              <Typography variant="body1">
+                Author description -&nbsp;
+                {architecture.author_description}
               </Typography>
             </Box>
             <Box flexShrink={0}>
               <Button
                 color="primary"
                 variant="contained"
+                onClick={architectureEditHandler}
               >
                 Edit
+              </Button>
+            </Box>
+            &nbsp;
+            <Box flexShrink={0}>
+              <Button
+                variant="contained"
+                style={{ backgroundColor: '#f50057', color: 'white' }}
+                startIcon={<DeleteIcon />}
+                onClick={() => {
+                  if (window.confirm('Architecture deletion is irreversible. Associated components and properties will also be deleted. Proceed?')) {
+                    deleteArchitecture(architecture.id);
+                  }
+                }}
+              >
+                Delete
               </Button>
             </Box>
           </Box>
@@ -103,31 +189,29 @@ const ArchitectureView = () => {
   const ComponentTable = ({ components }) => {
     const columns = [
       { field: 'name', headerName: 'Name', width: 300 },
-      { field: 'description', headerName: 'Description', width: 700 },
+      { field: 'reader_description', headerName: 'Reader description', width: 700 },
     ];
-
-    console.log(components);
 
     const displayComponentsTable = () => {
       return (
-        <Card>
-          <CardContent>
-            <div style={{ width: '100%' }}>
-              <DataGrid rows={components} columns={columns} pageSize={10} autoHeight />
-            </div>
-          </CardContent>
-        </Card>
+        <div style={{ width: '100%' }}>
+          <DataGrid rows={components} columns={columns} pageSize={10} autoHeight />
+        </div>
       );
     };
 
-    console.log(components);
-    if (components && components.length) return displayComponentsTable();
     return (
       <Card>
         <CardContent>
-          <Typography variant="h2">
-            No components yet.
-          </Typography>
+          {
+              components && components.length
+                ? displayComponentsTable()
+                : (
+                  <Typography variant="h2">
+                    No components yet.
+                  </Typography>
+                )
+            }
         </CardContent>
       </Card>
     );
@@ -150,6 +234,12 @@ const ArchitectureView = () => {
       <MessageSnackbar
         messageSnackbarProps={messageSnackbarProps}
         setMessageSnackbarProps={setMessageSnackbarProps}
+      />
+      <ArchitectureModal
+        modalProps={architectureModalProps}
+        setModalProps={setArchitectureModalProps}
+        actionModalHandler={architectureActionModalHandler}
+        doNotShowSwitch
       />
     </Page>
   );

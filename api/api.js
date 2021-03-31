@@ -92,7 +92,6 @@ app.get('/architectures', authorizedOnly, (req, res) => {
 });
 
 app.get('/papers', authorizedOnly, (req, res) => {
-    console.log('YO')
     db.getPapers().then(parsedResult => {
         if(parsedResult.success) res.status(200).send(parsedResult);
         else res.status(500).send(parsedResult);
@@ -101,7 +100,7 @@ app.get('/papers', authorizedOnly, (req, res) => {
 
 app.post('/architecture', authorizedOnly, (req, res) => {
     const newArchitecture = req.body;
-    if(newArchitecture.name && newArchitecture.paper_id && newArchitecture.description) {
+    if(newArchitecture.name && newArchitecture.paper_id && newArchitecture.reader_description) {
         db.storeArchitecture(newArchitecture).then((parsedResult) => {
             if(parsedResult.success) res.status(200).send(parsedResult);
             else res.status(500).send(parsedResult);
@@ -208,7 +207,7 @@ app.put('/paper/:id', authorizedOnly, (req, res) => {
 
 app.put('/architecture/:id', authorizedOnly, (req, res) => {
     const newArchitecture = req.body;
-    if(newArchitecture.description && newArchitecture.name && newArchitecture.id) {
+    if(newArchitecture.reader_description && newArchitecture.name && newArchitecture.id) {
         db.modifyArchitecture(newArchitecture).then((parsedResult) => {
             if(parsedResult.success) res.status(200).send(parsedResult);
             else res.status(500).send(parsedResult);
@@ -243,7 +242,7 @@ app.post('/xls', authorizedOnly, async (req, res) => {
                         var storeResult = await storeArchitecture({
                             id: uuidv4(),
                             paper: result[i].title,
-                            description: result[i].abstract,
+                            reader_description: result[i].abstract,
                             done_by: ""
                         })
 
@@ -258,7 +257,6 @@ app.post('/xls', authorizedOnly, async (req, res) => {
                 });
             });
         } catch (e){
-            console.log(e)
             res.status(500).send({
                 success: false,
                 errorMsg: "Conversion failed: " + e

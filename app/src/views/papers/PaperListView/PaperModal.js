@@ -364,8 +364,8 @@ export default function PaperModal({ modalProps, setModalProps, actionModalHandl
       <Modal
         open={modalProps.open}
         onClose={handleClose}
-        aria-labelledby="simple-modal-title"
-        aria-describedby="simple-modal-description"
+        aria-labelledby="title"
+        aria-describedby="reader-description"
       >
         {body}
       </Modal>
@@ -392,7 +392,7 @@ PaperModal.propTypes = {
         PropTypes.shape({
           id: PropTypes.string.isRequired,
           name: PropTypes.string.isRequired,
-          description: PropTypes.string.isRequired,
+          reader_description: PropTypes.string.isRequired,
         }),
       )
     }),

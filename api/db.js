@@ -17,7 +17,7 @@ module.exports = {
     getPapers: async () => {
         try {
             var queryResult = await client.query(
-                `SELECT papers.*, array_agg(architectures.id || ';' || architectures.name || ';' || architectures.description) architectures 
+                `SELECT papers.*, array_agg(architectures.id || ';' || architectures.name || ';' || architectures.reader_description || ';' || architectures.author_description) architectures 
                 FROM papers 
                 FULL JOIN architectures on papers.id = architectures.paper_id 
                 GROUP BY papers.id`
@@ -32,7 +32,8 @@ module.exports = {
                         results[i].architectures[j] = {
                             id: content[0],
                             name: content[1],
-                            description: content[2],
+                            reader_description: content[2],
+                            author_description: content[3],
                             paper_id: results[i].id
                         }
                     }
@@ -48,7 +49,7 @@ module.exports = {
             };
         }
         catch(err) {
-            console.log(err);
+            console.log('error: ' + err);
             return {
                 success: false,
                 errorMsg: 'Request failed: ' + err 
@@ -235,7 +236,7 @@ module.exports = {
     storeArchitecture: async architecture => {
         try {
             const newArchitectureId = uuidv4();
-            await client.query("INSERT INTO architectures (id, name, description, paper_id) VALUES ($1, $2, $3, $4)", [newArchitectureId, architecture.name, architecture.description, architecture.paper_id])
+            await client.query("INSERT INTO architectures (id, name, reader_description, paper_id, author_description) VALUES ($1, $2, $3, $4, $5)", [newArchitectureId, architecture.name, architecture.reader_description, architecture.paper_id, architecture.author_description])
             return {success: true, architectureId: newArchitectureId}
         }
         catch(err) {
@@ -311,7 +312,7 @@ module.exports = {
     },
     storeComponentInstance: async component => {
         try {
-            await client.query("INSERT INTO components_instances VALUES ($1, $2, $3, $4)", [component.id, component.name, component.architectureId, component.description])
+            await client.query("INSERT INTO components_instances VALUES ($1, $2, $3, $4)", [component.id, component.name, component.architectureId, component.reader_description])
             return {success: true};
         }
         catch(err) {
@@ -324,7 +325,7 @@ module.exports = {
     },
     modifyComponentInstance: async component => {
         try {
-            await client.query("UPDATE components_instances SET (name, architecture_id, description) = ($1, $2, $3) WHERE id = $4", [component.name, component.architectureId, component.description, component.id])
+            await client.query("UPDATE components_instances SET (name, architecture_id, reader_description) = ($1, $2, $3) WHERE id = $4", [component.name, component.architectureId, component.reader_description, component.id])
             return {success: true};
         }
         catch(err) {
@@ -364,7 +365,7 @@ module.exports = {
     },
     modifyArchitecture: async architecture => {
         try {
-            await client.query("UPDATE architectures SET (name, description) = ($1, $2) WHERE id = $3", [architecture.name, architecture.description, architecture.id])
+            await client.query("UPDATE architectures SET (name, reader_description, author_description) = ($1, $2, $3) WHERE id = $4", [architecture.name, architecture.reader_description, architecture.author_description, architecture.id])
             return {success: true};
         }
         catch(err) {

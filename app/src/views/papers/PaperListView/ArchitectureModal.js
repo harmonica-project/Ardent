@@ -43,7 +43,9 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function ArchitectureModal({ modalProps, setModalProps, actionModalHandler }) {
+export default function ArchitectureModal({
+  modalProps, setModalProps, actionModalHandler, doNotShowSwitch
+}) {
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
   const [modalStyle] = React.useState(getModalStyle);
@@ -108,16 +110,17 @@ export default function ArchitectureModal({ modalProps, setModalProps, actionMod
           >
             Delete
           </Button>
+          {!doNotShowSwitch && (
           <Button
             color="primary"
             variant="contained"
-            hidden={modalProps.actionType === 'new'}
-            startIcon={modalProps.actionType === 'edit' ? <EditIcon /> : <VisibilityIcon />}
+            startIcon={modalProps.actionType === 'edit' ? <VisibilityIcon /> : <EditIcon />}
             className={classes.headerButton}
             onClick={() => handleSwitchClick()}
           >
             {modalProps.actionType === 'edit' ? 'Switch to view' : 'Switch to edit'}
           </Button>
+          )}
         </Box>
       </Box>
     );
@@ -143,15 +146,29 @@ export default function ArchitectureModal({ modalProps, setModalProps, actionMod
           }}
         />
         <TextField
-          id="description-field"
-          label="Description"
-          placeholder="Enter architecture description"
+          id="reader-description-field"
+          label="Reader description"
+          placeholder="Enter architecture description from reader standpoint"
           fullWidth
           margin="normal"
           multiline
           disabled={modalProps.actionType === 'view'}
-          onChange={(e) => handleInputChange('description', e.target.value)}
-          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.architecture.description}
+          onChange={(e) => handleInputChange('reader_description', e.target.value)}
+          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.architecture.reader_description}
+          InputLabelProps={{
+            shrink: true,
+          }}
+        />
+        <TextField
+          id="author-description-field"
+          label="Author description"
+          placeholder="Enter architecture description from author standpoint"
+          fullWidth
+          margin="normal"
+          multiline
+          disabled={modalProps.actionType === 'view'}
+          onChange={(e) => handleInputChange('author_description', e.target.value)}
+          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.architecture.author_description}
           InputLabelProps={{
             shrink: true,
           }}
@@ -176,8 +193,8 @@ export default function ArchitectureModal({ modalProps, setModalProps, actionMod
       <Modal
         open={modalProps.open}
         onClose={handleClose}
-        aria-labelledby="simple-modal-title"
-        aria-describedby="simple-modal-description"
+        aria-labelledby="title"
+        aria-describedby="reader-description"
       >
         {body}
       </Modal>
@@ -191,11 +208,13 @@ ArchitectureModal.propTypes = {
     architecture: PropTypes.shape({
       id: PropTypes.string,
       name: PropTypes.string,
-      description: PropTypes.string,
+      reader_description: PropTypes.string,
+      author_description: PropTypes.string,
       paper_id: PropTypes.string
     }),
     actionType: PropTypes.string.isRequired
   }).isRequired,
   setModalProps: PropTypes.func.isRequired,
-  actionModalHandler: PropTypes.func.isRequired
+  actionModalHandler: PropTypes.func.isRequired,
+  doNotShowSwitch: PropTypes.bool
 };

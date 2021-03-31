@@ -114,7 +114,7 @@ function Row({
         <TableHead>
           <TableRow>
             <TableCell align="center">Name</TableCell>
-            <TableCell>Description</TableCell>
+            <TableCell>Reader description</TableCell>
             <TableCell align="center">Actions</TableCell>
           </TableRow>
         </TableHead>
@@ -132,7 +132,7 @@ function Row({
                 style={{ cursor: 'pointer' }}
                 onClick={() => architectureClickHandler(architectureRow.id)}
               >
-                {reduceLongText(architectureRow.description, 100)}
+                {reduceLongText(architectureRow.reader_description, 100)}
               </TableCell>
               <TableCell align="center"><TableActionCell item={{ ...architectureRow, paper_id: row.id }} actionHandler={architectureActionHandler} /></TableCell>
             </TableRow>
@@ -204,7 +204,8 @@ Row.propTypes = {
       PropTypes.shape({
         id: PropTypes.string.isRequired,
         name: PropTypes.string.isRequired,
-        description: PropTypes.string.isRequired,
+        reader_description: PropTypes.string.isRequired,
+        author_description: PropTypes.string.isRequired
       }),
     ).isRequired
   }).isRequired,
