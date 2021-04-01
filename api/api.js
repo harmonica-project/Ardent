@@ -174,8 +174,31 @@ app.post('/component_instance', authorizedOnly, (req, res) => {
 
 app.put('/component_instance/:id', authorizedOnly, (req, res) => {
     const newComponent = req.body;
-    if(newComponent.name.length > 0 && newComponent.architectureId && newComponent.id) {
+    if(newComponent.name.length > 0 && newComponent.architecture_id && newComponent.id) {
         db.modifyComponentInstance(newComponent).then((parsedResult) => {
+            if(parsedResult.success) res.status(200).send(parsedResult);
+            else res.status(500).send(parsedResult);
+        })
+    }
+    else {
+        res.status(500).send({
+            success: false,
+            errorMsg: "Missing fields."
+        })
+    }
+});
+
+app.post('/component_base', authorizedOnly, (req, res) => {
+    db.storeComponentBase(req.body).then((parsedResult) => {
+        if(parsedResult.success) res.status(200).send(parsedResult);
+        else res.status(500).send(parsedResult);
+    })
+});
+
+app.put('/component_base/:id', authorizedOnly, (req, res) => {
+    const newComponent = req.body;
+    if(newComponent.name.length > 0 && newComponent.id) {
+        db.modifyComponentBase(newComponent).then((parsedResult) => {
             if(parsedResult.success) res.status(200).send(parsedResult);
             else res.status(500).send(parsedResult);
         })
@@ -281,8 +304,16 @@ app.delete('/paper/:id', authorizedOnly, (req, res) => {
     })
 });
 
-app.get('/components_instances', authorizedOnly, (req, res) => {
+app.get('/component_instance', authorizedOnly, (req, res) => {
     db.getComponentsInstances().then((queryResult) => {
+        const parsedResult = parseDBResults(queryResult);
+        if(parsedResult.success) res.status(200).send(parsedResult);
+        else res.status(500).send(parsedResult);
+    })
+});
+
+app.get('/component_base', authorizedOnly, (req, res) => {
+    db.getBaseComponents().then((queryResult) => {
         const parsedResult = parseDBResults(queryResult);
         if(parsedResult.success) res.status(200).send(parsedResult);
         else res.status(500).send(parsedResult);

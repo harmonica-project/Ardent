@@ -151,13 +151,14 @@ export default function ArchitectureModal({
           placeholder="Enter architecture description from reader standpoint"
           fullWidth
           margin="normal"
-          multiline
           disabled={modalProps.actionType === 'view'}
           onChange={(e) => handleInputChange('reader_description', e.target.value)}
           defaultValue={modalProps.actionType === 'new' ? '' : modalProps.architecture.reader_description}
           InputLabelProps={{
             shrink: true,
           }}
+          multiline
+          rows={4}
         />
         <TextField
           id="author-description-field"
@@ -165,13 +166,14 @@ export default function ArchitectureModal({
           placeholder="Enter architecture description from author standpoint"
           fullWidth
           margin="normal"
-          multiline
           disabled={modalProps.actionType === 'view'}
           onChange={(e) => handleInputChange('author_description', e.target.value)}
           defaultValue={modalProps.actionType === 'new' ? '' : modalProps.architecture.author_description}
           InputLabelProps={{
             shrink: true,
           }}
+          multiline
+          rows={4}
         />
         {modalProps.actionType !== 'view' ? (
           <Button

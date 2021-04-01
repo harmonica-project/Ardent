@@ -102,8 +102,8 @@ function Row({
     <>
       <TableRow className={classes.root} key={row.id}>
         <TableCell style={{ cursor: 'pointer' }} onClick={() => componentClickHandler(row.id)} align="center">{row.name}</TableCell>
-        <TableCell style={{ cursor: 'pointer' }} onClick={() => componentClickHandler(row.id)}>{reduceLongText(row.reader_description, 50)}</TableCell>
-        <TableCell style={{ cursor: 'pointer' }} onClick={() => componentClickHandler(row.id)}>{reduceLongText(row.author_description, 50)}</TableCell>
+        <TableCell style={{ cursor: 'pointer' }} onClick={() => componentClickHandler(row.id)}>{reduceLongText(row.reader_description, 100)}</TableCell>
+        <TableCell style={{ cursor: 'pointer' }} onClick={() => componentClickHandler(row.id)}>{reduceLongText(row.author_description, 100)}</TableCell>
         <TableCell align="center"><TableActionCell item={row} actionHandler={componentActionHandler} /></TableCell>
       </TableRow>
     </>

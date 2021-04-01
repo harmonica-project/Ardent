@@ -1,8 +1,12 @@
 import axios from 'axios';
 import { API_URL, AUTH_INFO } from './config';
 
+export function getBaseComponents() {
+  return axios.get(`${API_URL}/component_base`, AUTH_INFO, { withCredentials: true });
+}
+
 export function getComponentsInstances() {
-  return axios.get(`${API_URL}/components_instances`, AUTH_INFO, { withCredentials: true });
+  return axios.get(`${API_URL}/component_instance`, AUTH_INFO, { withCredentials: true });
 }
 
 export function getComponentsNames() {
@@ -15,6 +19,14 @@ export function saveNewComponentInstance(component) {
 
 export function saveExistingComponentInstance(component) {
   return axios.put(`${API_URL}/component_instance/${component.id}`, component, AUTH_INFO, { withCredentials: true });
+}
+
+export function saveNewBaseComponent(component) {
+  return axios.post(`${API_URL}/component_base`, component, AUTH_INFO, { withCredentials: true });
+}
+
+export function saveExistingBaseComponent(component) {
+  return axios.put(`${API_URL}/component_base/${component.id}`, component, AUTH_INFO, { withCredentials: true });
 }
 
 export function deleteComponentInstance(componentId) {

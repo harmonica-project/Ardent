@@ -64,6 +64,14 @@ module.exports = {
             return err;
         }
     },
+    getBaseComponents: async () => {
+        try {
+            return await client.query("SELECT * FROM components_base");
+        }
+        catch(err) {
+            return err;
+        }
+    },
     getComponentsNames: async () => {
         try {
             return await client.query("SELECT DISTINCT name FROM components_instances");
@@ -272,12 +280,14 @@ module.exports = {
         }
     },
     storeConnection: async connection => {
+        const newConnectionId = uuidv4();
         try {
             const foundConnections = await client.query("SELECT * FROM connections WHERE (first_component = $1 AND second_component = $2) OR (first_component = $2 AND second_component = $1)", [connection.first_component, connection.second_component]);
             if(foundConnections["rows"].length === 0) {
-                await client.query("INSERT INTO connections VALUES ($1, $2, $3)", [connection.id, connection.first_component, connection.second_component])
+                await client.query("INSERT INTO connections VALUES ($1, $2, $3)", [newConnectionId, connection.first_component, connection.second_component])
                 return {
-                    success: true
+                    success: true,
+                    connectionId: newConnectionId
                 }
             }
             else {
@@ -311,9 +321,11 @@ module.exports = {
         }
     },
     storeComponentInstance: async component => {
+        const newComponentId = uuidv4();
+        console.log(component, newComponentId);
         try {
-            await client.query("INSERT INTO components_instances VALUES ($1, $2, $3, $4)", [component.id, component.name, component.architectureId, component.reader_description])
-            return {success: true};
+            await client.query("INSERT INTO components_instances (id, name, architecture_id, reader_description, author_description, component_base_id) VALUES ($1, $2, $3, $4, $5, $6)", [newComponentId, component.name, component.architecture_id, component.reader_description, component.author_description, component.component_base_id])
+            return {success: true, componentId: newComponentId};
         }
         catch(err) {
             console.log('error: ' + err)
@@ -325,7 +337,34 @@ module.exports = {
     },
     modifyComponentInstance: async component => {
         try {
-            await client.query("UPDATE components_instances SET (name, architecture_id, reader_description) = ($1, $2, $3) WHERE id = $4", [component.name, component.architectureId, component.reader_description, component.id])
+            await client.query("UPDATE components_instances SET (name, architecture_id, reader_description, author_description, component_base_id) = ($1, $2, $3, $4, $5) WHERE id = $6", [component.name, component.architecture_id, component.reader_description, component.author_description, component.component_base_id, component.id])
+            return {success: true};
+        }
+        catch(err) {
+            console.log('error: ' + err)
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
+    storeComponentBase: async component => {
+        const newComponentId = uuidv4();
+        try {
+            await client.query("INSERT INTO components_base VALUES ($1, $2, $3)", [newComponentId, component.name, component.base_description])
+            return {success: true, componentId: newComponentId};
+        }
+        catch(err) {
+            console.log('error: ' + err)
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
+    modifyComponentBase: async component => {
+        try {
+            await client.query("UPDATE components_base SET (name, base_description) = ($1, $2) WHERE id = $3", [component.name, component.base_description, component.id])
             return {success: true};
         }
         catch(err) {

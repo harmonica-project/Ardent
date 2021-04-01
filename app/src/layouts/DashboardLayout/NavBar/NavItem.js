@@ -31,7 +31,7 @@ const useStyles = makeStyles((theme) => ({
     padding: '10px 8px',
     textTransform: 'none',
     width: '100%',
-    fontStyle: 'italic',
+    fontSize: '80%',
     marginLeft: theme.spacing(1)
   },
   icon: {

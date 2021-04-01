@@ -18,12 +18,19 @@ import {
   deleteArchitecture as deleteArchitectureRequest,
   saveExistingArchitecture as saveExistingArchitectureRequest
 } from 'src/requests/architecture';
+import {
+  deleteComponentInstance as deleteComponentInstanceRequest,
+  saveNewComponentInstance as saveNewComponentInstanceRequest,
+  saveExistingComponentInstance as saveExistingComponentInstanceRequest,
+  saveNewBaseComponent as saveNewBaseComponentRequest
+} from 'src/requests/component';
 import MessageSnackbar from 'src/components/MessageSnackbar';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
 import ArchitectureModal from '../../papers/PaperListView/ArchitectureModal';
 import ComponentsTable from './ComponentsTable';
 import ComponentModal from './ComponentModal';
+import { getBaseComponents as getBaseComponentsRequest } from '../../../requests/component';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -47,6 +54,7 @@ const ArchitectureView = () => {
   const navigate = useNavigate();
 
   const [architecture, setArchitecture] = useState({ components: [] });
+  const [baseComponents, setBaseComponents] = useState([]);
   const [architectureModalProps, setArchitectureModalProps] = useState({
     open: false,
     architecture: { components: [] },
@@ -55,7 +63,9 @@ const ArchitectureView = () => {
 
   const [componentModalProps, setComponentModalProps] = useState({
     open: false,
-    component: {},
+    component: {
+      architecture_id: id
+    },
     actionType: ''
   });
 
@@ -89,6 +99,16 @@ const ArchitectureView = () => {
       .catch((error) => handleErrorRequest(error, displayMsg));
   }, []);
 
+  useEffect(() => {
+    getBaseComponentsRequest()
+      .then(({ data }) => {
+        if (data.success) {
+          setBaseComponents(data.result);
+        }
+      })
+      .catch((error) => handleErrorRequest(error, displayMsg));
+  }, []);
+
   const saveExistingArchitecture = (newArchitecture) => {
     saveExistingArchitectureRequest(newArchitecture)
       .then(({ data }) => {
@@ -111,6 +131,34 @@ const ArchitectureView = () => {
         if (data.success) {
           displayMsg('Architecture successfully deleted.');
           navigate('/app/papers');
+        }
+      })
+      .catch((error) => handleErrorRequest(error, displayMsg));
+  };
+
+  const removeComponentFromState = (componentId) => {
+    let i;
+    const newComponents = [...architecture.components];
+    for (i = 0; i < newComponents.length; i++) {
+      if (newComponents[i].id === componentId) {
+        newComponents.splice(i, 1);
+        setArchitecture({
+          ...architecture,
+          components: newComponents
+        });
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  const deleteComponentInstance = async (componentId) => {
+    deleteComponentInstanceRequest(componentId)
+      .then(({ data }) => {
+        if (data.success) {
+          removeComponentFromState(componentId);
+          displayMsg('Component successfully deleted.');
         }
       })
       .catch((error) => handleErrorRequest(error, displayMsg));
@@ -199,23 +247,23 @@ const ArchitectureView = () => {
     switch (actionType) {
       case 'new':
         setComponentModalProps({
+          ...componentModalProps,
           open: true,
-          actionType,
-          component: { }
+          actionType
         });
         break;
       case 'edit':
       case 'view':
         setComponentModalProps({
+          component,
           open: true,
-          actionType,
-          component
+          actionType
         });
         break;
 
       case 'delete':
         // Can be replaced with a prettier modal later.
-        if (window.confirm('Component deletion is irreversible. Associated connections and properties will also be deleted. Proceed?')) console.log('todo: delete');
+        if (window.confirm('Component deletion is irreversible. Associated connections and properties will also be deleted. Proceed?')) deleteComponentInstance(component.id);
         break;
 
       default:
@@ -223,8 +271,81 @@ const ArchitectureView = () => {
     }
   };
 
-  const componentActionModalHandler = () => {
-    console.log('todo');
+  const saveNewComponent = (component) => {
+    if (component.component_base_id && component.component_base_id !== '') {
+      saveNewComponentInstanceRequest(component)
+        .then(({ data }) => {
+          if (data.success) {
+            // modify state
+            displayMsg('Component instance successfully added.');
+          }
+        })
+        .catch((error) => handleErrorRequest(error, displayMsg));
+    } else {
+      saveNewBaseComponentRequest(component)
+        .then((baseRep) => {
+          if (baseRep.data.success) {
+            const componentInstance = { ...component, component_base_id: baseRep.data.componentId };
+            saveNewComponentInstanceRequest(componentInstance)
+              .then((instRep) => {
+                if (instRep.data.success) {
+                  // modify state
+                  displayMsg('Component (base and instance) successfully added.');
+                }
+              })
+              .catch((error) => handleErrorRequest(error, displayMsg));
+          }
+        })
+        .catch((error) => handleErrorRequest(error, displayMsg));
+    }
+  };
+
+  const saveExistingComponent = (component) => {
+    if (component.component_base_id && component.component_base_id !== '') {
+      saveExistingComponentInstanceRequest(component)
+        .then(({ data }) => {
+          if (data.success) {
+            // modify state
+            displayMsg('Component instance successfully modified.');
+          }
+        })
+        .catch((error) => handleErrorRequest(error, displayMsg));
+    } else {
+      saveNewBaseComponentRequest(component)
+        .then((baseRep) => {
+          if (baseRep.data.success) {
+            const componentInstance = { ...component, component_base_id: baseRep.data.componentId };
+            saveExistingComponentInstanceRequest(componentInstance)
+              .then((instRep) => {
+                if (instRep.data.success) {
+                  // modify state
+                  displayMsg('Component (base and instance) successfully modified.');
+                }
+              })
+              .catch((error) => handleErrorRequest(error, displayMsg));
+          }
+        })
+        .catch((error) => handleErrorRequest(error, displayMsg));
+    }
+  };
+
+  const componentActionModalHandler = (actionType, component) => {
+    switch (actionType) {
+      case 'new':
+        saveNewComponent(component);
+        break;
+
+      case 'edit':
+        saveExistingComponent(component);
+        break;
+
+      case 'delete':
+        deleteComponentInstance(component.id);
+        break;
+
+      default:
+        console.error('No action were provided to the handler.');
+    }
   };
 
   return (
@@ -297,6 +418,7 @@ const ArchitectureView = () => {
         modalProps={componentModalProps}
         setModalProps={setComponentModalProps}
         actionModalHandler={componentActionModalHandler}
+        baseComponents={baseComponents}
       />
     </Page>
   );

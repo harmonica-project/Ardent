@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import {
   Box,
@@ -14,6 +14,7 @@ import {
   Save as SaveIcon
 } from '@material-ui/icons/';
 import PropTypes from 'prop-types';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 
 function getModalStyle() {
   const top = 50;
@@ -44,12 +45,21 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function ComponentModal({
-  modalProps, setModalProps, actionModalHandler, doNotShowSwitch
+  modalProps, setModalProps, actionModalHandler, doNotShowSwitch, baseComponents
 }) {
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
-  const [modalStyle] = React.useState(getModalStyle);
-  const [innerComponent, setInnerComponent] = React.useState(modalProps.component);
+  const [modalStyle] = useState(getModalStyle);
+  const [innerComponent, setInnerComponent] = useState(modalProps.component);
+  const [helperText, setHelperText] = useState('');
+
+  const options = baseComponents.map((option) => {
+    const firstLetter = option.name[0].toUpperCase();
+    return {
+      firstLetter: /[0-9]/.test(firstLetter) ? '0-9' : firstLetter,
+      ...option
+    };
+  });
 
   useEffect(() => {
     setInnerComponent(modalProps.component);
@@ -67,6 +77,32 @@ export default function ComponentModal({
       ...innerComponent,
       [key]: value
     });
+  };
+
+  const handleAutocompleteChange = (name) => {
+    let index = -1;
+    for (let i = 0; i < baseComponents.length; i++) {
+      if (baseComponents[i].name.normalize() === name.normalize()) {
+        index = i;
+        break;
+      }
+    }
+
+    if (index === -1) {
+      setHelperText('This component does not exist yet. Saving this will create a new base component.');
+      setInnerComponent({
+        ...innerComponent,
+        name,
+        component_base_id: ''
+      });
+    } else {
+      setHelperText('');
+      setInnerComponent({
+        ...innerComponent,
+        name,
+        component_base_id: baseComponents[index].id
+      });
+    }
   };
 
   const handleSwitchClick = () => {
@@ -132,18 +168,47 @@ export default function ComponentModal({
         {getModalHeader()}
       </Typography>
       <form noValidate className={classes.form}>
+        <Autocomplete
+          id="name-field-autocomplete"
+          options={options.sort((a, b) => -b.firstLetter.localeCompare(a.firstLetter))}
+          groupBy={(option) => option.firstLetter}
+          getOptionLabel={(option) => option.name}
+          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.component}
+          label="Component name"
+          renderInput={(params) => <TextField {...params} variant="standard" helperText={helperText} onSelect={(e) => handleAutocompleteChange(e.target.value)} id="name-field" label="Component name" />}
+          style={{ width: '100%' }}
+          disabled={modalProps.actionType === 'view'}
+          freeSolo
+        />
         <TextField
-          id="name-field"
-          label="Name"
-          placeholder="Enter component name"
+          id="author-description-field"
+          label="Author description"
+          placeholder="Enter component description from author standpoint"
           fullWidth
           margin="normal"
           disabled={modalProps.actionType === 'view'}
-          onChange={(e) => handleInputChange('name', e.target.value)}
-          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.component.name}
+          onChange={(e) => handleInputChange('author_description', e.target.value)}
+          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.component.author_description}
           InputLabelProps={{
             shrink: true,
           }}
+          multiline
+          rows={4}
+        />
+        <TextField
+          id="reader-description-field"
+          label="Reader description"
+          placeholder="Enter component description from reader standpoint"
+          fullWidth
+          margin="normal"
+          disabled={modalProps.actionType === 'view'}
+          onChange={(e) => handleInputChange('reader_description', e.target.value)}
+          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.component.reader_description}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          multiline
+          rows={4}
         />
         {modalProps.actionType !== 'view' ? (
           <Button
@@ -189,5 +254,6 @@ ComponentModal.propTypes = {
   }).isRequired,
   setModalProps: PropTypes.func.isRequired,
   actionModalHandler: PropTypes.func.isRequired,
-  doNotShowSwitch: PropTypes.bool
+  doNotShowSwitch: PropTypes.bool,
+  baseComponents: PropTypes.array
 };
