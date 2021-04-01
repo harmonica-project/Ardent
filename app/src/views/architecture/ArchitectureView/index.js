@@ -271,61 +271,71 @@ const ArchitectureView = () => {
     }
   };
 
-  const saveNewComponent = (component) => {
-    if (component.component_base_id && component.component_base_id !== '') {
-      saveNewComponentInstanceRequest(component)
-        .then(({ data }) => {
-          if (data.success) {
-            // modify state
-            displayMsg('Component instance successfully added.');
-          }
-        })
-        .catch((error) => handleErrorRequest(error, displayMsg));
-    } else {
-      saveNewBaseComponentRequest(component)
-        .then((baseRep) => {
-          if (baseRep.data.success) {
-            const componentInstance = { ...component, component_base_id: baseRep.data.componentId };
-            saveNewComponentInstanceRequest(componentInstance)
-              .then((instRep) => {
-                if (instRep.data.success) {
-                  // modify state
-                  displayMsg('Component (base and instance) successfully added.');
-                }
-              })
-              .catch((error) => handleErrorRequest(error, displayMsg));
-          }
-        })
-        .catch((error) => handleErrorRequest(error, displayMsg));
+  const saveNewComponent = async (component) => {
+    try {
+      if (!component.component_base_id || component.component_base_id === '') {
+        const baseRes = await saveNewBaseComponentRequest(component);
+        if (baseRes.data.success) {
+          component = { ...component, component_base_id: baseRes.data.componentId };
+        }
+      }
+
+      const { data } = await saveNewComponentInstanceRequest(component);
+      if (data.success) {
+        const newComponent = {
+          ...component,
+          id: data.componentId
+        };
+        setArchitecture({
+          ...architecture,
+          components: [...architecture.components, newComponent]
+        });
+        setComponentModalProps({
+          ...componentModalProps,
+          component: { architecture_id: id },
+          open: false,
+        });
+        displayMsg('Component instance successfully added.');
+      }
+    } catch (error) {
+      handleErrorRequest(error, displayMsg);
     }
   };
 
-  const saveExistingComponent = (component) => {
-    if (component.component_base_id && component.component_base_id !== '') {
-      saveExistingComponentInstanceRequest(component)
-        .then(({ data }) => {
-          if (data.success) {
-            // modify state
-            displayMsg('Component instance successfully modified.');
-          }
-        })
-        .catch((error) => handleErrorRequest(error, displayMsg));
-    } else {
-      saveNewBaseComponentRequest(component)
-        .then((baseRep) => {
-          if (baseRep.data.success) {
-            const componentInstance = { ...component, component_base_id: baseRep.data.componentId };
-            saveExistingComponentInstanceRequest(componentInstance)
-              .then((instRep) => {
-                if (instRep.data.success) {
-                  // modify state
-                  displayMsg('Component (base and instance) successfully modified.');
-                }
-              })
-              .catch((error) => handleErrorRequest(error, displayMsg));
-          }
-        })
-        .catch((error) => handleErrorRequest(error, displayMsg));
+  const modifyComponentInState = (component) => {
+    const newComponents = [...architecture.components];
+    for (let i = 0; i < newComponents.length; i++) {
+      if (newComponents[i].id === component.id) {
+        newComponents[i] = component;
+      }
+    }
+    setArchitecture({
+      ...architecture,
+      components: newComponents
+    });
+  };
+
+  const saveExistingComponent = async (component) => {
+    try {
+      if (!component.component_base_id || component.component_base_id === '') {
+        const baseRes = await saveNewBaseComponentRequest(component);
+        if (baseRes.data.success) {
+          component = { ...component, component_base_id: baseRes.data.componentId };
+        }
+      }
+
+      const { data } = await saveExistingComponentInstanceRequest(component);
+      if (data.success) {
+        modifyComponentInState(component);
+        setComponentModalProps({
+          ...componentModalProps,
+          component: { architecture_id: id },
+          open: false,
+        });
+        displayMsg('Component instance successfully modified.');
+      }
+    } catch (error) {
+      handleErrorRequest(error, displayMsg);
     }
   };
 

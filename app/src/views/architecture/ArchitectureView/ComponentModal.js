@@ -14,7 +14,7 @@ import {
   Save as SaveIcon
 } from '@material-ui/icons/';
 import PropTypes from 'prop-types';
-import Autocomplete from '@material-ui/lab/Autocomplete';
+import BaseComponentInput from '../../components/BaseComponentsView/BaseComponentsInput';
 
 function getModalStyle() {
   const top = 50;
@@ -52,14 +52,6 @@ export default function ComponentModal({
   const [modalStyle] = useState(getModalStyle);
   const [innerComponent, setInnerComponent] = useState(modalProps.component);
   const [helperText, setHelperText] = useState('');
-
-  const options = baseComponents.map((option) => {
-    const firstLetter = option.name[0].toUpperCase();
-    return {
-      firstLetter: /[0-9]/.test(firstLetter) ? '0-9' : firstLetter,
-      ...option
-    };
-  });
 
   useEffect(() => {
     setInnerComponent(modalProps.component);
@@ -168,17 +160,12 @@ export default function ComponentModal({
         {getModalHeader()}
       </Typography>
       <form noValidate className={classes.form}>
-        <Autocomplete
-          id="name-field-autocomplete"
-          options={options.sort((a, b) => -b.firstLetter.localeCompare(a.firstLetter))}
-          groupBy={(option) => option.firstLetter}
-          getOptionLabel={(option) => option.name}
+        <BaseComponentInput
+          baseComponents={baseComponents}
+          handleAutocompleteChange={handleAutocompleteChange}
           defaultValue={modalProps.actionType === 'new' ? '' : modalProps.component}
-          label="Component name"
-          renderInput={(params) => <TextField {...params} variant="standard" helperText={helperText} onSelect={(e) => handleAutocompleteChange(e.target.value)} id="name-field" label="Component name" />}
-          style={{ width: '100%' }}
           disabled={modalProps.actionType === 'view'}
-          freeSolo
+          helperText={helperText}
         />
         <TextField
           id="author-description-field"
