@@ -49,18 +49,22 @@ export default function BaseComponentsView() {
     return bc;
   };
 
-  useEffect(async () => {
-    try {
-      const baseCompRes = (await getBaseComponentsRequest()).data;
-      const instCompRes = (await getComponentsInstancesRequest()).data;
+  useEffect(() => {
+    const fetchComponentData = async () => {
+      try {
+        const baseCompRes = (await getBaseComponentsRequest()).data;
+        const instCompRes = (await getComponentsInstancesRequest()).data;
 
-      if (baseCompRes.success && instCompRes.success) {
-        const newBaseComponents = enhanceBaseComponents(baseCompRes.result, instCompRes.result);
-        setBaseComponents(newBaseComponents);
+        if (baseCompRes.success && instCompRes.success) {
+          const newBaseComponents = enhanceBaseComponents(baseCompRes.result, instCompRes.result);
+          setBaseComponents(newBaseComponents);
+        }
+      } catch (error) {
+        handleErrorRequest(error, displayMsg);
       }
-    } catch (error) {
-      handleErrorRequest(error, displayMsg);
-    }
+    };
+
+    fetchComponentData();
   }, []);
 
   return (
