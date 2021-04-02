@@ -12,6 +12,7 @@ import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Paper from '@material-ui/core/Paper';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
+import TableActionCell from '../../../components/TableActionCell';
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -124,7 +125,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function BaseComponentsTable({ rows }) {
+export default function BaseComponentsTable({ rows, componentActionHandler }) {
   const classes = useStyles();
   const [order, setOrder] = React.useState('asc');
   const [orderBy, setOrderBy] = React.useState('calories');
@@ -217,7 +218,12 @@ export default function BaseComponentsTable({ rows }) {
                         {row.proportion}
                         %
                       </TableCell>
-                      <TableCell align="center">Todo</TableCell>
+                      <TableCell align="center">
+                        <TableActionCell
+                          actionHandler={componentActionHandler}
+                          item={row}
+                        />
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -248,5 +254,6 @@ export default function BaseComponentsTable({ rows }) {
 }
 
 BaseComponentsTable.propTypes = {
-  rows: PropTypes.array
+  rows: PropTypes.array,
+  componentActionHandler: PropTypes.func
 };

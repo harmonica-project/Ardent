@@ -10,6 +10,7 @@ import AnalyticsView from 'src/views/analytics/AnalyticsView';
 import RegisterView from 'src/views/auth/RegisterView';
 import SettingsView from 'src/views/settings/SettingsView';
 import ArchitectureView from 'src/views/architecture/ArchitectureView';
+import InstanceComponentView from 'src/views/components/InstanceComponentView';
 import BaseComponentsView from 'src/views/components/BaseComponentsView';
 
 const routes = [
@@ -22,6 +23,7 @@ const routes = [
       { path: 'papers', element: <PaperListView /> },
       { path: 'components', element: <BaseComponentsView /> },
       { path: 'architecture/:id', element: <ArchitectureView /> },
+      { path: 'component/:id', element: <InstanceComponentView /> },
       { path: 'settings', element: <SettingsView /> },
       { path: '*', element: <Navigate to="/404" /> }
     ]

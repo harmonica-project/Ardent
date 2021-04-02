@@ -124,7 +124,7 @@ module.exports = {
     getComponentInstance: async componentId => {
         try {
             const component = await client.query("SELECT * FROM components_instances WHERE id = $1", [componentId]);
-            const properties = await client.query("SELECT * FROM properties WHERE component_id = $1", [componentId]);
+            const properties = await client.query("SELECT * FROM properties_instances WHERE component_instance_id = $1", [componentId]);
             const connections = await client.query("SELECT * FROM connections WHERE first_component = $1 OR second_component = $1", [componentId]);
             
             return {

@@ -30,7 +30,7 @@ const AnalyticsView = () => {
   return (
     <Page
       className={classes.root}
-      title="Papers"
+      title="Analytics"
     >
       <Container maxWidth={false}>
         <Toolbar />

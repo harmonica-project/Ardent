@@ -190,7 +190,7 @@ const ArchitectureView = () => {
   const ArchitectureHeader = () => {
     return (
       <div>
-        <Box display="flex" className={classes.boxMargin} width="100%" mb={3}>
+        <Box display="flex" width="100%" mb={3}>
           <Button
             color="primary"
             variant="contained"
@@ -214,7 +214,7 @@ const ArchitectureView = () => {
         </Box>
         <Card>
           <CardContent>
-            <Box display="flex" className={classes.boxMargin}>
+            <Box display="flex">
               <Box width="100%">
                 <AppBreadcrumb
                   paperId={architecture.paper_id}
@@ -358,6 +358,10 @@ const ArchitectureView = () => {
     }
   };
 
+  const componentClickHandler = (componentId) => {
+    navigate(`/app/component/${componentId}`);
+  };
+
   return (
     <Page
       className={classes.root}
@@ -382,7 +386,7 @@ const ArchitectureView = () => {
                   <ComponentsTable
                     components={architecture.components}
                     componentActionHandler={componentActionHandler}
-                    componentClickHandler={() => console.log('clicked (temp)')}
+                    componentClickHandler={componentClickHandler}
                   />
                 </Box>
               </Box>

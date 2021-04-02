@@ -15,11 +15,13 @@ const useStyles = makeStyles((theme) => ({
 const AppBreadcrumb = ({ paperId, architectureId, componentId }) => {
   const classes = useStyles();
 
+  const reduceUUID = (uuid) => { return uuid.substring(0, 8); };
+
   const displayPaperLink = () => {
     return (
       <Link color="inherit" to="/app/papers">
         Paper #
-        {paperId}
+        {reduceUUID(paperId)}
       </Link>
     );
   };
@@ -32,7 +34,7 @@ const AppBreadcrumb = ({ paperId, architectureId, componentId }) => {
         aria-current="page"
       >
         Architecture #
-        {architectureId}
+        {reduceUUID(architectureId)}
       </Link>
     );
   };
@@ -44,8 +46,8 @@ const AppBreadcrumb = ({ paperId, architectureId, componentId }) => {
         to={`/app/architecture/${componentId}`}
         aria-current="page"
       >
-        Architecture #
-        {componentId}
+        Component #
+        {reduceUUID(componentId)}
       </Link>
     );
   };
