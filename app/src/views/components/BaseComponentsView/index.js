@@ -4,8 +4,12 @@ import {
 } from '@material-ui/core';
 import MessageSnackbar from 'src/components/MessageSnackbar';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
-import { getBaseComponents as getBaseComponentsRequest } from '../../../requests/component';
+import {
+  getBaseComponents as getBaseComponentsRequest,
+  getComponentsInstances as getComponentsInstancesRequest
+} from '../../../requests/component';
 import BaseComponentInput from './BaseComponentsInput';
+import BaseComponentTable from './BaseComponentsTable';
 
 export default function BaseComponentsView() {
   const [baseComponents, setBaseComponents] = useState([]);
@@ -29,14 +33,34 @@ export default function BaseComponentsView() {
     console.log(value);
   };
 
-  useEffect(() => {
-    getBaseComponentsRequest()
-      .then(({ data }) => {
-        if (data.success) {
-          setBaseComponents(data.result);
+  const enhanceBaseComponents = (bc, ic) => {
+    bc.forEach((b, index) => {
+      bc[index] = { ...b, occurences: 0, proportion: 0.0 };
+      ic.forEach((i) => {
+        if (i.name === b.name) {
+          bc[index].occurences++;
         }
-      })
-      .catch((error) => handleErrorRequest(error, displayMsg));
+      });
+    });
+
+    bc.forEach((b, index) => {
+      bc[index].proportion = ((bc[index].occurences / ic.length) * 100).toFixed(2);
+    });
+    return bc;
+  };
+
+  useEffect(async () => {
+    try {
+      const baseCompRes = (await getBaseComponentsRequest()).data;
+      const instCompRes = (await getComponentsInstancesRequest()).data;
+
+      if (baseCompRes.success && instCompRes.success) {
+        const newBaseComponents = enhanceBaseComponents(baseCompRes.result, instCompRes.result);
+        setBaseComponents(newBaseComponents);
+      }
+    } catch (error) {
+      handleErrorRequest(error, displayMsg);
+    }
   }, []);
 
   return (
@@ -49,6 +73,9 @@ export default function BaseComponentsView() {
               handleAutocompleteChange={handleAutocompleteChange}
               inputVariant="outlined"
             />
+            <Box mt={3}>
+              <BaseComponentTable rows={baseComponents} />
+            </Box>
           </CardContent>
         </Card>
       </Box>
