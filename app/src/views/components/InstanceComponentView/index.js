@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-  Container, Box, makeStyles, Button, Typography, Card, CardContent
+  Container, Box, makeStyles, Button, Typography, Card, CardContent, Grid, Paper
 } from '@material-ui/core';
 import Page from 'src/components/Page';
 import MessageSnackbar from 'src/components/MessageSnackbar';
@@ -15,6 +15,7 @@ import {
 import {
   getArchitecture as getArchitectureRequest
 } from 'src/requests/architecture';
+import InstancePropertiesTable from './InstancePropertiesTable';
 import AppBreadcrumb from '../../../components/AppBreadcrumb';
 import handleErrorRequest from '../../../utils/handleErrorRequest';
 
@@ -155,7 +156,20 @@ export default function InstanceComponentView() {
   return (
     <Page title="Component" className={classes.root}>
       <Container maxWidth={false}>
-        <ComponentHeader />
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <ComponentHeader />
+          </Grid>
+          <Grid item xs={6}>
+            <InstancePropertiesTable
+              properties={component.properties}
+              propertyActionHandler={() => console.log('handler')}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <Paper className={classes.paper}>Connections (not implemented yet)</Paper>
+          </Grid>
+        </Grid>
         <MessageSnackbar
           messageSnackbarProps={messageSnackbarProps}
           setMessageSnackbarProps={setMessageSnackbarProps}
