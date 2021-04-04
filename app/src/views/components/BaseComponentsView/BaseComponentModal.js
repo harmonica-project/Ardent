@@ -4,8 +4,7 @@ import {
   Box,
   Typography,
   Button,
-  Modal,
-  TextField
+  Modal
 } from '@material-ui/core/';
 import {
   Delete as DeleteIcon,
@@ -43,17 +42,17 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function ArchitectureModal({
+export default function BaseComponentModal({
   modalProps, setModalProps, actionModalHandler, doNotShowSwitch
 }) {
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
   const [modalStyle] = React.useState(getModalStyle);
-  const [innerArchitecture, setInnerArchitecture] = React.useState(modalProps.architecture);
+  const [innerBaseComponent, setInnerBaseComponent] = React.useState(modalProps.baseComponent);
 
   useEffect(() => {
-    setInnerArchitecture(modalProps.architecture);
-  }, [modalProps.architecture]);
+    setInnerBaseComponent(modalProps.baseComponent);
+  }, [modalProps.baseComponent]);
 
   const handleClose = () => {
     setModalProps({
@@ -62,12 +61,13 @@ export default function ArchitectureModal({
     });
   };
 
-  const handleInputChange = (key, value) => {
-    setInnerArchitecture({
-      ...innerArchitecture,
+  /* const handleInputChange = (key, value) => {
+    setInnerBaseComponent({
+      ...innerBaseComponent,
       [key]: value
     });
   };
+  */
 
   const handleSwitchClick = () => {
     if (modalProps.actionType === 'new') return;
@@ -132,56 +132,13 @@ export default function ArchitectureModal({
         {getModalHeader()}
       </Typography>
       <form noValidate className={classes.form}>
-        <TextField
-          id="name-field"
-          label="Name"
-          placeholder="Enter architecture name"
-          fullWidth
-          margin="normal"
-          disabled={modalProps.actionType === 'view'}
-          onChange={(e) => handleInputChange('name', e.target.value)}
-          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.architecture.name}
-          InputLabelProps={{
-            shrink: true,
-          }}
-        />
-        <TextField
-          id="reader-description-field"
-          label="Reader description"
-          placeholder="Enter architecture description from reader standpoint"
-          fullWidth
-          margin="normal"
-          disabled={modalProps.actionType === 'view'}
-          onChange={(e) => handleInputChange('reader_description', e.target.value)}
-          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.architecture.reader_description}
-          InputLabelProps={{
-            shrink: true,
-          }}
-          multiline
-          rows={4}
-        />
-        <TextField
-          id="author-description-field"
-          label="Author description"
-          placeholder="Enter architecture description from author standpoint"
-          fullWidth
-          margin="normal"
-          disabled={modalProps.actionType === 'view'}
-          onChange={(e) => handleInputChange('author_description', e.target.value)}
-          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.architecture.author_description}
-          InputLabelProps={{
-            shrink: true,
-          }}
-          multiline
-          rows={4}
-        />
         {modalProps.actionType !== 'view' ? (
           <Button
             color="primary"
             variant="contained"
             startIcon={<SaveIcon />}
             className={classes.headerButton}
-            onClick={() => actionModalHandler(modalProps.actionType, innerArchitecture)}
+            onClick={() => actionModalHandler(modalProps.actionType, innerBaseComponent)}
           >
             Save
           </Button>
@@ -196,7 +153,7 @@ export default function ArchitectureModal({
         open={modalProps.open}
         onClose={handleClose}
         aria-labelledby="title"
-        aria-describedby="architecture-modal"
+        aria-describedby="base-component-modal"
       >
         {body}
       </Modal>
@@ -204,15 +161,16 @@ export default function ArchitectureModal({
   );
 }
 
-ArchitectureModal.propTypes = {
+BaseComponentModal.propTypes = {
   modalProps: PropTypes.shape({
     open: PropTypes.bool.isRequired,
-    architecture: PropTypes.shape({
+    baseComponent: PropTypes.shape({
       id: PropTypes.string,
       name: PropTypes.string,
-      reader_description: PropTypes.string,
-      author_description: PropTypes.string,
-      paper_id: PropTypes.string
+      base_description: PropTypes.string,
+      occurences: PropTypes.number,
+      proportion: PropTypes.number,
+      instances: PropTypes.array
     }),
     actionType: PropTypes.string.isRequired
   }).isRequired,

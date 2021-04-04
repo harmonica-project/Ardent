@@ -7,9 +7,12 @@ const upload = multer({ dest: './uploads/' }).single("xlsArchitectures");
 const xlsxj = require("xlsx-to-json");
 const { v4: uuidv4 } = require('uuid');
 const { storeArchitecture } = require('./db');
-const basicAuth = require('express-basic-auth');
-const { AUTH_USERS, USERNAMES } = require('./config');
-
+const { TEMP } = require('./config');
+var nJwt = require('njwt');
+var secureRandom = require('secure-random');
+ 
+var signingKey = secureRandom(256, {type: 'Buffer'}); // Create a highly random byte array of 256 bytes
+ 
 const parseDBResults = res => {
     if(res["rows"]) {
         return {
@@ -26,14 +29,14 @@ const parseDBResults = res => {
 }
 
 const authorizedOnly = (req, res, next) => {
-    if (USERNAMES.includes(req.auth.user)) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    try {
+        const verifiedJwt = nJwt.verify(token, signingKey);
         next();
     }
-    else {
-        res.status(401).send({
-            success: false,
-            errorMsg: "Unauthorized user."
-        })
+    catch (error) {
+        res.status(401).send({success: false, errorMsg: error});
     }
 }
 
@@ -54,33 +57,23 @@ app.use(function(req, res, next) {
     }
 });
 
-app.use(basicAuth(AUTH_USERS));
-
-app.get('/login', (req, res) => {
-    switch(req.auth.user) {
-        case 'six':
-            res.status(200).send({ success: true, loggedUser: 'six' });
-            break;
-
-        case 'negri':
-            res.status(200).send({ success: true, loggedUser: 'negri' });
-            break;
-
-        case 'herbaut':
-            res.status(200).send({ success: true, loggedUser: 'herbaut' });
-            break;
-
-        default:
-            res.status(401).send({
-                success: false,
-                errorMsg: "Authentication failed. Please provide a correct username or password."
-            })
-            break;
+app.post('/users/authenticate', (req, res) => {
+    // TEMP
+    if (TEMP.username === req.body.username && TEMP.password === req.body.password) {
+        var claims = {
+            iss: "slr/api",  // The URL of your service
+            sub: TEMP.username,    // The UID of the user in your system
+            scope: "self"
+        }
+        var jwt = nJwt.create(claims,signingKey);
+        var token = jwt.compact();
+        res.status(200).send({
+            username: TEMP.username,
+            token: token,
+            success: true
+        });
     }
-});
-
-app.get('/logout', (req, res) => {
-    res.clearCookie('name').end();
+    res.status(401).send();
 });
 
 app.get('/architectures', authorizedOnly, (req, res) => {

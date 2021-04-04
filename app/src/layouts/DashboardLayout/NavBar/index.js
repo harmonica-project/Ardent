@@ -24,6 +24,7 @@ import {
   FormatListBulleted as FormatListBulletedIcon
 } from '@material-ui/icons/';
 import NavItem from './NavItem';
+import authenticationService from '../../../requests/authentication';
 
 const user = {
   avatar: '/static/images/avatars/ns.jpg',
@@ -91,11 +92,6 @@ const NavBar = ({ onMobileClose, openMobile }) => {
       href: '/app/settings',
       icon: SettingsIcon,
       title: 'Settings'
-    },
-    {
-      href: '/login',
-      icon: LogOutIcon,
-      title: 'Logout'
     }
   ];
 
@@ -178,6 +174,13 @@ const NavBar = ({ onMobileClose, openMobile }) => {
               />
             );
           })}
+          <NavItem
+            href="/login"
+            key="Logout"
+            title="Logout"
+            icon={LogOutIcon}
+            onClick={authenticationService.logout}
+          />
         </List>
       </Box>
     </Box>

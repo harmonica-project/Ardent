@@ -155,7 +155,7 @@ const PapersListView = () => {
 
   const deletePaper = (paperId) => {
     deletePaperRequest(paperId)
-      .then(({ data }) => {
+      .then((data) => {
         if (data.success) {
           removePaperFromState(paperId);
           if (paperModalProps.open) {
@@ -173,7 +173,7 @@ const PapersListView = () => {
 
   const deleteArchitecture = (paperId, architectureId) => {
     deleteArchitectureRequest(architectureId)
-      .then(({ data }) => {
+      .then((data) => {
         if (data.success) {
           removeArchitectureFromState(paperId, architectureId);
           if (setArchitectureModalProps.open) {
@@ -191,7 +191,7 @@ const PapersListView = () => {
 
   const saveNewPaper = (newPaper) => {
     saveNewPaperRequest(newPaper)
-      .then(({ data }) => {
+      .then((data) => {
         if (data.success) {
           setPapers([
             ...papers,
@@ -215,7 +215,7 @@ const PapersListView = () => {
 
   const saveNewArchitecture = (newArchitecture) => {
     saveNewArchitectureRequest(newArchitecture)
-      .then(({ data }) => {
+      .then((data) => {
         if (data.success) {
           addArchitectureToState({ ...newArchitecture, id: data.architectureId });
           setArchitectureModalProps({
@@ -231,7 +231,7 @@ const PapersListView = () => {
 
   const saveExistingPaper = (newPaper) => {
     saveExistingPaperRequest(newPaper)
-      .then(({ data }) => {
+      .then((data) => {
         if (data.success) {
           modifyPaperFromState(newPaper);
           setPaperModalProps({
@@ -247,7 +247,7 @@ const PapersListView = () => {
 
   const saveExistingArchitecture = (newArchitecture) => {
     saveExistingArchitectureRequest(newArchitecture)
-      .then(({ data }) => {
+      .then((data) => {
         if (data.success) {
           modifyArchitectureFromState(newArchitecture);
           setArchitectureModalProps({
@@ -382,7 +382,7 @@ const PapersListView = () => {
 
   const getPapers = () => {
     getPapersRequest()
-      .then(({ data }) => {
+      .then((data) => {
         if (data.success) {
           setPapers(data.result);
         }

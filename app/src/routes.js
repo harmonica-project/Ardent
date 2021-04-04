@@ -13,10 +13,10 @@ import ArchitectureView from 'src/views/architecture/ArchitectureView';
 import InstanceComponentView from 'src/views/components/InstanceComponentView';
 import BaseComponentsView from 'src/views/components/BaseComponentsView';
 
-const routes = [
+const routes = (isLoggedIn) => [
   {
     path: 'app',
-    element: <DashboardLayout />,
+    element: isLoggedIn ? <DashboardLayout /> : <Navigate to="/login" replace />,
     children: [
       { path: 'analytics', element: <AnalyticsView /> },
       { path: 'dashboard', element: <DashboardView /> },
@@ -25,12 +25,13 @@ const routes = [
       { path: 'architecture/:id', element: <ArchitectureView /> },
       { path: 'component/:id', element: <InstanceComponentView /> },
       { path: 'settings', element: <SettingsView /> },
+      { path: '404', element: <NotFoundView /> },
       { path: '*', element: <Navigate to="/404" /> }
     ]
   },
   {
     path: '/',
-    element: <MainLayout />,
+    element: !isLoggedIn ? <MainLayout /> : <Navigate to="/app/dashboard" replace />,
     children: [
       { path: 'login', element: <LoginView /> },
       { path: 'register', element: <RegisterView /> },

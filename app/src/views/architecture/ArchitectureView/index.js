@@ -87,7 +87,7 @@ const ArchitectureView = () => {
 
   useEffect(() => {
     getArchitecture(id)
-      .then(({ data }) => {
+      .then((data) => {
         if (data.success) {
           setArchitecture(data.result);
           setArchitectureModalProps({
@@ -101,7 +101,7 @@ const ArchitectureView = () => {
 
   useEffect(() => {
     getBaseComponentsRequest()
-      .then(({ data }) => {
+      .then((data) => {
         if (data.success) {
           setBaseComponents(data.result);
         }
@@ -111,7 +111,7 @@ const ArchitectureView = () => {
 
   const saveExistingArchitecture = (newArchitecture) => {
     saveExistingArchitectureRequest(newArchitecture)
-      .then(({ data }) => {
+      .then((data) => {
         if (data.success) {
           setArchitectureModalProps({
             ...architectureModalProps,
@@ -127,7 +127,7 @@ const ArchitectureView = () => {
 
   const deleteArchitecture = async (architectureId) => {
     deleteArchitectureRequest(architectureId)
-      .then(({ data }) => {
+      .then((data) => {
         if (data.success) {
           displayMsg('Architecture successfully deleted.');
           navigate('/app/papers');
@@ -155,7 +155,7 @@ const ArchitectureView = () => {
 
   const deleteComponentInstance = async (componentId) => {
     deleteComponentInstanceRequest(componentId)
-      .then(({ data }) => {
+      .then((data) => {
         if (data.success) {
           removeComponentFromState(componentId);
           displayMsg('Component successfully deleted.');
@@ -275,12 +275,12 @@ const ArchitectureView = () => {
     try {
       if (!component.component_base_id || component.component_base_id === '') {
         const baseRes = await saveNewBaseComponentRequest(component);
-        if (baseRes.data.success) {
+        if (baseRes.success) {
           component = { ...component, component_base_id: baseRes.data.componentId };
         }
       }
 
-      const { data } = await saveNewComponentInstanceRequest(component);
+      const data = await saveNewComponentInstanceRequest(component);
       if (data.success) {
         const newComponent = {
           ...component,
@@ -319,12 +319,12 @@ const ArchitectureView = () => {
     try {
       if (!component.component_base_id || component.component_base_id === '') {
         const baseRes = await saveNewBaseComponentRequest(component);
-        if (baseRes.data.success) {
+        if (baseRes.success) {
           component = { ...component, component_base_id: baseRes.data.componentId };
         }
       }
 
-      const { data } = await saveExistingComponentInstanceRequest(component);
+      const data = await saveExistingComponentInstanceRequest(component);
       if (data.success) {
         modifyComponentInState(component);
         setComponentModalProps({

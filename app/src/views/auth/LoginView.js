@@ -12,6 +12,7 @@ import {
   makeStyles
 } from '@material-ui/core';
 import Page from 'src/components/Page';
+import authenticationService from '../../requests/authentication';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -40,15 +41,25 @@ const LoginView = () => {
         <Container maxWidth="sm">
           <Formik
             initialValues={{
-              email: 'demo@devias.io',
-              password: 'Password123'
+              username: 'nsix',
+              password: 'six'
             }}
             validationSchema={Yup.object().shape({
-              email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
+              username: Yup.string().max(255).required('Username is required'),
               password: Yup.string().max(255).required('Password is required')
             })}
-            onSubmit={() => {
-              navigate('/app/dashboard', { replace: true });
+            onSubmit={({ username, password }) => {
+              // setStatus();
+              authenticationService.login(username, password)
+                .then(
+                  () => {
+                    navigate('/app/dashboard', { replace: true });
+                    // document.location.reload(true);
+                  },
+                  (error) => {
+                    console.log(error);
+                  }
+                );
             }}
           >
             {({
@@ -77,16 +88,16 @@ const LoginView = () => {
                   </Typography>
                 </Box>
                 <TextField
-                  error={Boolean(touched.email && errors.email)}
+                  error={Boolean(touched.username && errors.username)}
                   fullWidth
-                  helperText={touched.email && errors.email}
-                  label="Email Address"
+                  helperText={touched.username && errors.username}
+                  label="Username"
                   margin="normal"
-                  name="email"
+                  name="username"
                   onBlur={handleBlur}
                   onChange={handleChange}
-                  type="email"
-                  value={values.email}
+                  type="text"
+                  value={values.username}
                   variant="outlined"
                 />
                 <TextField

@@ -1,14 +1,14 @@
 import React from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
+import { NavLink } from 'react-router-dom';
 import {
   Avatar,
   Card,
   CardContent,
   Grid,
   Typography,
-  makeStyles,
-  Link
+  makeStyles
 } from '@material-ui/core';
 import DescriptionIcon from '@material-ui/icons/Description';
 
@@ -61,9 +61,9 @@ const PaperSummary = ({ className, nbPapers }) => {
           </Grid>
         </Grid>
         <Typography className={classes.link}>
-          <Link href="/app/papers">
+          <NavLink to="/app/papers">
             Go to papers
-          </Link>
+          </NavLink>
         </Typography>
       </CardContent>
     </Card>

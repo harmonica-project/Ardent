@@ -50,7 +50,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     getArchitectures()
-      .then(({ data }) => {
+      .then((data) => {
         if (data.success) {
           setArchitectures(data.result);
         }
@@ -58,7 +58,7 @@ const Dashboard = () => {
       .catch((error) => handleErrorRequest(error, displayMsg));
 
     getComponentsNames()
-      .then(({ data }) => {
+      .then((data) => {
         if (data.success) {
           setComponents(data.result);
         }
@@ -66,7 +66,7 @@ const Dashboard = () => {
       .catch((error) => handleErrorRequest(error, displayMsg));
 
     getPapers()
-      .then(({ data }) => {
+      .then((data) => {
         if (data.success) {
           setPapers(data.result);
         }

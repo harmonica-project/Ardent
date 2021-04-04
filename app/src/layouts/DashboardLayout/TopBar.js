@@ -13,6 +13,7 @@ import {
 import MenuIcon from '@material-ui/icons/Menu';
 import InputIcon from '@material-ui/icons/Input';
 import Logo from 'src/components/Logo';
+import authenticationService from 'src/requests/authentication';
 
 const useStyles = makeStyles(() => ({
   root: {},
@@ -36,12 +37,12 @@ const TopBar = ({
       {...rest}
     >
       <Toolbar>
-        <RouterLink to="/">
+        <RouterLink to="/app/dashboard">
           <Logo />
         </RouterLink>
         <Box flexGrow={1} />
         <Hidden mdDown>
-          <IconButton color="inherit">
+          <IconButton color="inherit" onClick={() => authenticationService.logout()}>
             <InputIcon />
           </IconButton>
         </Hidden>

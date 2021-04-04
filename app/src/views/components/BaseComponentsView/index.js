@@ -75,8 +75,8 @@ export default function BaseComponentsView() {
   useEffect(() => {
     const fetchComponentData = async () => {
       try {
-        const baseCompRes = (await getBaseComponentsRequest()).data;
-        const instCompRes = (await getComponentsInstancesRequest()).data;
+        const baseCompRes = await getBaseComponentsRequest();
+        const instCompRes = await getComponentsInstancesRequest();
 
         if (baseCompRes.success && instCompRes.success) {
           const newBaseComponents = enhanceBaseComponents(baseCompRes.result, instCompRes.result);

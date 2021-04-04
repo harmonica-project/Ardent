@@ -1,16 +1,13 @@
 // THOSE ARE DEFAULT LOGINS FOR TEST ONLY - NOT SUITABLE FOR PRODUCTION
 exports.DB_CONFIG = {
-  host: '',
-  port: '',
-  user: '',
-  password: '',
-  database: ''
+  host: 'localhost',
+  port: '5432',
+  user: 'postgres',
+  password: 'root',
+  database: 'slr'
 };
 
-exports.AUTH_USERS = {
-  users: {
-      // add users here
-  }
+exports.TEMP = {
+  username: 'nsix',
+  password: 'six'
 };
-
-exports.USERNAMES = [/*add usernames here*/];

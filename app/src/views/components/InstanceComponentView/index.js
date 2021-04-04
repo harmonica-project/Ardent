@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-  Container, Box, makeStyles, Button, Typography, Card, CardContent, Grid, Paper
+  Container, Box, makeStyles, Button, Typography, Card, CardContent, Grid
 } from '@material-ui/core';
 import Page from 'src/components/Page';
 import MessageSnackbar from 'src/components/MessageSnackbar';
@@ -63,7 +63,7 @@ export default function InstanceComponentView() {
 
   const deleteComponentInstance = async (componentId) => {
     deleteComponentInstanceRequest(componentId)
-      .then(({ data }) => {
+      .then((data) => {
         if (data.success) {
           // removeComponentFromState(componentId);
           displayMsg('Component successfully deleted.');
@@ -133,17 +133,18 @@ export default function InstanceComponentView() {
       try {
         const compRes = await getComponentInstanceRequest(id);
 
-        if (!compRes.data.success) return;
+        if (!compRes.success) return;
 
-        const archRes = await getArchitectureRequest(compRes.data.result.architecture_id);
+        const archRes = await getArchitectureRequest(compRes.result.architecture_id);
 
-        if (archRes.data.success) {
+        if (archRes.success) {
           setBreadcrumb({
-            architecture_id: archRes.data.result.id,
-            paper_id: archRes.data.result.paper_id,
+            architecture_id: archRes.result.id,
+            paper_id: archRes.result.paper_id,
             component_id: id
           });
-          setComponent(compRes.data.result);
+          console.log(compRes.result);
+          setComponent(compRes.result);
         }
       } catch (error) {
         handleErrorRequest(error, displayMsg);
@@ -161,13 +162,59 @@ export default function InstanceComponentView() {
             <ComponentHeader />
           </Grid>
           <Grid item xs={6}>
-            <InstancePropertiesTable
-              properties={component.properties}
-              propertyActionHandler={() => console.log('handler')}
-            />
+            {component.properties && component.properties.length ? (
+              <InstancePropertiesTable
+                properties={component.properties}
+                propertyActionHandler={() => console.log('handler')}
+              />
+            )
+              : (
+                <Card>
+                  <CardContent align="center">
+                    <Typography variant="h1" component="div" style={{ fontSize: '200%' }} gutterBottom>
+                      No property yet.
+                    </Typography>
+                    <Typography variant="body1">
+                      <p>
+                        You can add a new property by clicking the button below.
+                      </p>
+                    </Typography>
+                    <Box mt={3}>
+                      <Button
+                        color="primary"
+                        variant="contained"
+                        onClick={() => console.log('New property clicked!')}
+                      >
+                        New&nbsp;property
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              )}
           </Grid>
           <Grid item xs={6}>
-            <Paper className={classes.paper}>Connections (not implemented yet)</Paper>
+            <Card>
+              <CardContent align="center">
+                <Typography variant="h1" component="div" style={{ fontSize: '200%' }} gutterBottom>
+                  No connections yet.
+                </Typography>
+                <Typography variant="body1">
+                  <p>
+                    This feature is not implemented yet.
+                    Soon, you&apos;ll be able to create a connection here.
+                  </p>
+                </Typography>
+                <Box mt={3}>
+                  <Button
+                    color="primary"
+                    variant="contained"
+                    onClick={() => console.log('New connection clicked!')}
+                  >
+                    New&nbsp;connection
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
         <MessageSnackbar
