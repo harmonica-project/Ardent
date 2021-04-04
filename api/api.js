@@ -237,6 +237,22 @@ app.put('/architecture/:id', authorizedOnly, (req, res) => {
     }
 });
 
+app.put('/user/:username', authorizedOnly, (req, res) => {
+    const newUser = req.body;
+    if(newUser.first_name && newUser.last_name && newUser.role) {
+        db.modifyUser(newUser).then((parsedResult) => {
+            if(parsedResult.success) res.status(200).send(parsedResult);
+            else res.status(500).send(parsedResult);
+        })
+    }
+    else {
+        res.status(500).send({
+            success: false,
+            errorMsg: "Missing fields."
+        })
+    }
+});
+
 app.post('/xls', authorizedOnly, async (req, res) => {
     await upload(req, res, async (err) => {
         try {
@@ -350,6 +366,14 @@ app.get('/properties_values/:pkey', authorizedOnly, (req, res) => {
 app.get('/architecture/:id', authorizedOnly, (req, res) => {
     var id = req.params.id;
     db.getArchitecture(id).then((parsedResult) => {
+        if(parsedResult.success) res.status(200).send(parsedResult);
+        else res.status(500).send(parsedResult);
+    })
+});
+
+app.get('/user/:username', authorizedOnly, (req, res) => {
+    var username = req.params.username;
+    db.getUser(username).then((parsedResult) => {
         if(parsedResult.success) res.status(200).send(parsedResult);
         else res.status(500).send(parsedResult);
     })

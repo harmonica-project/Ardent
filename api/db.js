@@ -121,6 +121,29 @@ module.exports = {
             };
         }
     },
+    getUser: async username => {
+        try {
+            const user = await client.query("SELECT * FROM users WHERE username = $1", [username]);
+            if(user) {
+                return {
+                    success: true,
+                    result: user["rows"][0]
+                }
+            }
+            else {
+                return {
+                    success: false,
+                    errorMsg: 'User not found.'
+                }
+            }
+        }
+        catch(err) {
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
     getComponentInstance: async componentId => {
         try {
             const component = await client.query("SELECT * FROM components_instances WHERE id = $1", [componentId]);
@@ -338,6 +361,19 @@ module.exports = {
     modifyComponentInstance: async component => {
         try {
             await client.query("UPDATE components_instances SET (name, architecture_id, reader_description, author_description, component_base_id) = ($1, $2, $3, $4, $5) WHERE id = $6", [component.name, component.architecture_id, component.reader_description, component.author_description, component.component_base_id, component.id])
+            return {success: true};
+        }
+        catch(err) {
+            console.log('error: ' + err)
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
+    modifyUser: async user => {
+        try {
+            await client.query("UPDATE users SET (first_name, last_name, role) = ($1, $2, $3) WHERE username = $4", [user.first_name, user.last_name, user.role, user.username]);
             return {success: true};
         }
         catch(err) {

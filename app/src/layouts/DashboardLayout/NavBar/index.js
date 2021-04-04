@@ -23,14 +23,9 @@ import {
   AccountTree as AccountTreeIcon,
   FormatListBulleted as FormatListBulletedIcon
 } from '@material-ui/icons/';
+import { getUser as getUserRequest } from 'src/requests/user';
 import NavItem from './NavItem';
 import authenticationService from '../../../requests/authentication';
-
-const user = {
-  avatar: '/static/images/avatars/ns.jpg',
-  jobTitle: 'Ph.D. student',
-  name: 'Nicolas Six'
-};
 
 const useStyles = makeStyles(() => ({
   mobileDrawer: {
@@ -53,6 +48,13 @@ const NavBar = ({ onMobileClose, openMobile }) => {
   const location = useLocation();
 
   const [open, setOpen] = useState(false);
+  const [user, setUser] = useState({
+    first_name: 'Unknown',
+    last_name: 'Unknown',
+    role: 'Unknown',
+    is_admin: false,
+    username: 'unknown'
+  });
 
   const handleOpen = () => {
     setOpen(!open);
@@ -102,6 +104,18 @@ const NavBar = ({ onMobileClose, openMobile }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
+  useEffect(() => {
+    const fetchUserData = async () => {
+      let newUser = {};
+      const authInfo = authenticationService.currentUserValue;
+      if (authInfo && authInfo.username) {
+        newUser = await getUserRequest(authInfo.username);
+        setUser(newUser.result);
+      }
+    };
+    fetchUserData();
+  }, []);
+
   const content = (
     <Box
       height="100%"
@@ -114,24 +128,26 @@ const NavBar = ({ onMobileClose, openMobile }) => {
         flexDirection="column"
         p={2}
       >
-        <Avatar
-          className={classes.avatar}
-          component={RouterLink}
-          src={user.avatar}
-          to="/app/account"
-        />
+        <Box mb={1}>
+          <Avatar
+            className={classes.avatar}
+            component={RouterLink}
+            src={user.avatar}
+            to="/app/account"
+          />
+        </Box>
         <Typography
           className={classes.name}
           color="textPrimary"
           variant="h5"
         >
-          {user.name}
+          {`${user.first_name} ${user.last_name}`}
         </Typography>
         <Typography
           color="textSecondary"
           variant="body2"
         >
-          {user.jobTitle}
+          {user.role}
         </Typography>
       </Box>
       <Divider />
