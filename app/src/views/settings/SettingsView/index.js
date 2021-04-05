@@ -10,7 +10,7 @@ import MessageSnackbar from 'src/components/MessageSnackbar';
 import Password from './Password';
 import UserInfo from './UserInfo';
 import authenticationService from '../../../requests/authentication';
-import { setUser as setUserRequest } from '../../../requests/user';
+import { setUser as setUserRequest, setNewPassword as setNewPasswordRequest } from '../../../requests/user';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -24,6 +24,10 @@ const useStyles = makeStyles((theme) => ({
 const SettingsView = () => {
   const classes = useStyles();
   const [user, setUser] = useState({});
+  const [password, setPassword] = useState({
+    password: '',
+    confirm: ''
+  });
 
   const [messageSnackbarProps, setMessageSnackbarProps] = useState({
     open: false,
@@ -55,6 +59,26 @@ const SettingsView = () => {
     }
   };
 
+  const actionPasswordHandler = async () => {
+    try {
+      if (password.password === password.confirm) {
+        const res = await setNewPasswordRequest({
+          username: user.username,
+          password: password.password
+        });
+        if (res) {
+          displayMsg('Your password has successfully been updated!');
+        } else {
+          handleErrorRequest('Request failed.', displayMsg);
+        }
+      } else {
+        displayMsg('Password do not match.', 'error');
+      }
+    } catch (error) {
+      handleErrorRequest(`Error: ${error}`, displayMsg);
+    }
+  };
+
   useEffect(() => {
     const authInfo = authenticationService.currentUserValue;
     if (authInfo && authInfo.user) {
@@ -79,7 +103,11 @@ const SettingsView = () => {
           />
         ) : <div>Error</div>}
         <Box mt={3}>
-          <Password user={user} setUser={setUser} actionUserHandler={actionUserHandler} />
+          <Password
+            password={password}
+            setPassword={setPassword}
+            actionPasswordHandler={actionPasswordHandler}
+          />
         </Box>
       </Container>
       <MessageSnackbar

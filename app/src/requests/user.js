@@ -18,3 +18,11 @@ export function setUser(user) {
       auth.handleResponse(error.response);
     });
 }
+
+export function setNewPassword(user) {
+  return axios.put(`${API_URL}/user/${user.username}/password`, user, auth.getAuthHeaders())
+    .then((data) => auth.handleResponse(data))
+    .catch((error) => {
+      auth.handleResponse(error.response);
+    });
+}

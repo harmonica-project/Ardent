@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import {
@@ -16,16 +16,14 @@ const useStyles = makeStyles(({
   root: {}
 }));
 
-const Password = ({ className, ...rest }) => {
+const Password = ({
+  password, setPassword, actionPasswordHandler, className, ...rest
+}) => {
   const classes = useStyles();
-  const [values, setValues] = useState({
-    password: '',
-    confirm: ''
-  });
 
   const handleChange = (event) => {
-    setValues({
-      ...values,
+    setPassword({
+      ...password,
       [event.target.name]: event.target.value
     });
   };
@@ -49,7 +47,7 @@ const Password = ({ className, ...rest }) => {
             name="password"
             onChange={handleChange}
             type="password"
-            value={values.password}
+            value={password.password}
             variant="outlined"
           />
           <TextField
@@ -59,7 +57,7 @@ const Password = ({ className, ...rest }) => {
             name="confirm"
             onChange={handleChange}
             type="password"
-            value={values.confirm}
+            value={password.confirm}
             variant="outlined"
           />
         </CardContent>
@@ -72,6 +70,7 @@ const Password = ({ className, ...rest }) => {
           <Button
             color="primary"
             variant="contained"
+            onClick={actionPasswordHandler}
           >
             Update
           </Button>
@@ -82,7 +81,13 @@ const Password = ({ className, ...rest }) => {
 };
 
 Password.propTypes = {
-  className: PropTypes.string
+  className: PropTypes.string,
+  password: PropTypes.shape({
+    password: PropTypes.string,
+    confirm: PropTypes.string
+  }),
+  setPassword: PropTypes.func,
+  actionPasswordHandler: PropTypes.func
 };
 
 export default Password;
