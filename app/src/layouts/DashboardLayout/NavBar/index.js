@@ -56,6 +56,10 @@ const NavBar = ({ onMobileClose, openMobile }) => {
     username: 'unknown'
   });
 
+  useEffect(() => {
+    authenticationService.currentUser.subscribe((newAuthInfo) => setUser(newAuthInfo.user));
+  }, []);
+
   const handleOpen = () => {
     setOpen(!open);
   };
