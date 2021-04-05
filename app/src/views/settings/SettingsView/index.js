@@ -10,7 +10,7 @@ import MessageSnackbar from 'src/components/MessageSnackbar';
 import Password from './Password';
 import UserInfo from './UserInfo';
 import authenticationService from '../../../requests/authentication';
-import { getUser as getUserRequest, setUser as setUserRequest } from '../../../requests/user';
+import { setUser as setUserRequest } from '../../../requests/user';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -45,8 +45,8 @@ const SettingsView = () => {
     try {
       const res = await setUserRequest(user);
       if (res) {
-        document.location.reload(true);
         displayMsg('Your profile has successfully been updated!');
+        authenticationService.updateUser(user);
       } else {
         handleErrorRequest('Request failed.', displayMsg);
       }
@@ -56,18 +56,13 @@ const SettingsView = () => {
   };
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      let newUser = {};
-      const authInfo = authenticationService.currentUserValue;
-      if (authInfo && authInfo.username) {
-        newUser = await getUserRequest(authInfo.username);
-        setUser({
-          ...newUser.result,
-          loaded: true
-        });
-      }
-    };
-    fetchUserData();
+    const authInfo = authenticationService.currentUserValue;
+    if (authInfo && authInfo.user) {
+      setUser({
+        ...authInfo.user,
+        loaded: true
+      });
+    }
   }, []);
 
   return (

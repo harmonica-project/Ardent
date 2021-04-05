@@ -42,6 +42,15 @@ function login(username, password) {
     .catch((error) => handleResponse(error.response));
 }
 
+function updateUser(newUser) {
+  const newCurrentUser = {
+    ...currentUserSubject.value,
+    user: newUser
+  };
+  currentUserSubject.next(newCurrentUser);
+  localStorage.setItem('currentUser', JSON.stringify(newCurrentUser));
+}
+
 function getAuthHeaders() {
   // return authorization header with jwt token
   const currentUser = currentUserSubject.value;
@@ -54,6 +63,7 @@ const authenticationService = {
   logout,
   handleResponse,
   getAuthHeaders,
+  updateUser,
   currentUser: currentUserSubject.asObservable(),
   get currentUserValue() { return currentUserSubject.value; }
 };

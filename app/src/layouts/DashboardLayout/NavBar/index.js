@@ -23,7 +23,6 @@ import {
   AccountTree as AccountTreeIcon,
   FormatListBulleted as FormatListBulletedIcon
 } from '@material-ui/icons/';
-import { getUser as getUserRequest } from 'src/requests/user';
 import NavItem from './NavItem';
 import authenticationService from '../../../requests/authentication';
 
@@ -109,15 +108,8 @@ const NavBar = ({ onMobileClose, openMobile }) => {
   }, [location.pathname]);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      let newUser = {};
-      const authInfo = authenticationService.currentUserValue;
-      if (authInfo && authInfo.username) {
-        newUser = await getUserRequest(authInfo.username);
-        setUser(newUser.result);
-      }
-    };
-    fetchUserData();
+    const newUser = authenticationService.currentUserValue.user;
+    if (newUser) setUser(newUser);
   }, []);
 
   const content = (
