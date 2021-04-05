@@ -371,6 +371,32 @@ module.exports = {
             };
         }
     },
+    getUserHash: async (username) => {
+        try {
+            const hash = await client.query("SELECT hash FROM users WHERE username = $1", [username]);
+            return {success: true, result: hash["rows"][0]};
+        }
+        catch(err) {
+            console.log('error: ' + err)
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
+    changeUserPassword: async (username, password) => {
+        try {
+            await client.query("UPDATE users SET hash = $1 WHERE username = $2", [password, username]);
+            return {success: true};
+        }
+        catch(err) {
+            console.log('error: ' + err)
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
     modifyUser: async user => {
         try {
             await client.query("UPDATE users SET (first_name, last_name, role) = ($1, $2, $3) WHERE username = $4", [user.first_name, user.last_name, user.role, user.username]);

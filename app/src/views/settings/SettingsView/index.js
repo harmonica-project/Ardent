@@ -45,6 +45,7 @@ const SettingsView = () => {
     try {
       const res = await setUserRequest(user);
       if (res) {
+        document.location.reload(true);
         displayMsg('Your profile has successfully been updated!');
       } else {
         handleErrorRequest('Request failed.', displayMsg);

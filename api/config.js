@@ -6,8 +6,3 @@ exports.DB_CONFIG = {
   password: 'root',
   database: 'slr'
 };
-
-exports.TEMP = {
-  username: 'nsix',
-  password: 'six'
-};

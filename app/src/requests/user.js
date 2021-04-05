@@ -12,7 +12,7 @@ export function getUser(username) {
 }
 
 export function setUser(user) {
-  return axios.put(`${API_URL}/user/${user.username}`, user, auth.getAuthHeaders())
+  return axios.put(`${API_URL}/user/${user.username}/information`, user, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))
     .catch((error) => {
       auth.handleResponse(error.response);

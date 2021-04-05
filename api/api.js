@@ -7,12 +7,14 @@ const upload = multer({ dest: './uploads/' }).single("xlsArchitectures");
 const xlsxj = require("xlsx-to-json");
 const { v4: uuidv4 } = require('uuid');
 const { storeArchitecture } = require('./db');
-const { TEMP } = require('./config');
 var nJwt = require('njwt');
 var secureRandom = require('secure-random');
  
-var signingKey = secureRandom(256, {type: 'Buffer'}); // Create a highly random byte array of 256 bytes
- 
+// var signingKey = secureRandom(256, {type: 'Buffer'}); // Create a highly random byte array of 256 bytes
+var signingKey = 'test'; // for test only
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
 const parseDBResults = res => {
     if(res["rows"]) {
         return {
@@ -32,11 +34,25 @@ const authorizedOnly = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     try {
-        const verifiedJwt = nJwt.verify(token, signingKey);
+        nJwt.verify(token, signingKey);
         next();
     }
     catch (error) {
         res.status(401).send({success: false, errorMsg: error});
+    }
+}
+
+const verifyClaimedIdentity = (username, req) => {
+    try {
+        const authHeader = req.headers['authorization'];
+        const token = authHeader && authHeader.split(' ')[1];
+        const tokenInfo = nJwt.verify(token, signingKey);
+        if (tokenInfo.body.sub === username) return true;
+        return false;
+    }
+    catch {
+        // failed to verify token
+        return false;
     }
 }
 
@@ -58,22 +74,45 @@ app.use(function(req, res, next) {
 });
 
 app.post('/users/authenticate', (req, res) => {
-    // TEMP
-    if (TEMP.username === req.body.username && TEMP.password === req.body.password) {
-        var claims = {
-            iss: "slr/api",  // The URL of your service
-            sub: TEMP.username,    // The UID of the user in your system
-            scope: "self"
+    authInfo = req.body;
+    db.getUserHash(authInfo.username).then((queryResult) => {
+        if(queryResult.success) {
+            try {
+                bcrypt.compare(authInfo.password, queryResult.result.hash, (err, result) => {
+                    if(result) {
+                        var claims = {
+                            iss: "slr/api",  // The URL of your service
+                            sub: authInfo.username,    // The UID of the user in your system
+                            scope: "self"
+                        }
+                        var jwt = nJwt.create(claims,signingKey);
+                        jwt.setExpiration(new Date().getTime() + (12*60*60*1000)); // expiration in 12 hours
+                        var token = jwt.compact();
+                        res.status(200).send({
+                            username: authInfo.username,
+                            token: token,
+                            success: true
+                        });
+                    }
+                    else {
+                        res.status(401).send();
+                    }
+                });
+            }
+            catch (error) {
+                res.status(500).send({
+                    success: false,
+                    errorMsg: error
+                })
+            }
         }
-        var jwt = nJwt.create(claims,signingKey);
-        var token = jwt.compact();
-        res.status(200).send({
-            username: TEMP.username,
-            token: token,
-            success: true
-        });
-    }
-    res.status(401).send();
+        else {
+            res.status(500).send({
+                success: false,
+                errorMsg: "Failed to retrieve the hash from DB."
+            })
+        }
+    });
 });
 
 app.get('/architectures', authorizedOnly, (req, res) => {
@@ -237,19 +276,47 @@ app.put('/architecture/:id', authorizedOnly, (req, res) => {
     }
 });
 
-app.put('/user/:username', authorizedOnly, (req, res) => {
+app.put('/user/:username/information', authorizedOnly, (req, res) => {
     const newUser = req.body;
-    if(newUser.first_name && newUser.last_name && newUser.role) {
-        db.modifyUser(newUser).then((parsedResult) => {
-            if(parsedResult.success) res.status(200).send(parsedResult);
-            else res.status(500).send(parsedResult);
-        })
+    if (verifyClaimedIdentity(newUser.username, req)) {
+        if(newUser.first_name && newUser.last_name && newUser.role) {
+            db.modifyUser(newUser).then((parsedResult) => {
+                if(parsedResult.success) res.status(200).send(parsedResult);
+                else res.status(500).send(parsedResult);
+            })
+        }
+        else {
+            res.status(500).send({
+                success: false,
+                errorMsg: "Missing fields."
+            })
+        }
     }
     else {
-        res.status(500).send({
-            success: false,
-            errorMsg: "Missing fields."
-        })
+        res.status(403).send({success: false, errorMsg: "You are not the user concerned by this request."});
+    }
+});
+
+app.put('/user/:username/password', authorizedOnly, (req, res) => {
+    const newPasswordInfo = req.body;
+    if (verifyClaimedIdentity(newPasswordInfo.username, req)) {
+        if(newPasswordInfo.username && newPasswordInfo.password) {
+            bcrypt.hash(newPasswordInfo.password, saltRounds, function(err, hash) {
+                db.changeUserPassword(newPasswordInfo.username, hash).then((parsedResult) => {
+                    if(parsedResult.success) res.status(200).send(parsedResult);
+                    else res.status(500).send(parsedResult);
+                })
+            });
+        }
+        else {
+            res.status(500).send({
+                success: false,
+                errorMsg: "Missing fields."
+            })
+        }
+    }
+    else {
+        res.status(403).send({success: false, errorMsg: "You are not the user concerned by this request."});
     }
 });
 

@@ -41,8 +41,8 @@ const LoginView = () => {
         <Container maxWidth="sm">
           <Formik
             initialValues={{
-              username: 'nsix',
-              password: 'six'
+              username: '',
+              password: ''
             }}
             validationSchema={Yup.object().shape({
               username: Yup.string().max(255).required('Username is required'),
@@ -54,10 +54,9 @@ const LoginView = () => {
                 .then(
                   () => {
                     navigate('/app/dashboard', { replace: true });
-                    // document.location.reload(true);
                   },
-                  (error) => {
-                    console.log(error);
+                  () => {
+                    document.location.reload(true);
                   }
                 );
             }}

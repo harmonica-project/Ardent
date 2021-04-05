@@ -5,9 +5,7 @@ import { Formik } from 'formik';
 import {
   Box,
   Button,
-  Checkbox,
   Container,
-  FormHelperText,
   Link,
   TextField,
   Typography,
@@ -42,19 +40,17 @@ const RegisterView = () => {
         <Container maxWidth="sm">
           <Formik
             initialValues={{
-              email: '',
               firstName: '',
               lastName: '',
               password: '',
-              policy: false
+              inviteCode: ''
             }}
             validationSchema={
               Yup.object().shape({
-                email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
                 firstName: Yup.string().max(255).required('First name is required'),
                 lastName: Yup.string().max(255).required('Last name is required'),
-                password: Yup.string().max(255).required('password is required'),
-                policy: Yup.boolean().oneOf([true], 'This field must be checked')
+                password: Yup.string().max(255).required('Password is required'),
+                inviteCode: Yup.string().max(255).required('Invite code is required')
               })
             }
             onSubmit={() => {
@@ -111,19 +107,6 @@ const RegisterView = () => {
                   variant="outlined"
                 />
                 <TextField
-                  error={Boolean(touched.email && errors.email)}
-                  fullWidth
-                  helperText={touched.email && errors.email}
-                  label="Email Address"
-                  margin="normal"
-                  name="email"
-                  onBlur={handleBlur}
-                  onChange={handleChange}
-                  type="email"
-                  value={values.email}
-                  variant="outlined"
-                />
-                <TextField
                   error={Boolean(touched.password && errors.password)}
                   fullWidth
                   helperText={touched.password && errors.password}
@@ -136,38 +119,19 @@ const RegisterView = () => {
                   value={values.password}
                   variant="outlined"
                 />
-                <Box
-                  alignItems="center"
-                  display="flex"
-                  ml={-1}
-                >
-                  <Checkbox
-                    checked={values.policy}
-                    name="policy"
-                    onChange={handleChange}
-                  />
-                  <Typography
-                    color="textSecondary"
-                    variant="body1"
-                  >
-                    I have read the
-                    {' '}
-                    <Link
-                      color="primary"
-                      component={RouterLink}
-                      to="#"
-                      underline="always"
-                      variant="h6"
-                    >
-                      Terms and Conditions
-                    </Link>
-                  </Typography>
-                </Box>
-                {Boolean(touched.policy && errors.policy) && (
-                  <FormHelperText error>
-                    {errors.policy}
-                  </FormHelperText>
-                )}
+                <TextField
+                  error={Boolean(touched.inviteCode && errors.inviteCode)}
+                  fullWidth
+                  helperText={touched.inviteCode && errors.inviteCode}
+                  label="Invite code"
+                  margin="normal"
+                  name="inviteCode"
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  type="text"
+                  value={values.inviteCode}
+                  variant="outlined"
+                />
                 <Box my={2}>
                   <Button
                     color="primary"
