@@ -73,24 +73,29 @@ app.use(function(req, res, next) {
     }
 });
 
+const generateToken = (username) => {
+    var claims = {
+        iss: "slr/api",  // The URL of your service
+        sub: username,    // The UID of the user in your system
+        scope: "self"
+    }
+    var jwt = nJwt.create(claims,signingKey);
+    jwt.setExpiration(new Date().getTime() + (12*60*60*1000)); // expiration in 12 hours
+    var token = jwt.compact();
+    return token;
+}
+
 app.post('/users/authenticate', (req, res) => {
     authInfo = req.body;
-    db.getUserHash(authInfo.username).then((queryResult) => {
+    db.getUser(authInfo.username).then((queryResult) => {
         if(queryResult.success) {
             try {
                 bcrypt.compare(authInfo.password, queryResult.result.hash, (err, result) => {
                     if(result) {
-                        var claims = {
-                            iss: "slr/api",  // The URL of your service
-                            sub: authInfo.username,    // The UID of the user in your system
-                            scope: "self"
-                        }
-                        var jwt = nJwt.create(claims,signingKey);
-                        jwt.setExpiration(new Date().getTime() + (12*60*60*1000)); // expiration in 12 hours
-                        var token = jwt.compact();
+                        delete queryResult.result.hash;
                         res.status(200).send({
-                            username: authInfo.username,
-                            token: token,
+                            user: queryResult.result,
+                            token: generateToken(authInfo.username),
                             success: true
                         });
                     }
@@ -441,7 +446,10 @@ app.get('/architecture/:id', authorizedOnly, (req, res) => {
 app.get('/user/:username', authorizedOnly, (req, res) => {
     var username = req.params.username;
     db.getUser(username).then((parsedResult) => {
-        if(parsedResult.success) res.status(200).send(parsedResult);
+        if(parsedResult.success) {
+            delete parsedResult.result.hash;
+            res.status(200).send(parsedResult);
+        }
         else res.status(500).send(parsedResult);
     })
 });

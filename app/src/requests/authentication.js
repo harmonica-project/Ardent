@@ -33,7 +33,8 @@ function login(username, password) {
   return axios.post(`${API_URL}/users/authenticate`, { username, password }, requestOptions)
     .then((data) => handleResponse(data))
     .then((user) => {
-    // store user details and jwt token in local storage to keep user logged
+      delete user.success;
+      // store user details and jwt token in local storage to keep user logged
       localStorage.setItem('currentUser', JSON.stringify(user));
       currentUserSubject.next(user);
       return user;
