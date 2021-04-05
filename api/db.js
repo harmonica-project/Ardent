@@ -411,6 +411,19 @@ module.exports = {
             };
         }
     },
+    storeInviteToken: async token => {
+        try {
+            await client.query("INSERT INTO invite_tokens VALUES ($1, $2, $3)", [token, false, uuidv4()])
+            return {success: true, result: token};
+        }
+        catch(err) {
+            console.log('error: ' + err)
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
     modifyComponentBase: async component => {
         try {
             await client.query("UPDATE components_base SET (name, base_description) = ($1, $2) WHERE id = $3", [component.name, component.base_description, component.id])

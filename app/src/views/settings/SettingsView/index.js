@@ -8,6 +8,7 @@ import handleErrorRequest from 'src/utils/handleErrorRequest';
 import Page from 'src/components/Page';
 import MessageSnackbar from 'src/components/MessageSnackbar';
 import Password from './Password';
+import Admin from './Admin';
 import UserInfo from './UserInfo';
 import authenticationService from '../../../requests/authentication';
 import { setUser as setUserRequest, setNewPassword as setNewPasswordRequest } from '../../../requests/user';
@@ -109,6 +110,12 @@ const SettingsView = () => {
             actionPasswordHandler={actionPasswordHandler}
           />
         </Box>
+        {user.is_admin ? (
+          <Box mt={3}>
+            <Admin />
+          </Box>
+        )
+          : <div />}
       </Container>
       <MessageSnackbar
         messageSnackbarProps={messageSnackbarProps}

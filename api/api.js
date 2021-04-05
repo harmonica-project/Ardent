@@ -9,7 +9,8 @@ const { v4: uuidv4 } = require('uuid');
 const { storeArchitecture } = require('./db');
 var nJwt = require('njwt');
 var secureRandom = require('secure-random');
- 
+var crypto = require("crypto");
+
 // var signingKey = secureRandom(256, {type: 'Buffer'}); // Create a highly random byte array of 256 bytes
 var signingKey = 'test'; // for test only
 const bcrypt = require('bcrypt');
@@ -34,21 +35,49 @@ const authorizedOnly = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     try {
-        nJwt.verify(token, signingKey);
-        next();
+        const verifiedToken = nJwt.verify(token, signingKey);
+        db.getUser(verifiedToken.body.sub).then((parsedResult) => {
+            if(parsedResult.success && parsedResult.result.username) {
+                next();
+            }
+            else res.status(401).send({success: false, errorMsg: 'User does not exists yet token is valid.'});
+        })
     }
     catch (error) {
         res.status(401).send({success: false, errorMsg: error});
     }
 }
 
-const verifyClaimedIdentity = (username, req) => {
+const verifyClaimIdentity = async (username, req) => {
     try {
         const authHeader = req.headers['authorization'];
         const token = authHeader && authHeader.split(' ')[1];
-        const tokenInfo = nJwt.verify(token, signingKey);
-        if (tokenInfo.body.sub === username) return true;
+        const verifiedToken = nJwt.verify(token, signingKey);
+        if (verifiedToken.body.sub === username) {
+            parsedResult = await db.getUser(username);
+            if(parsedResult.success && parsedResult.result.username == username) {
+                return true;
+            }
+            else return false;
+        }
         return false;
+    }
+    catch {
+        // failed to verify token
+        return false;
+    }
+}
+
+const verifyClaimAdmin = async (req) => {
+    try {
+        const authHeader = req.headers['authorization'];
+        const token = authHeader && authHeader.split(' ')[1];
+        const verifiedToken = nJwt.verify(token, signingKey);
+        const parsedResult = await db.getUser(verifiedToken.body.sub)
+        if(parsedResult.success && parsedResult.result.is_admin) {
+            return true;
+        }
+        else return false;
     }
     catch {
         // failed to verify token
@@ -283,46 +312,50 @@ app.put('/architecture/:id', authorizedOnly, (req, res) => {
 
 app.put('/user/:username/information', authorizedOnly, (req, res) => {
     const newUser = req.body;
-    if (verifyClaimedIdentity(newUser.username, req)) {
-        if(newUser.first_name && newUser.last_name && newUser.role) {
-            db.modifyUser(newUser).then((parsedResult) => {
-                if(parsedResult.success) res.status(200).send(parsedResult);
-                else res.status(500).send(parsedResult);
-            })
+    verifyClaimIdentity(newUser.username, req).then(isSameUser => {
+        if (isSameUser) {
+            if(newUser.first_name && newUser.last_name && newUser.role) {
+                db.modifyUser(newUser).then((parsedResult) => {
+                    if(parsedResult.success) res.status(200).send(parsedResult);
+                    else res.status(500).send(parsedResult);
+                })
+            }
+            else {
+                res.status(500).send({
+                    success: false,
+                    errorMsg: "Missing fields."
+                })
+            }
         }
         else {
-            res.status(500).send({
-                success: false,
-                errorMsg: "Missing fields."
-            })
+            res.status(403).send({success: false, errorMsg: "You are not the user concerned by this request."});
         }
-    }
-    else {
-        res.status(403).send({success: false, errorMsg: "You are not the user concerned by this request."});
-    }
+    });
 });
 
 app.put('/user/:username/password', authorizedOnly, (req, res) => {
     const newPasswordInfo = req.body;
-    if (verifyClaimedIdentity(newPasswordInfo.username, req)) {
-        if(newPasswordInfo.username && newPasswordInfo.password) {
-            bcrypt.hash(newPasswordInfo.password, saltRounds, function(err, hash) {
-                db.changeUserPassword(newPasswordInfo.username, hash).then((parsedResult) => {
-                    if(parsedResult.success) res.status(200).send(parsedResult);
-                    else res.status(500).send(parsedResult);
+    verifyClaimIdentity(newPasswordInfo.username, req).then(isSameUser => {
+        if (isSameUser) {
+            if(newPasswordInfo.username && newPasswordInfo.password) {
+                bcrypt.hash(newPasswordInfo.password, saltRounds, function(err, hash) {
+                    db.changeUserPassword(newPasswordInfo.username, hash).then((parsedResult) => {
+                        if(parsedResult.success) res.status(200).send(parsedResult);
+                        else res.status(500).send(parsedResult);
+                    })
+                });
+            }
+            else {
+                res.status(500).send({
+                    success: false,
+                    errorMsg: "Missing fields."
                 })
-            });
+            }
         }
         else {
-            res.status(500).send({
-                success: false,
-                errorMsg: "Missing fields."
-            })
+            res.status(403).send({success: false, errorMsg: "You are not the user concerned by this request."});
         }
-    }
-    else {
-        res.status(403).send({success: false, errorMsg: "You are not the user concerned by this request."});
-    }
+    })
 });
 
 app.post('/xls', authorizedOnly, async (req, res) => {
@@ -399,6 +432,24 @@ app.get('/component_base', authorizedOnly, (req, res) => {
         if(parsedResult.success) res.status(200).send(parsedResult);
         else res.status(500).send(parsedResult);
     })
+});
+
+app.get('/admin/invite_token', authorizedOnly, (req, res) => {
+    verifyClaimAdmin(req).then(isAdmin => {
+        if (isAdmin) {
+            const token = crypto.randomBytes(10).toString('hex');
+            db.storeInviteToken(token).then((parsedResult) => {
+                if(parsedResult.success) res.status(200).send(parsedResult);
+                else res.status(500).send(parsedResult);
+            })
+        }
+        else {
+            res.status(500).send({
+                success: false,
+                errorMsg: "User role verification failed."
+            })
+        }
+    });
 });
 
 app.get('/components_names', authorizedOnly, (req, res) => {
