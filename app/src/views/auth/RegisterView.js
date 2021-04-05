@@ -12,6 +12,7 @@ import {
   makeStyles
 } from '@material-ui/core';
 import Page from 'src/components/Page';
+import { createUser as createUserRequest } from '../../requests/user';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -40,21 +41,34 @@ const RegisterView = () => {
         <Container maxWidth="sm">
           <Formik
             initialValues={{
+              username: '',
               firstName: '',
               lastName: '',
               password: '',
-              inviteCode: ''
+              token: ''
             }}
             validationSchema={
               Yup.object().shape({
+                username: Yup.string().max(20).required('Username is required'),
                 firstName: Yup.string().max(255).required('First name is required'),
                 lastName: Yup.string().max(255).required('Last name is required'),
                 password: Yup.string().max(255).required('Password is required'),
-                inviteCode: Yup.string().max(255).required('Invite code is required')
+                token: Yup.string().max(255).required('Invite code is required')
               })
             }
-            onSubmit={() => {
-              navigate('/app/dashboard', { replace: true });
+            onSubmit={({
+              username, firstName, lastName, password, token
+            }) => {
+              createUserRequest({
+                username,
+                first_name: firstName,
+                last_name: lastName,
+                password,
+                token
+              }).then((data) => {
+                if (data.success) navigate('/login');
+                else console.error(data);
+              });
             }}
           >
             {({
@@ -82,6 +96,18 @@ const RegisterView = () => {
                     Use your email to create new account
                   </Typography>
                 </Box>
+                <TextField
+                  error={Boolean(touched.username && errors.username)}
+                  fullWidth
+                  helperText={touched.username && errors.username}
+                  label="Username (20 char. max)"
+                  margin="normal"
+                  name="username"
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.username}
+                  variant="outlined"
+                />
                 <TextField
                   error={Boolean(touched.firstName && errors.firstName)}
                   fullWidth
@@ -120,16 +146,16 @@ const RegisterView = () => {
                   variant="outlined"
                 />
                 <TextField
-                  error={Boolean(touched.inviteCode && errors.inviteCode)}
+                  error={Boolean(touched.token && errors.token)}
                   fullWidth
-                  helperText={touched.inviteCode && errors.inviteCode}
+                  helperText={touched.token && errors.token}
                   label="Invite code"
                   margin="normal"
-                  name="inviteCode"
+                  name="token"
                   onBlur={handleBlur}
                   onChange={handleChange}
                   type="text"
-                  value={values.inviteCode}
+                  value={values.token}
                   variant="outlined"
                 />
                 <Box my={2}>

@@ -124,7 +124,7 @@ module.exports = {
     getUser: async username => {
         try {
             const user = await client.query("SELECT * FROM users WHERE username = $1", [username]);
-            if(user) {
+            if(user["rows"].length === 1) {
                 return {
                     success: true,
                     result: user["rows"][0]
@@ -253,6 +253,60 @@ module.exports = {
                 return {
                     success: false,
                     errorMsg: 'Paper already exists, or a paper already has its name.'
+                };
+            }
+        }
+        catch(err) {
+            console.log('error: ' + err)
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
+    createUser: async user => {
+        try {
+            const foundUser = await client.query("SELECT * FROM users WHERE username = $1", [user.username]);
+            if(foundUser["rows"].length === 0) {
+                await client.query(`
+                    INSERT INTO users(username, first_name, last_name, role, is_admin, hash) 
+                    VALUES ($1, $2, $3, $4, false, $5)`, 
+                    [
+                        user.username,
+                        user.first_name,
+                        user.last_name,
+                        user.role,
+                        user.hash
+                    ]
+                );
+                return { success: true }
+            }
+            else {
+                return {
+                    success: false,
+                    errorMsg: 'User already exists.'
+                };
+            }
+        }
+        catch(err) {
+            console.log('error: ' + err)
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
+    consumeInviteToken: async token => {
+        try {
+            const foundToken = (await client.query("SELECT * FROM invite_tokens WHERE token = $1", [token]))["rows"][0];
+            if(foundToken && foundToken.token) {
+                await client.query("DELETE FROM invite_tokens WHERE token = $1", [token]);
+                return { success: true }
+            }
+            else {
+                return {
+                    success: false,
+                    errorMsg: 'Token does not exists or already used.'
                 };
             }
         }
@@ -413,7 +467,7 @@ module.exports = {
     },
     storeInviteToken: async token => {
         try {
-            await client.query("INSERT INTO invite_tokens VALUES ($1, $2, $3)", [token, false, uuidv4()])
+            await client.query("INSERT INTO invite_tokens VALUES ($1)", [token])
             return {success: true, result: token};
         }
         catch(err) {

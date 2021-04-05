@@ -310,6 +310,32 @@ app.put('/architecture/:id', authorizedOnly, (req, res) => {
     }
 });
 
+app.post('/user/register', (req, res) => {
+    const newUser = req.body;
+    db.getUser(newUser.username).then(userResult => {
+        if (!userResult.result) {
+            db.consumeInviteToken(newUser.token).then(tokenResult => {
+                console.log(tokenResult);
+                if (tokenResult.success) {
+                    bcrypt.hash(newUser.password, saltRounds, function(err, hash) {
+                        newUser["hash"] = hash;
+                        db.createUser(newUser).then(newUserRes => {
+                            if(newUserRes.success) res.status(200).send(newUserRes);
+                            else res.status(500).send(newUserRes);
+                        })
+                    });
+                }
+                else {
+                    res.status(401).send({ success: false, errorMsg: 'Invalid token.' });
+                }
+            });
+        }
+        else {
+            res.status(500).send({ success: false, errorMsg: 'User already exists.' });
+        }
+    });
+});
+
 app.put('/user/:username/information', authorizedOnly, (req, res) => {
     const newUser = req.body;
     verifyClaimIdentity(newUser.username, req).then(isSameUser => {

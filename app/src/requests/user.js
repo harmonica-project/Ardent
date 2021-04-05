@@ -26,3 +26,11 @@ export function setNewPassword(user) {
       auth.handleResponse(error.response);
     });
 }
+
+export function createUser(user) {
+  return axios.post(`${API_URL}/user/register`, user, auth.getAuthHeaders())
+    .then((data) => auth.handleResponse(data))
+    .catch((error) => {
+      auth.handleResponse(error.response);
+    });
+}
