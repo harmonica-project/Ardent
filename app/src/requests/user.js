@@ -3,6 +3,14 @@ import { API_URL } from './config';
 
 import auth from './authentication';
 
+export function getUsers() {
+  return axios.get(`${API_URL}/users`, auth.getAuthHeaders())
+    .then((data) => auth.handleResponse(data))
+    .catch((error) => {
+      auth.handleResponse(error.response);
+    });
+}
+
 export function getUser(username) {
   return axios.get(`${API_URL}/user/${username}`, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))

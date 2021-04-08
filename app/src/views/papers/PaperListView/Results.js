@@ -20,7 +20,6 @@ import FirstPageIcon from '@material-ui/icons/FirstPage';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
-import parseUserKey from '../../../utils/parseUserKey';
 import parsePaperType from '../../../utils/parsePaperType';
 import reduceLongText from '../../../utils/reduceLongText';
 import SubToolbar from './SubToolbar';
@@ -103,7 +102,7 @@ const useRowStyles = makeStyles({
 });
 
 function Row({
-  row, paperActionHandler, architectureActionHandler, architectureClickHandler
+  row, paperActionHandler, architectureActionHandler, architectureClickHandler, usersMapping
 }) {
   const [open, setOpen] = React.useState(false);
   const classes = useRowStyles();
@@ -164,8 +163,8 @@ function Row({
         <TableCell align="center">{row.authors}</TableCell>
         <TableCell>{row.journal}</TableCell>
         <TableCell align="center">{parsePaperType(row.paper_type)}</TableCell>
-        <TableCell align="center">{parseUserKey(row.added_by)}</TableCell>
-        <TableCell align="center">{parseUserKey(row.updated_by)}</TableCell>
+        <TableCell align="center">{usersMapping[row.added_by]}</TableCell>
+        <TableCell align="center">{usersMapping[row.updated_by]}</TableCell>
         <TableCell align="center"><DisplayStatus status={row.status} /></TableCell>
         <TableCell align="center"><TableActionCell item={row} actionHandler={paperActionHandler} /></TableCell>
       </TableRow>
@@ -211,11 +210,12 @@ Row.propTypes = {
   }).isRequired,
   paperActionHandler: PropTypes.func.isRequired,
   architectureClickHandler: PropTypes.func.isRequired,
-  architectureActionHandler: PropTypes.func.isRequired
+  architectureActionHandler: PropTypes.func.isRequired,
+  usersMapping: PropTypes.object.isRequired
 };
 
 export default function Results({
-  papers, paperActionHandler, architectureActionHandler, architectureClickHandler
+  papers, paperActionHandler, architectureActionHandler, architectureClickHandler, users
 }) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
@@ -229,6 +229,14 @@ export default function Results({
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
+  };
+
+  const generateUserMapping = () => {
+    const userMapping = {};
+    users.forEach((user) => {
+      userMapping[user.username] = `${user.first_name} ${user.last_name}`;
+    });
+    return userMapping;
   };
 
   return (
@@ -260,6 +268,7 @@ export default function Results({
               paperActionHandler={paperActionHandler}
               architectureActionHandler={architectureActionHandler}
               architectureClickHandler={architectureClickHandler}
+              usersMapping={generateUserMapping()}
             />
           ))}
         </TableBody>
@@ -290,5 +299,6 @@ Results.propTypes = {
   papers: PropTypes.array.isRequired,
   architectureActionHandler: PropTypes.func.isRequired,
   paperActionHandler: PropTypes.func.isRequired,
-  architectureClickHandler: PropTypes.func.isRequired
+  architectureClickHandler: PropTypes.func.isRequired,
+  users: PropTypes.array.isRequired
 };

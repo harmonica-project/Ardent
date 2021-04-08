@@ -49,7 +49,9 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function PaperModal({ modalProps, setModalProps, actionModalHandler }) {
+export default function PaperModal({
+  modalProps, setModalProps, actionModalHandler
+}) {
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
   const [modalStyle] = React.useState(getModalStyle);
@@ -171,12 +173,15 @@ export default function PaperModal({ modalProps, setModalProps, actionModalHandl
                   id="added-by-select"
                   disabled
                   displayEmpty
-                  defaultValue={modalProps.actionType === 'new' ? localStorage.getItem('username') : modalProps.paper.added_by}
+                  defaultValue={modalProps.actionType === 'new' ? modalProps.currentUser.username : modalProps.paper.added_by}
                   className={classes.selectEmpty}
                 >
-                  <MenuItem value="six">Nicolas Six</MenuItem>
-                  <MenuItem value="negri">Claudia Negri Ribalta</MenuItem>
-                  <MenuItem value="herbaut">Nicolas Herbaut</MenuItem>
+                  <MenuItem value="" disabled>
+                    Added by?
+                  </MenuItem>
+                  {modalProps.users.map((user) => {
+                    return <MenuItem value={user.username}>{`${user.first_name} ${user.last_name}`}</MenuItem>;
+                  })}
                 </Select>
               </FormControl>
             </Grid>
@@ -197,9 +202,9 @@ export default function PaperModal({ modalProps, setModalProps, actionModalHandl
                   <MenuItem value="" disabled>
                     Updated by?
                   </MenuItem>
-                  <MenuItem value="six">Nicolas Six</MenuItem>
-                  <MenuItem value="negri">Claudia Negri Ribalta</MenuItem>
-                  <MenuItem value="herbaut">Nicolas Herbaut</MenuItem>
+                  {modalProps.users.map((user) => {
+                    return <MenuItem value={user.username}>{`${user.first_name} ${user.last_name}`}</MenuItem>;
+                  })}
                 </Select>
               </FormControl>
             </Grid>
@@ -396,8 +401,17 @@ PaperModal.propTypes = {
         }),
       )
     }),
-    actionType: PropTypes.string.isRequired
+    actionType: PropTypes.string.isRequired,
+    users: PropTypes.array,
+    currentUser: PropTypes.shape({
+      username: PropTypes.string,
+      first_name: PropTypes.string,
+      last_name: PropTypes.string,
+      role: PropTypes.string,
+      is_admin: PropTypes.bool
+    })
   }).isRequired,
   setModalProps: PropTypes.func.isRequired,
-  actionModalHandler: PropTypes.func.isRequired
+  actionModalHandler: PropTypes.func.isRequired,
+  users: PropTypes.array.isRequired
 };

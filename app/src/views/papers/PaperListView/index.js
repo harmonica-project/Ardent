@@ -18,8 +18,10 @@ import {
   saveNewPaper as saveNewPaperRequest,
   saveExistingPaper as saveExistingPaperRequest,
   deletePaper as deletePaperRequest,
-  getPapers as getPapersRequest
+  getPapers as getPapersRequest,
 } from 'src/requests/paper';
+import { getUsers as getUsersRequest } from 'src/requests/user';
+import authenticationService from 'src/requests/authentication';
 import Page from 'src/components/Page';
 import MessageSnackbar from 'src/components/MessageSnackbar';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
@@ -44,12 +46,16 @@ const PapersListView = () => {
   const navigate = useNavigate();
   const classes = useStyles();
   const [papers, setPapers] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [currentUser, setCurrentUser] = useState([]);
   const [displayedPapers, setDisplayedPapers] = useState([]);
   const [titleFilter, setTitleFilter] = useState('');
 
   const [paperModalProps, setPaperModalProps] = useState({
     open: false,
     paper: {},
+    users: [],
+    currentUser: {},
     actionType: ''
   });
 
@@ -160,6 +166,7 @@ const PapersListView = () => {
           removePaperFromState(paperId);
           if (paperModalProps.open) {
             setPaperModalProps({
+              ...paperModalProps,
               open: false,
               paper: {},
               actionType: ''
@@ -203,6 +210,7 @@ const PapersListView = () => {
             }
           ]);
           setPaperModalProps({
+            ...paperModalProps,
             open: false,
             paper: {},
             actionType: ''
@@ -235,6 +243,7 @@ const PapersListView = () => {
         if (data.success) {
           modifyPaperFromState(newPaper);
           setPaperModalProps({
+            ...paperModalProps,
             open: false,
             paper: {},
             actionType: ''
@@ -280,6 +289,7 @@ const PapersListView = () => {
     switch (actionType) {
       case 'new':
         setPaperModalProps({
+          ...paperModalProps,
           open: true,
           actionType,
           paper: {}
@@ -289,6 +299,7 @@ const PapersListView = () => {
       case 'view':
         if (paper) {
           setPaperModalProps({
+            ...paperModalProps,
             open: true,
             actionType,
             paper
@@ -343,7 +354,7 @@ const PapersListView = () => {
       case 'new':
         saveNewPaper({
           ...newPaper,
-          added_by: localStorage.getItem('username')
+          added_by: currentUser.username
         });
         break;
 
@@ -390,8 +401,31 @@ const PapersListView = () => {
       .catch((error) => handleErrorRequest(error, displayMsg));
   };
 
+  const getUsersProps = () => {
+    getUsersRequest()
+      .then((data) => {
+        if (data.success) {
+          const authInfo = authenticationService.currentUserValue;
+          if (authInfo && authInfo.user) {
+            setPaperModalProps({
+              ...paperModalProps,
+              currentUser: authInfo.user,
+              users: data.result
+            });
+            setCurrentUser(authInfo.user);
+            setUsers(data.result);
+          }
+        }
+      })
+      .catch((error) => handleErrorRequest(error, displayMsg));
+  };
+
   useEffect(() => {
     getPapers();
+  }, []);
+
+  useEffect(() => {
+    getUsersProps();
   }, []);
 
   useEffect(() => {
@@ -420,6 +454,7 @@ const PapersListView = () => {
                   paperActionHandler={paperActionHandler}
                   architectureActionHandler={architectureActionHandler}
                   architectureClickHandler={architectureClickHandler}
+                  users={users}
                 />
                 )}
               </Box>
