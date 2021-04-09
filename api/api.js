@@ -486,6 +486,14 @@ app.get('/components_names', authorizedOnly, (req, res) => {
     })
 });
 
+app.get('/users', authorizedOnly, (req, res) => {
+    db.getUsers().then((queryResult) => {
+        const parsedResult = parseDBResults(queryResult);
+        if(parsedResult.success) res.status(200).send(parsedResult);
+        else res.status(500).send(parsedResult);
+    })
+});
+
 app.get('/properties_names/:cname', authorizedOnly, (req, res) => {
     var cname = req.params.cname;
     db.getPropertiesNames(cname).then((queryResult) => {

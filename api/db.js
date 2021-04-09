@@ -144,6 +144,9 @@ module.exports = {
             };
         }
     },
+    getUsers: async () => {
+        return await client.query("SELECT username, first_name, last_name, role, is_admin FROM users");
+    },
     getComponentInstance: async componentId => {
         try {
             const component = await client.query("SELECT * FROM components_instances WHERE id = $1", [componentId]);
