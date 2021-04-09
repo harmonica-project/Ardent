@@ -276,7 +276,7 @@ const ArchitectureView = () => {
       if (!component.component_base_id || component.component_base_id === '') {
         const baseRes = await saveNewBaseComponentRequest(component);
         if (baseRes.success) {
-          component = { ...component, component_base_id: baseRes.data.componentId };
+          component = { ...component, component_base_id: baseRes.componentId };
         }
       }
 
