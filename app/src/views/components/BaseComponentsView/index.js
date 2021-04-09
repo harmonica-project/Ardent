@@ -48,7 +48,15 @@ export default function BaseComponentsView() {
   };
 
   const componentActionHandler = (actionType, baseComponent) => {
-    console.log(actionType, baseComponent);
+    switch (actionType) {
+      case 'delete':
+        if (window.confirm('Warning: deleting this base component will also delete existing component instances and associated properties. Proceed?')) {
+          console.log('Delete', baseComponent);
+        }
+        break;
+      default:
+        console.error('No action defined for this handler.');
+    }
   };
 
   const enhanceBaseComponents = (bc, ic) => {
