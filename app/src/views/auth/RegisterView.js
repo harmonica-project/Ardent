@@ -45,6 +45,7 @@ const RegisterView = () => {
               firstName: '',
               lastName: '',
               password: '',
+              role: '',
               token: ''
             }}
             validationSchema={
@@ -52,18 +53,20 @@ const RegisterView = () => {
                 username: Yup.string().max(20).required('Username is required'),
                 firstName: Yup.string().max(255).required('First name is required'),
                 lastName: Yup.string().max(255).required('Last name is required'),
+                role: Yup.string().max(255).required('Role is required'),
                 password: Yup.string().max(255).required('Password is required'),
                 token: Yup.string().max(255).required('Invite code is required')
               })
             }
             onSubmit={({
-              username, firstName, lastName, password, token
+              username, firstName, lastName, password, token, role
             }) => {
               createUserRequest({
                 username,
                 first_name: firstName,
                 last_name: lastName,
                 password,
+                role,
                 token
               }).then((data) => {
                 if (data.success) navigate('/login');
@@ -130,6 +133,18 @@ const RegisterView = () => {
                   onBlur={handleBlur}
                   onChange={handleChange}
                   value={values.lastName}
+                  variant="outlined"
+                />
+                <TextField
+                  error={Boolean(touched.role && errors.role)}
+                  fullWidth
+                  helperText={touched.role && errors.role}
+                  label="Role"
+                  margin="normal"
+                  name="role"
+                  onBlur={handleBlur}
+                  onChange={handleChange}
+                  value={values.role}
                   variant="outlined"
                 />
                 <TextField
