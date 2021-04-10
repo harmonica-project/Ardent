@@ -7,11 +7,12 @@ import {
 import handleErrorRequest from 'src/utils/handleErrorRequest';
 import Page from 'src/components/Page';
 import MessageSnackbar from 'src/components/MessageSnackbar';
+import LoadingOverlay from 'src/components/LoadingOverlay';
+import authenticationService from 'src/requests/authentication';
+import { setUser as setUserRequest, setNewPassword as setNewPasswordRequest } from 'src/requests/user';
 import Password from './Password';
 import Admin from './Admin';
 import UserInfo from './UserInfo';
-import authenticationService from '../../../requests/authentication';
-import { setUser as setUserRequest, setNewPassword as setNewPasswordRequest } from '../../../requests/user';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -25,6 +26,7 @@ const useStyles = makeStyles((theme) => ({
 const SettingsView = () => {
   const classes = useStyles();
   const [user, setUser] = useState({});
+  const [open, setOpen] = useState(false);
   const [password, setPassword] = useState({
     password: '',
     confirm: ''
@@ -47,6 +49,7 @@ const SettingsView = () => {
   };
 
   const actionUserHandler = async () => {
+    setOpen(true);
     try {
       const res = await setUserRequest(user);
       if (res) {
@@ -57,10 +60,13 @@ const SettingsView = () => {
       }
     } catch (error) {
       handleErrorRequest(`Error: ${error}`, displayMsg);
+    } finally {
+      setOpen(false);
     }
   };
 
   const actionPasswordHandler = async () => {
+    setOpen(true);
     try {
       if (password.password === password.confirm) {
         const res = await setNewPasswordRequest({
@@ -77,6 +83,8 @@ const SettingsView = () => {
       }
     } catch (error) {
       handleErrorRequest(`Error: ${error}`, displayMsg);
+    } finally {
+      setOpen(false);
     }
   };
 
@@ -121,6 +129,7 @@ const SettingsView = () => {
         messageSnackbarProps={messageSnackbarProps}
         setMessageSnackbarProps={setMessageSnackbarProps}
       />
+      <LoadingOverlay open={open} />
     </Page>
   );
 };

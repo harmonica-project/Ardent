@@ -5,10 +5,11 @@ import {
 import Page from 'src/components/Page';
 import MessageSnackbar from 'src/components/MessageSnackbar';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
+import LoadingOverlay from 'src/components/LoadingOverlay';
 import {
   getBaseComponents as getBaseComponentsRequest,
   getComponentsInstances as getComponentsInstancesRequest
-} from '../../../requests/component';
+} from 'src/requests/component';
 import BaseComponentInput from './BaseComponentsInput';
 import BaseComponentTable from './BaseComponentsTable';
 
@@ -27,6 +28,7 @@ const useStyles = makeStyles((theme) => ({
 export default function BaseComponentsView() {
   const classes = useStyles();
   const [baseComponents, setBaseComponents] = useState([]);
+  const [open, setOpen] = useState(false);
   const [messageSnackbarProps, setMessageSnackbarProps] = useState({
     open: false,
     message: '',
@@ -80,21 +82,24 @@ export default function BaseComponentsView() {
     return bc;
   };
 
-  useEffect(() => {
-    const fetchComponentData = async () => {
-      try {
-        const baseCompRes = await getBaseComponentsRequest();
-        const instCompRes = await getComponentsInstancesRequest();
+  const fetchComponentData = async () => {
+    setOpen(true);
+    try {
+      const baseCompRes = await getBaseComponentsRequest();
+      const instCompRes = await getComponentsInstancesRequest();
 
-        if (baseCompRes.success && instCompRes.success) {
-          const newBaseComponents = enhanceBaseComponents(baseCompRes.result, instCompRes.result);
-          setBaseComponents(newBaseComponents);
-        }
-      } catch (error) {
-        handleErrorRequest(error, displayMsg);
+      if (baseCompRes.success && instCompRes.success) {
+        const newBaseComponents = enhanceBaseComponents(baseCompRes.result, instCompRes.result);
+        setBaseComponents(newBaseComponents);
       }
-    };
+    } catch (error) {
+      handleErrorRequest(error, displayMsg);
+    } finally {
+      setOpen(false);
+    }
+  };
 
+  useEffect(() => {
     fetchComponentData();
   }, []);
 
@@ -133,6 +138,7 @@ export default function BaseComponentsView() {
           messageSnackbarProps={messageSnackbarProps}
           setMessageSnackbarProps={setMessageSnackbarProps}
         />
+        <LoadingOverlay open={open} />
       </Container>
     </Page>
   );

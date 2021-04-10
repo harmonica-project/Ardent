@@ -14,7 +14,7 @@ import {
 } from '@material-ui/icons/';
 import Page from 'src/components/Page';
 import {
-  getArchitecture,
+  getArchitecture as getArchitectureRequest,
   deleteArchitecture as deleteArchitectureRequest,
   saveExistingArchitecture as saveExistingArchitectureRequest
 } from 'src/requests/architecture';
@@ -22,15 +22,16 @@ import {
   deleteComponentInstance as deleteComponentInstanceRequest,
   saveNewComponentInstance as saveNewComponentInstanceRequest,
   saveExistingComponentInstance as saveExistingComponentInstanceRequest,
-  saveNewBaseComponent as saveNewBaseComponentRequest
+  saveNewBaseComponent as saveNewBaseComponentRequest,
+  getBaseComponents as getBaseComponentsRequest
 } from 'src/requests/component';
 import MessageSnackbar from 'src/components/MessageSnackbar';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
-import ArchitectureModal from '../../papers/PaperListView/ArchitectureModal';
+import LoadingOverlay from 'src/components/LoadingOverlay';
+import ArchitectureModal from 'src/views/papers/PaperListView/ArchitectureModal';
 import ComponentsTable from './ComponentsTable';
 import ComponentModal from './ComponentModal';
-import { getBaseComponents as getBaseComponentsRequest } from '../../../requests/component';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -55,6 +56,7 @@ const ArchitectureView = () => {
 
   const [architecture, setArchitecture] = useState({ components: [] });
   const [baseComponents, setBaseComponents] = useState([]);
+  const [open, setOpen] = useState(false);
   const [architectureModalProps, setArchitectureModalProps] = useState({
     open: false,
     architecture: { components: [] },
@@ -85,31 +87,42 @@ const ArchitectureView = () => {
     });
   };
 
-  useEffect(() => {
-    getArchitecture(id)
-      .then((data) => {
-        if (data.success) {
-          setArchitecture(data.result);
-          setArchitectureModalProps({
-            ...architectureModalProps,
-            architecture: data.result
-          });
-        }
-      })
-      .catch((error) => handleErrorRequest(error, displayMsg));
-  }, []);
+  const getArchitecture = async () => {
+    try {
+      const data = await getArchitectureRequest(id);
+      if (data.success) {
+        setArchitecture(data.result);
+        setArchitectureModalProps({
+          ...architectureModalProps,
+          architecture: data.result
+        });
+      }
+    } catch (error) {
+      handleErrorRequest(error, displayMsg);
+    }
+  };
+
+  const getBaseComponents = async () => {
+    try {
+      const data = await getBaseComponentsRequest(id);
+      if (data.success) {
+        setBaseComponents(data.result);
+      }
+    } catch (error) {
+      handleErrorRequest(error, displayMsg);
+    }
+  };
 
   useEffect(() => {
-    getBaseComponentsRequest()
-      .then((data) => {
-        if (data.success) {
-          setBaseComponents(data.result);
-        }
-      })
-      .catch((error) => handleErrorRequest(error, displayMsg));
+    setOpen(true);
+    Promise.all([getArchitecture(), getBaseComponents()])
+      .then(() => {
+        setOpen(false);
+      });
   }, []);
 
   const saveExistingArchitecture = (newArchitecture) => {
+    setOpen(true);
     saveExistingArchitectureRequest(newArchitecture)
       .then((data) => {
         if (data.success) {
@@ -122,10 +135,12 @@ const ArchitectureView = () => {
           displayMsg('Architecture successfully modified.');
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg));
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => setOpen(false));
   };
 
   const deleteArchitecture = async (architectureId) => {
+    setOpen(true);
     deleteArchitectureRequest(architectureId)
       .then((data) => {
         if (data.success) {
@@ -133,7 +148,8 @@ const ArchitectureView = () => {
           navigate('/app/papers');
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg));
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => setOpen(false));
   };
 
   const removeComponentFromState = (componentId) => {
@@ -154,6 +170,7 @@ const ArchitectureView = () => {
   };
 
   const deleteComponentInstance = async (componentId) => {
+    setOpen(true);
     deleteComponentInstanceRequest(componentId)
       .then((data) => {
         if (data.success) {
@@ -161,7 +178,8 @@ const ArchitectureView = () => {
           displayMsg('Component successfully deleted.');
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg));
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => setOpen(false));
   };
 
   const architectureActionModalHandler = (actionType, newArchitecture) => {
@@ -272,6 +290,7 @@ const ArchitectureView = () => {
   };
 
   const saveNewComponent = async (component) => {
+    setOpen(true);
     try {
       if (!component.component_base_id || component.component_base_id === '') {
         const baseRes = await saveNewBaseComponentRequest(component);
@@ -299,6 +318,8 @@ const ArchitectureView = () => {
       }
     } catch (error) {
       handleErrorRequest(error, displayMsg);
+    } finally {
+      setOpen(false);
     }
   };
 
@@ -316,6 +337,7 @@ const ArchitectureView = () => {
   };
 
   const saveExistingComponent = async (component) => {
+    setOpen(true);
     try {
       if (!component.component_base_id || component.component_base_id === '') {
         const baseRes = await saveNewBaseComponentRequest(component);
@@ -336,6 +358,8 @@ const ArchitectureView = () => {
       }
     } catch (error) {
       handleErrorRequest(error, displayMsg);
+    } finally {
+      setOpen(false);
     }
   };
 
@@ -434,6 +458,7 @@ const ArchitectureView = () => {
         actionModalHandler={componentActionModalHandler}
         baseComponents={baseComponents}
       />
+      <LoadingOverlay open={open} />
     </Page>
   );
 };

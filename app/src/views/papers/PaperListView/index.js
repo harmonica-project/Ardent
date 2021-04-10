@@ -161,6 +161,7 @@ const PapersListView = () => {
   };
 
   const deletePaper = (paperId) => {
+    setOpen(true);
     deletePaperRequest(paperId)
       .then((data) => {
         if (data.success) {
@@ -176,10 +177,12 @@ const PapersListView = () => {
           displayMsg('Paper successfully deleted.');
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg));
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
   };
 
   const deleteArchitecture = (paperId, architectureId) => {
+    setOpen(true);
     deleteArchitectureRequest(architectureId)
       .then((data) => {
         if (data.success) {
@@ -194,10 +197,12 @@ const PapersListView = () => {
           displayMsg('Architecture successfully deleted.');
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg));
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
   };
 
   const saveNewPaper = (newPaper) => {
+    setOpen(true);
     saveNewPaperRequest(newPaper)
       .then((data) => {
         if (data.success) {
@@ -219,10 +224,12 @@ const PapersListView = () => {
           displayMsg('Paper successfully added.');
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg));
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
   };
 
   const saveNewArchitecture = (newArchitecture) => {
+    setOpen(true);
     saveNewArchitectureRequest(newArchitecture)
       .then((data) => {
         if (data.success) {
@@ -235,10 +242,12 @@ const PapersListView = () => {
           displayMsg('Architecture successfully added.');
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg));
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
   };
 
   const saveExistingPaper = (newPaper) => {
+    setOpen(true);
     saveExistingPaperRequest(newPaper)
       .then((data) => {
         if (data.success) {
@@ -252,10 +261,12 @@ const PapersListView = () => {
           displayMsg('Paper successfully modified.');
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg));
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
   };
 
   const saveExistingArchitecture = (newArchitecture) => {
+    setOpen(true);
     saveExistingArchitectureRequest(newArchitecture)
       .then((data) => {
         if (data.success) {
@@ -268,7 +279,8 @@ const PapersListView = () => {
           displayMsg('Architecture successfully modified.');
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg));
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
   };
 
   const fillDisplayedPapers = () => {

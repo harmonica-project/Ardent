@@ -8,6 +8,7 @@ import MessageSnackbar from 'src/components/MessageSnackbar';
 import {
   Delete as DeleteIcon
 } from '@material-ui/icons/';
+import LoadingOverlay from 'src/components/LoadingOverlay';
 import {
   getComponentInstance as getComponentInstanceRequest,
   deleteComponentInstance as deleteComponentInstanceRequest
@@ -15,9 +16,9 @@ import {
 import {
   getArchitecture as getArchitectureRequest
 } from 'src/requests/architecture';
+import AppBreadcrumb from 'src/components/AppBreadcrumb';
+import handleErrorRequest from 'src/utils/handleErrorRequest';
 import InstancePropertiesTable from './InstancePropertiesTable';
-import AppBreadcrumb from '../../../components/AppBreadcrumb';
-import handleErrorRequest from '../../../utils/handleErrorRequest';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -39,6 +40,7 @@ export default function InstanceComponentView() {
   const classes = useStyles();
   const { id } = useParams();
   const [component, setComponent] = useState({});
+  const [open, setOpen] = useState(false);
   const [breadcrumb, setBreadcrumb] = useState({
     architectureId: '',
     componentId: '',
@@ -62,6 +64,7 @@ export default function InstanceComponentView() {
   };
 
   const deleteComponentInstance = async (componentId) => {
+    setOpen(false);
     deleteComponentInstanceRequest(componentId)
       .then((data) => {
         if (data.success) {
@@ -69,7 +72,8 @@ export default function InstanceComponentView() {
           displayMsg('Component successfully deleted.');
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg));
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(true); });
   };
 
   const ComponentHeader = () => {
@@ -128,29 +132,32 @@ export default function InstanceComponentView() {
     );
   };
 
-  useEffect(() => {
-    const fetchComponentData = async () => {
-      try {
-        const compRes = await getComponentInstanceRequest(id);
+  const fetchComponentData = async () => {
+    setOpen(true);
+    try {
+      const compRes = await getComponentInstanceRequest(id);
 
-        if (!compRes.success) return;
+      if (!compRes.success) return;
 
-        const archRes = await getArchitectureRequest(compRes.result.architecture_id);
+      const archRes = await getArchitectureRequest(compRes.result.architecture_id);
 
-        if (archRes.success) {
-          setBreadcrumb({
-            architecture_id: archRes.result.id,
-            paper_id: archRes.result.paper_id,
-            component_id: id
-          });
-          console.log(compRes.result);
-          setComponent(compRes.result);
-        }
-      } catch (error) {
-        handleErrorRequest(error, displayMsg);
+      if (archRes.success) {
+        setBreadcrumb({
+          architecture_id: archRes.result.id,
+          paper_id: archRes.result.paper_id,
+          component_id: id
+        });
+        console.log(compRes.result);
+        setComponent(compRes.result);
       }
-    };
+    } catch (error) {
+      handleErrorRequest(error, displayMsg);
+    } finally {
+      setOpen(false);
+    }
+  };
 
+  useEffect(() => {
     fetchComponentData();
   }, []);
 
@@ -221,6 +228,7 @@ export default function InstanceComponentView() {
           messageSnackbarProps={messageSnackbarProps}
           setMessageSnackbarProps={setMessageSnackbarProps}
         />
+        <LoadingOverlay open={open} />
       </Container>
     </Page>
   );
