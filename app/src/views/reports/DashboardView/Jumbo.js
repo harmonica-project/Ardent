@@ -24,15 +24,17 @@ const Jumbo = ({ className }) => {
     >
       <CardContent>
         <Typography variant="h1" component="div" gutterBottom>
-          Hello!
+          Welcome to Ardent!
         </Typography>
         <Typography variant="body1">
           <p>
-            This application has been developed to support the extraction and the
-            processing of software architectures from the literature.
-            From that, this application can leverage several algorithms to
-            compute similarities between architectures and identify new software
-            patterns.
+            Ardent (for
+            {' '}
+            <i>ARchitecture knowleDge ExtractioN plaTform</i>
+            ), is a platform
+            designed to support the extraction of software architectures from academic literature.
+            From that, this application can leverage several algorithms to compute
+            similarities between architectures and identify new or existing software patterns.
           </p>
         </Typography>
         <br />
@@ -67,9 +69,11 @@ const Jumbo = ({ className }) => {
             menu to
             identify the patterns, by using provided algorithm. You can tune the algorithm to
             be more or less sensitive on discovered patterns.
-            If you need help, feel free to PM me on Slack (login is required)
-            <a href="https://app.slack.com/client/TEG1QQZ0A/DTCQNE7KR">&nbsp;@Nicolas Six</a>
-            .
+            In
+            {' '}
+            <i>Analytics</i>
+            , you will also find a menu to see base components, their occurences
+            in extracted architectures, and references to instances.
           </p>
         </Typography>
       </CardContent>

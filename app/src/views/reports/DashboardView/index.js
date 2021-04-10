@@ -139,18 +139,18 @@ const Dashboard = () => {
           </Grid>
           <Grid
             item
-            lg={8}
+            lg={7}
             md={12}
-            xl={9}
+            xl={8}
             xs={12}
           >
             <Jumbo />
           </Grid>
           <Grid
             item
-            lg={4}
+            lg={5}
             md={6}
-            xl={3}
+            xl={4}
             xs={12}
           >
             <PapersStatuses papers={papers} />
