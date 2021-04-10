@@ -8,7 +8,6 @@ const xlsxj = require("xlsx-to-json");
 const { v4: uuidv4 } = require('uuid');
 const { storeArchitecture } = require('./db');
 var nJwt = require('njwt');
-var secureRandom = require('secure-random');
 var crypto = require("crypto");
 
 // var signingKey = secureRandom(256, {type: 'Buffer'}); // Create a highly random byte array of 256 bytes
@@ -104,7 +103,7 @@ app.use(function(req, res, next) {
 
 const generateToken = (username) => {
     var claims = {
-        iss: "slr/api",  // The URL of your service
+        iss: "ardent/api",  // The URL of your service
         sub: username,    // The UID of the user in your system
         scope: "self"
     }
