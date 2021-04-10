@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
@@ -12,7 +12,9 @@ import {
   makeStyles
 } from '@material-ui/core';
 import Page from 'src/components/Page';
-import authenticationService from '../../requests/authentication';
+import authenticationService from 'src/requests/authentication';
+import MessageSnackbar from 'src/components/MessageSnackbar';
+import LoadingOverlay from 'src/components/LoadingOverlay';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -26,6 +28,23 @@ const useStyles = makeStyles((theme) => ({
 const LoginView = () => {
   const classes = useStyles();
   const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+
+  const [messageSnackbarProps, setMessageSnackbarProps] = useState({
+    open: false,
+    message: '',
+    duration: 0,
+    severity: 'information'
+  });
+
+  const displayMsg = (message, severity = 'success', duration = 6000) => {
+    setMessageSnackbarProps({
+      open: true,
+      severity,
+      duration,
+      message
+    });
+  };
 
   return (
     <Page
@@ -49,16 +68,11 @@ const LoginView = () => {
               password: Yup.string().max(255).required('Password is required')
             })}
             onSubmit={({ username, password }) => {
-              // setStatus();
+              setOpen(true);
               authenticationService.login(username, password)
-                .then(
-                  () => {
-                    navigate('/app/dashboard', { replace: true });
-                  },
-                  () => {
-                    document.location.reload(true);
-                  }
-                );
+                .then(() => navigate('/app/dashboard', { replace: true }))
+                .catch(() => displayMsg('Authentication failed. Check your username and your password, then retry.', 'error'))
+                .finally(() => setOpen(false));
             }}
           >
             {({
@@ -66,7 +80,6 @@ const LoginView = () => {
               handleBlur,
               handleChange,
               handleSubmit,
-              isSubmitting,
               touched,
               values
             }) => (
@@ -115,7 +128,6 @@ const LoginView = () => {
                 <Box my={2}>
                   <Button
                     color="primary"
-                    disabled={isSubmitting}
                     fullWidth
                     size="large"
                     type="submit"
@@ -143,6 +155,11 @@ const LoginView = () => {
           </Formik>
         </Container>
       </Box>
+      <MessageSnackbar
+        messageSnackbarProps={messageSnackbarProps}
+        setMessageSnackbarProps={setMessageSnackbarProps}
+      />
+      <LoadingOverlay open={open} />
     </Page>
   );
 };

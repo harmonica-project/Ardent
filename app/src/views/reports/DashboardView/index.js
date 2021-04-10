@@ -5,11 +5,12 @@ import {
   makeStyles
 } from '@material-ui/core';
 import MessageSnackbar from 'src/components/MessageSnackbar';
+import LoadingOverlay from 'src/components/LoadingOverlay';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
 import Page from 'src/components/Page';
-import { getArchitectures } from 'src/requests/architecture';
-import { getComponentsNames } from 'src/requests/component';
-import { getPapers } from 'src/requests/paper';
+import { getArchitectures as getArchitecturesRequest } from 'src/requests/architecture';
+import { getComponentsNames as getComponentsNamesRequest } from 'src/requests/component';
+import { getPapers as getPapersRequest } from 'src/requests/paper';
 import ArchitectureSummary from './ArchitectureSummary';
 import Jumbo from './Jumbo';
 import PapersStatuses from './PapersStatuses';
@@ -31,6 +32,7 @@ const Dashboard = () => {
   const [papers, setPapers] = useState([]);
   const [architectures, setArchitectures] = useState([]);
   const [components, setComponents] = useState([]);
+  const [open, setOpen] = useState(false);
 
   const [messageSnackbarProps, setMessageSnackbarProps] = useState({
     open: false,
@@ -48,34 +50,45 @@ const Dashboard = () => {
     });
   };
 
+  const getArchitectures = async () => {
+    try {
+      const data = await getArchitecturesRequest();
+      if (data.success) {
+        setArchitectures(data.result);
+      }
+    } catch (error) {
+      handleErrorRequest(error, displayMsg);
+    }
+  };
+
+  const getComponentsNames = async () => {
+    try {
+      const data = await getComponentsNamesRequest();
+      if (data.success) {
+        setComponents(data.result);
+      }
+    } catch (error) {
+      handleErrorRequest(error, displayMsg);
+    }
+  };
+
+  const getPapers = async () => {
+    try {
+      const data = await getPapersRequest();
+      if (data.success) {
+        setPapers(data.result);
+      }
+    } catch (error) {
+      handleErrorRequest(error, displayMsg);
+    }
+  };
+
   useEffect(() => {
-    getArchitectures()
-      .then((data) => {
-        if (data.success) {
-          setArchitectures(data.result);
-        }
-      })
-      .catch((error) => handleErrorRequest(error, displayMsg));
-
-    getComponentsNames()
-      .then((data) => {
-        if (data.success) {
-          setComponents(data.result);
-        }
-      })
-      .catch((error) => handleErrorRequest(error, displayMsg));
-
-    getPapers()
-      .then((data) => {
-        if (data.success) {
-          setPapers(data.result);
-        }
-      })
-      .catch((error) => handleErrorRequest(error, displayMsg));
-  }, []);
-
-  useEffect(() => {
-
+    setOpen(true);
+    Promise.all([getPapers(), getArchitectures(), getComponentsNames()])
+      .then(() => {
+        setOpen(false);
+      });
   }, []);
 
   return (
@@ -148,6 +161,7 @@ const Dashboard = () => {
         messageSnackbarProps={messageSnackbarProps}
         setMessageSnackbarProps={setMessageSnackbarProps}
       />
+      <LoadingOverlay open={open} />
     </Page>
   );
 };

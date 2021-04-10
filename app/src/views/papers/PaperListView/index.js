@@ -22,6 +22,7 @@ import {
 } from 'src/requests/paper';
 import { getUsers as getUsersRequest } from 'src/requests/user';
 import authenticationService from 'src/requests/authentication';
+import LoadingOverlay from 'src/components/LoadingOverlay';
 import Page from 'src/components/Page';
 import MessageSnackbar from 'src/components/MessageSnackbar';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
@@ -50,7 +51,7 @@ const PapersListView = () => {
   const [currentUser, setCurrentUser] = useState([]);
   const [displayedPapers, setDisplayedPapers] = useState([]);
   const [titleFilter, setTitleFilter] = useState('');
-
+  const [open, setOpen] = useState(false);
   const [paperModalProps, setPaperModalProps] = useState({
     open: false,
     paper: {},
@@ -160,6 +161,7 @@ const PapersListView = () => {
   };
 
   const deletePaper = (paperId) => {
+    setOpen(true);
     deletePaperRequest(paperId)
       .then((data) => {
         if (data.success) {
@@ -175,10 +177,12 @@ const PapersListView = () => {
           displayMsg('Paper successfully deleted.');
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg));
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
   };
 
   const deleteArchitecture = (paperId, architectureId) => {
+    setOpen(true);
     deleteArchitectureRequest(architectureId)
       .then((data) => {
         if (data.success) {
@@ -193,10 +197,12 @@ const PapersListView = () => {
           displayMsg('Architecture successfully deleted.');
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg));
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
   };
 
   const saveNewPaper = (newPaper) => {
+    setOpen(true);
     saveNewPaperRequest(newPaper)
       .then((data) => {
         if (data.success) {
@@ -218,10 +224,12 @@ const PapersListView = () => {
           displayMsg('Paper successfully added.');
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg));
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
   };
 
   const saveNewArchitecture = (newArchitecture) => {
+    setOpen(true);
     saveNewArchitectureRequest(newArchitecture)
       .then((data) => {
         if (data.success) {
@@ -234,10 +242,12 @@ const PapersListView = () => {
           displayMsg('Architecture successfully added.');
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg));
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
   };
 
   const saveExistingPaper = (newPaper) => {
+    setOpen(true);
     saveExistingPaperRequest(newPaper)
       .then((data) => {
         if (data.success) {
@@ -251,10 +261,12 @@ const PapersListView = () => {
           displayMsg('Paper successfully modified.');
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg));
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
   };
 
   const saveExistingArchitecture = (newArchitecture) => {
+    setOpen(true);
     saveExistingArchitectureRequest(newArchitecture)
       .then((data) => {
         if (data.success) {
@@ -267,7 +279,8 @@ const PapersListView = () => {
           displayMsg('Architecture successfully modified.');
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg));
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
   };
 
   const fillDisplayedPapers = () => {
@@ -391,41 +404,43 @@ const PapersListView = () => {
     navigate(`/app/architecture/${architectureId}`);
   };
 
-  const getPapers = () => {
-    getPapersRequest()
-      .then((data) => {
-        if (data.success) {
-          setPapers(data.result);
-        }
-      })
-      .catch((error) => handleErrorRequest(error, displayMsg));
+  const getPapers = async () => {
+    try {
+      const data = await getPapersRequest();
+      if (data.success) {
+        setPapers(data.result);
+      }
+    } catch (error) {
+      handleErrorRequest(error, displayMsg);
+    }
   };
 
-  const getUsersProps = () => {
-    getUsersRequest()
-      .then((data) => {
-        if (data.success) {
-          const authInfo = authenticationService.currentUserValue;
-          if (authInfo && authInfo.user) {
-            setPaperModalProps({
-              ...paperModalProps,
-              currentUser: authInfo.user,
-              users: data.result
-            });
-            setCurrentUser(authInfo.user);
-            setUsers(data.result);
-          }
+  const getUsersProps = async () => {
+    try {
+      const data = await getUsersRequest();
+      if (data.success) {
+        const authInfo = authenticationService.currentUserValue;
+        if (authInfo && authInfo.user) {
+          setPaperModalProps({
+            ...paperModalProps,
+            currentUser: authInfo.user,
+            users: data.result
+          });
+          setCurrentUser(authInfo.user);
+          setUsers(data.result);
         }
-      })
-      .catch((error) => handleErrorRequest(error, displayMsg));
+      }
+    } catch (error) {
+      handleErrorRequest(error, displayMsg);
+    }
   };
 
   useEffect(() => {
-    getPapers();
-  }, []);
-
-  useEffect(() => {
-    getUsersProps();
+    setOpen(true);
+    Promise.all([getPapers(), getUsersProps()])
+      .then(() => {
+        setOpen(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -506,6 +521,7 @@ const PapersListView = () => {
           messageSnackbarProps={messageSnackbarProps}
           setMessageSnackbarProps={setMessageSnackbarProps}
         />
+        <LoadingOverlay open={open} />
       </Container>
     </Page>
   );
