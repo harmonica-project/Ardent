@@ -169,6 +169,21 @@ module.exports = {
             };
         }
     },
+    deleteBaseComponent: async componentId => {
+        try {
+            await client.query("DELETE FROM components_base WHERE id = $1", [componentId]);
+            
+            return {
+                success: true
+            }
+        }
+        catch(err) {
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
     deleteArchitecture: async architectureId => {
         try {
             await client.query("DELETE FROM architectures WHERE id = $1", [architectureId]);

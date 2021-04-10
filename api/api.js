@@ -230,6 +230,14 @@ app.delete('/connection/:id', authorizedOnly, (req, res) => {
     })
 });
 
+app.delete('/component_base/:id', authorizedOnly, (req, res) => {
+    db.deleteBaseComponent(req.params.id).then((parsedResult) => {
+        if(parsedResult.success) res.status(200).send(parsedResult);
+        else res.status(500).send(parsedResult);
+    })
+});
+
+
 app.post('/component_instance', authorizedOnly, (req, res) => {
     db.storeComponentInstance(req.body).then((parsedResult) => {
         if(parsedResult.success) res.status(200).send(parsedResult);

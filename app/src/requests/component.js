@@ -74,3 +74,11 @@ export function getComponentInstance(componentId) {
       auth.handleResponse(error.response);
     });
 }
+
+export function deleteBaseComponent(componentId) {
+  return axios.delete(`${API_URL}/component_base/${componentId}`, auth.getAuthHeaders())
+    .then((data) => auth.handleResponse(data))
+    .catch((error) => {
+      auth.handleResponse(error.response);
+    });
+}

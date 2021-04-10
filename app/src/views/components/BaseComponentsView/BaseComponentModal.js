@@ -126,6 +126,8 @@ export default function BaseComponentModal({
     );
   };
 
+  console.log(modalProps.baseComponent);
+
   const body = (
     <Box style={modalStyle} className={classes.body}>
       <Typography variant="h2" component="h2" gutterBottom>
