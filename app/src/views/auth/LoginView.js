@@ -58,6 +58,14 @@ const LoginView = () => {
         justifyContent="center"
       >
         <Container maxWidth="sm">
+          <div style={{
+            textAlign: 'center',
+            marginBottom: '60px',
+            borderBottom: '1px solid lightgrey'
+          }}
+          >
+            <img style={{ width: '100%' }} src="/static/ardent.png" alt="Logo" />
+          </div>
           <Formik
             initialValues={{
               username: '',
@@ -84,7 +92,7 @@ const LoginView = () => {
               values
             }) => (
               <form onSubmit={handleSubmit}>
-                <Box mb={3}>
+                <Box mb={3} align="center">
                   <Typography
                     color="textPrimary"
                     variant="h2"
@@ -139,6 +147,7 @@ const LoginView = () => {
                 <Typography
                   color="textSecondary"
                   variant="body1"
+                  align="center"
                 >
                   Don&apos;t have an account?
                   {' '}
