@@ -64,6 +64,20 @@ module.exports = {
             return err;
         }
     },
+    getFullComponents: async () => {
+        try {
+            return await client.query(
+                "SELECT *, p.name as paper_name, a.name as architecture_name, a.reader_description as architecture_reader_description, " +
+                    "a.author_description as architecture_author_description FROM components_instances AS c " +
+                    "INNER JOIN architectures AS a ON c.architecture_id = a.id " +
+                    "INNER JOIN papers AS p ON a.paper_id = p.id " +
+                    "INNER JOIN components_base AS b ON c.component_base_id = b.id"
+                );
+        }
+        catch(err) {
+            return err;
+        }
+    },
     getBaseComponents: async () => {
         try {
             return await client.query("SELECT * FROM components_base");

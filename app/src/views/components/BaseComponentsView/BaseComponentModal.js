@@ -171,7 +171,7 @@ BaseComponentModal.propTypes = {
       name: PropTypes.string,
       base_description: PropTypes.string,
       occurences: PropTypes.number,
-      proportion: PropTypes.number,
+      proportion: PropTypes.string,
       instances: PropTypes.array
     }),
     actionType: PropTypes.string.isRequired

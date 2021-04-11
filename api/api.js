@@ -163,6 +163,14 @@ app.get('/papers', authorizedOnly, (req, res) => {
     })
 });
 
+app.get('/components', authorizedOnly, (req, res) => {
+    db.getFullComponents().then(queryResult => {
+        const parsedResult = parseDBResults(queryResult);
+        if(parsedResult.success) res.status(200).send(parsedResult);
+        else res.status(500).send(parsedResult);
+    })
+});
+
 app.post('/architecture', authorizedOnly, (req, res) => {
     const newArchitecture = req.body;
     if(newArchitecture.name && newArchitecture.paper_id && newArchitecture.reader_description) {

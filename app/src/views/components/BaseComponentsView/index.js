@@ -7,8 +7,7 @@ import MessageSnackbar from 'src/components/MessageSnackbar';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 import {
-  getBaseComponents as getBaseComponentsRequest,
-  getComponentsInstances as getComponentsInstancesRequest,
+  getFullComponents as getFullComponentsRequest,
   deleteBaseComponent as deleteBaseComponentRequest
 } from 'src/requests/component';
 import BaseComponentInput from './BaseComponentsInput';
@@ -122,35 +121,49 @@ export default function BaseComponentsView() {
     }
   };
 
-  const enhanceBaseComponents = (bc, ic) => {
-    bc.forEach((b, index) => {
-      bc[index] = {
-        ...b, occurences: 0, proportion: 0.0, instances: []
-      };
-      ic.forEach((i) => {
-        if (i.name === b.name) {
-          bc[index].occurences++;
-          bc[index].instances.push(i);
-        }
-      });
+  const formatToBaseComponent = (components) => {
+    const newBaseComponents = [];
+    const componentToEntry = {};
+    const nbInstances = components.length;
+
+    components.forEach((c) => {
+      if (!componentToEntry[c.name]) {
+        componentToEntry[c.name] = newBaseComponents.length;
+        newBaseComponents.push({
+          id: c.id,
+          name: c.name,
+          base_description: c.base_description,
+          occurences: 1,
+          proportion: ((1 / nbInstances) * 100).toFixed(2),
+          instances: [{
+            architecture_id: c.architecture_id,
+            architecture_name: c.name,
+            paper_id: c.paper_id,
+            paper_name: c.paper_name,
+          }]
+        });
+      } else {
+        const entry = newBaseComponents[componentToEntry[c.name]];
+        entry.instances.push({
+          architecture_id: c.architecture_id,
+          architecture_name: c.name,
+          paper_id: c.paper_id,
+          paper_name: c.paper_name
+        });
+        entry.occurences++;
+        entry.proportion = ((entry.occurences / nbInstances) * 100).toFixed(2);
+      }
     });
 
-    bc.forEach((b, index) => {
-      bc[index].proportion = ((bc[index].occurences / ic.length) * 100).toFixed(2);
-    });
-
-    console.log(bc);
-    return bc;
+    return newBaseComponents;
   };
 
   const fetchComponentData = async () => {
-    setOpen(true);
     try {
-      const baseCompRes = await getBaseComponentsRequest();
-      const instCompRes = await getComponentsInstancesRequest();
+      const compRes = await getFullComponentsRequest();
 
-      if (baseCompRes.success && instCompRes.success) {
-        const newBaseComponents = enhanceBaseComponents(baseCompRes.result, instCompRes.result);
+      if (compRes.success) {
+        const newBaseComponents = formatToBaseComponent(compRes.result);
         setBaseComponents(newBaseComponents);
       }
     } catch (error) {
