@@ -1,3 +1,5 @@
+const secureRandom = require('secure-random');
+
 // THOSE ARE DEFAULT LOGINS FOR TEST ONLY - NOT SUITABLE FOR PRODUCTION
 exports.DB_CONFIG = {
   host: 'localhost',
