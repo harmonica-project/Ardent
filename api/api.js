@@ -1,6 +1,9 @@
 const express = require('express');
 const app = express();
 const db = require('./db');
+const http = require('http');
+const https = require('https');
+const fs = require('fs');
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const upload = multer({ dest: './uploads/' }).single("xlsArchitectures");
@@ -9,9 +12,7 @@ const { v4: uuidv4 } = require('uuid');
 const { storeArchitecture } = require('./db');
 var nJwt = require('njwt');
 var crypto = require("crypto");
-
-// var signingKey = secureRandom(256, {type: 'Buffer'}); // Create a highly random byte array of 256 bytes
-var signingKey = 'test'; // for test only
+var { SIGN_KEY } = require('./config');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
@@ -34,7 +35,7 @@ const authorizedOnly = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     try {
-        const verifiedToken = nJwt.verify(token, signingKey);
+        const verifiedToken = nJwt.verify(token, SIGN_KEY);
         db.getUser(verifiedToken.body.sub).then((parsedResult) => {
             if(parsedResult.success && parsedResult.result.username) {
                 next();
@@ -51,7 +52,7 @@ const verifyClaimIdentity = async (username, req) => {
     try {
         const authHeader = req.headers['authorization'];
         const token = authHeader && authHeader.split(' ')[1];
-        const verifiedToken = nJwt.verify(token, signingKey);
+        const verifiedToken = nJwt.verify(token, SIGN_KEY);
         if (verifiedToken.body.sub === username) {
             parsedResult = await db.getUser(username);
             if(parsedResult.success && parsedResult.result.username == username) {
@@ -71,7 +72,7 @@ const verifyClaimAdmin = async (req) => {
     try {
         const authHeader = req.headers['authorization'];
         const token = authHeader && authHeader.split(' ')[1];
-        const verifiedToken = nJwt.verify(token, signingKey);
+        const verifiedToken = nJwt.verify(token, SIGN_KEY);
         const parsedResult = await db.getUser(verifiedToken.body.sub)
         if(parsedResult.success && parsedResult.result.is_admin) {
             return true;
@@ -107,7 +108,7 @@ const generateToken = (username) => {
         sub: username,    // The UID of the user in your system
         scope: "self"
     }
-    var jwt = nJwt.create(claims,signingKey);
+    var jwt = nJwt.create(claims,SIGN_KEY);
     jwt.setExpiration(new Date().getTime() + (12*60*60*1000)); // expiration in 12 hours
     var token = jwt.compact();
     return token;
@@ -562,6 +563,18 @@ app.get('/component_instance/:id', authorizedOnly, (req, res) => {
     })
 });
 
-app.listen(8080, () => {
-    console.log("Listening on port 8080.")
-})
+var httpServer = http.createServer(app);
+console.log('HTTP serving on port 8080.');
+httpServer.listen(8080);
+
+try {
+    var privateKey  = fs.readFileSync('certs/server.key', 'utf8');
+    var certificate = fs.readFileSync('certs/server.crt', 'utf8');
+    var credentials = {key: privateKey, cert: certificate};
+    var httpsServer = https.createServer(credentials, app);
+    console.log('HTTPS serving on port 8443.');
+    httpsServer.listen(8443);
+} catch (error) {
+    console.log('Invalid certificates or certificates not found: the server will only serve in HTTP.');
+    console.log(error);
+}
