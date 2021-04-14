@@ -140,7 +140,6 @@ function Row({
   componentActionHandler
 }) {
   const [open, setOpen] = React.useState(false);
-  console.log(row);
   const displayNoInstances = () => {
     return (
       <Typography variant="h6" color="textSecondary" gutterBottom component="div">
@@ -156,6 +155,7 @@ function Row({
           <TableRow>
             <TableCell>Paper name</TableCell>
             <TableCell>Architecture name</TableCell>
+            <TableCell>Component instance</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -173,6 +173,13 @@ function Row({
               >
                 <NavLink to={`/app/architecture/${instance.architecture_id}`}>
                   { instance.architecture_name }
+                </NavLink>
+              </TableCell>
+              <TableCell
+                style={{ cursor: 'pointer' }}
+              >
+                <NavLink to={`/app/component/${instance.instance_component_id}`}>
+                  Go to component
                 </NavLink>
               </TableCell>
             </TableRow>

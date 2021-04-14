@@ -126,11 +126,11 @@ export default function BaseComponentsView() {
     const nbInstances = components.length;
 
     components.forEach((c) => {
-      if (!componentToEntry[c.name]) {
-        componentToEntry[c.name] = newBaseComponents.length;
+      if (!componentToEntry[c.base_component_name]) {
+        componentToEntry[c.base_component_name] = newBaseComponents.length;
         newBaseComponents.push({
-          id: c.id,
-          name: c.name,
+          id: c.base_component_id,
+          name: c.base_component_name,
           base_description: c.base_description,
           occurences: 1,
           proportion: ((1 / nbInstances) * 100).toFixed(2),
@@ -139,15 +139,17 @@ export default function BaseComponentsView() {
             architecture_name: c.architecture_name,
             paper_id: c.paper_id,
             paper_name: c.paper_name,
+            instance_component_id: c.instance_component_id
           }]
         });
       } else {
-        const entry = newBaseComponents[componentToEntry[c.name]];
+        const entry = newBaseComponents[componentToEntry[c.base_component_name]];
         entry.instances.push({
           architecture_id: c.architecture_id,
           architecture_name: c.architecture_name,
           paper_id: c.paper_id,
-          paper_name: c.paper_name
+          paper_name: c.paper_name,
+          component_id: c.component_id
         });
         entry.occurences++;
         entry.proportion = ((entry.occurences / nbInstances) * 100).toFixed(2);
