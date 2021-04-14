@@ -19,14 +19,6 @@ export function getComponentsInstances() {
     });
 }
 
-export function getComponentsNames() {
-  return axios.get(`${API_URL}/components_names`, auth.getAuthHeaders())
-    .then((data) => auth.handleResponse(data))
-    .catch((error) => {
-      auth.handleResponse(error.response);
-    });
-}
-
 export function saveNewComponentInstance(component) {
   return axios.post(`${API_URL}/component_instance`, component, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))

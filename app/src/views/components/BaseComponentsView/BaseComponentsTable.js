@@ -145,7 +145,6 @@ function Row({
     if (!localStorage.getItem('danger') || localStorage.getItem('danger') === 'false') return true;
     return false;
   })();
-  console.log(disableDelete);
 
   const displayNoInstances = () => {
     return (

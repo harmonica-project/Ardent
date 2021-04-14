@@ -228,7 +228,7 @@ export default function ComponentModal({
             variant="contained"
             startIcon={<SaveIcon />}
             className={classes.headerButton}
-            onClick={() => validateAndSubmit()}
+            onClick={validateAndSubmit}
           >
             Save
           </Button>

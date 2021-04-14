@@ -1,10 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import * as yup from 'yup';
 import {
   Box,
   Typography,
   Button,
-  Modal
+  Modal,
+  TextField
 } from '@material-ui/core/';
 import {
   Delete as DeleteIcon,
@@ -47,8 +49,10 @@ export default function BaseComponentModal({
 }) {
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
-  const [modalStyle] = React.useState(getModalStyle);
-  const [innerBaseComponent, setInnerBaseComponent] = React.useState(modalProps.baseComponent);
+  const [modalStyle] = useState(getModalStyle);
+  const [innerBaseComponent, setInnerBaseComponent] = useState(modalProps.baseComponent);
+  const [nameError, setNameError] = useState(false);
+  const [nameHelper, setNameHelper] = useState('');
 
   useEffect(() => {
     setInnerBaseComponent(modalProps.baseComponent);
@@ -61,13 +65,35 @@ export default function BaseComponentModal({
     });
   };
 
-  /* const handleInputChange = (key, value) => {
+  const handleInputChange = (key, value) => {
+    if (key === 'name') {
+      setNameError(false);
+      setNameHelper('');
+    }
+
     setInnerBaseComponent({
       ...innerBaseComponent,
       [key]: value
     });
   };
-  */
+
+  const validateAndSubmit = () => {
+    const schema = yup.object().shape({
+      name: yup.string()
+        .max(30, 'Component name is too long.')
+        .required('Base component name is required'),
+      base_description: yup.string()
+    });
+
+    schema.validate(innerBaseComponent, { abortEarly: false })
+      .then(() => {
+        actionModalHandler(modalProps.actionType, innerBaseComponent);
+      })
+      .catch(() => {
+        setNameError(true);
+        setNameHelper('Component name is missing or too long (30 car. max).');
+      });
+  };
 
   const handleSwitchClick = () => {
     if (modalProps.actionType === 'new') return;
@@ -126,21 +152,49 @@ export default function BaseComponentModal({
     );
   };
 
-  console.log(modalProps.baseComponent);
-
   const body = (
     <Box style={modalStyle} className={classes.body}>
       <Typography variant="h2" component="h2" gutterBottom>
         {getModalHeader()}
       </Typography>
       <form noValidate className={classes.form}>
+        <TextField
+          id="name-field"
+          label="Name"
+          placeholder="Enter a name (must represent all component instances)"
+          fullWidth
+          margin="normal"
+          disabled={modalProps.actionType === 'view'}
+          onChange={(e) => handleInputChange('name', e.target.value)}
+          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.baseComponent.name}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          error={nameError}
+          helperText={nameHelper}
+        />
+        <TextField
+          id="base-description-field"
+          label="Base description"
+          placeholder="Enter base description (must represent all component instances)"
+          fullWidth
+          margin="normal"
+          disabled={modalProps.actionType === 'view'}
+          onChange={(e) => handleInputChange('base_description', e.target.value)}
+          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.baseComponent.base_description}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          multiline
+          rows={4}
+        />
         {modalProps.actionType !== 'view' ? (
           <Button
             color="primary"
             variant="contained"
             startIcon={<SaveIcon />}
             className={classes.headerButton}
-            onClick={() => actionModalHandler(modalProps.actionType, innerBaseComponent)}
+            onClick={validateAndSubmit}
           >
             Save
           </Button>

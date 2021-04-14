@@ -9,7 +9,7 @@ import LoadingOverlay from 'src/components/LoadingOverlay';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
 import Page from 'src/components/Page';
 import { getArchitectures as getArchitecturesRequest } from 'src/requests/architecture';
-import { getComponentsNames as getComponentsNamesRequest } from 'src/requests/component';
+import { getBaseComponents as getBaseComponentsRequest } from 'src/requests/component';
 import { getPapers as getPapersRequest } from 'src/requests/paper';
 import ArchitectureSummary from './ArchitectureSummary';
 import Jumbo from './Jumbo';
@@ -61,9 +61,9 @@ const Dashboard = () => {
     }
   };
 
-  const getComponentsNames = async () => {
+  const getBaseComponents = async () => {
     try {
-      const data = await getComponentsNamesRequest();
+      const data = await getBaseComponentsRequest();
       if (data.success) {
         setComponents(data.result);
       }
@@ -85,7 +85,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     setOpen(true);
-    Promise.all([getPapers(), getArchitectures(), getComponentsNames()])
+    Promise.all([getPapers(), getArchitectures(), getBaseComponents()])
       .then(() => {
         setOpen(false);
       });
