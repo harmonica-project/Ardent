@@ -6,7 +6,7 @@ import {
 } from '@material-ui/core';
 
 export default function BaseComponentInput({
-  baseComponents, handleAutocompleteChange, disabled, defaultValue, helperText, inputVariant
+  baseComponents, handleAutocompleteChange, disabled, defaultValue, helperText, inputVariant, error
 }) {
   const options = baseComponents.map((option) => {
     const firstLetter = option.name[0].toUpperCase();
@@ -21,10 +21,10 @@ export default function BaseComponentInput({
       id="name-field-autocomplete"
       options={options.sort((a, b) => -b.firstLetter.localeCompare(a.firstLetter))}
       groupBy={(option) => option.firstLetter}
-      getOptionLabel={(option) => option.name}
+      getOptionLabel={(option) => { return (option.name ? option.name : ''); }}
       defaultValue={defaultValue}
       label="Component name"
-      renderInput={(params) => <TextField {...params} variant={inputVariant} helperText={helperText} onSelect={(e) => handleAutocompleteChange(e.target.value)} id="name-field" label="Component name" />}
+      renderInput={(params) => <TextField {...params} variant={inputVariant} error={error} helperText={helperText} onSelect={(e) => handleAutocompleteChange(e.target.value)} id="name-field" label="Component name" />}
       style={{ width: '100%' }}
       disabled={disabled}
       freeSolo
@@ -38,5 +38,6 @@ BaseComponentInput.propTypes = {
   disabled: PropTypes.bool,
   defaultValue: PropTypes.string,
   helperText: PropTypes.string,
-  inputVariant: PropTypes.string
+  inputVariant: PropTypes.string,
+  error: PropTypes.bool
 };
