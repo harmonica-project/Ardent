@@ -5,11 +5,18 @@ import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
+import Typography from '@material-ui/core/Typography';
+import Collapse from '@material-ui/core/Collapse';
+import IconButton from '@material-ui/core/IconButton';
+import Box from '@material-ui/core/Box';
+import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import TableHead from '@material-ui/core/TableHead';
 import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
 import Paper from '@material-ui/core/Paper';
+import { NavLink } from 'react-router-dom';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 import TableActionCell from '../../../components/TableActionCell';
@@ -69,6 +76,7 @@ function BaseComponentsTableHead(props) {
   return (
     <TableHead>
       <TableRow>
+        <TableCell />
         {headCells.map((headCell) => (
           <TableCell
             key={headCell.id}
@@ -124,6 +132,114 @@ const useStyles = makeStyles((theme) => ({
     width: 1,
   },
 }));
+
+function Row({
+  isItemSelected,
+  row,
+  handleClick,
+  componentActionHandler
+}) {
+  const [open, setOpen] = React.useState(false);
+  console.log(row);
+  const displayNoInstances = () => {
+    return (
+      <Typography variant="h6" color="textSecondary" gutterBottom component="div">
+        No instances yet.
+      </Typography>
+    );
+  };
+
+  const displayInstancesTable = () => {
+    return (
+      <Table size="small" aria-label="architectures">
+        <TableHead>
+          <TableRow>
+            <TableCell>Paper name</TableCell>
+            <TableCell>Architecture name</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {row.instances.map((instance) => (
+            <TableRow key={instance.architecture_id}>
+              <TableCell
+                style={{ cursor: 'pointer' }}
+              >
+                <NavLink to="/app/papers">
+                  { instance.paper_name }
+                </NavLink>
+              </TableCell>
+              <TableCell
+                style={{ cursor: 'pointer' }}
+              >
+                <NavLink to={`/app/architecture/${instance.architecture_id}`}>
+                  { instance.architecture_name }
+                </NavLink>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    );
+  };
+
+  return (
+    <>
+      <TableRow
+        hover
+        onClick={(event) => handleClick(event, row.name)}
+        role="checkbox"
+        aria-checked={isItemSelected}
+        tabIndex={-1}
+        key={row.id}
+        selected={isItemSelected}
+      >
+        <TableCell>
+          <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+        </TableCell>
+        <TableCell component="th" id={row.id} scope="row" align="center">
+          {row.name}
+        </TableCell>
+        <TableCell align="right">{row.base_description}</TableCell>
+        <TableCell align="center">{row.occurences}</TableCell>
+        <TableCell align="center">
+          {row.proportion}
+          %
+        </TableCell>
+        <TableCell align="center">
+          <TableActionCell
+            actionHandler={componentActionHandler}
+            item={row}
+          />
+        </TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={11}>
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box style={{ padding: 20 }}>
+              <Paper style={{ padding: 20 }}>
+                <Box width="100%">
+                  <Typography variant="h6" color="textSecondary" gutterBottom component="div">
+                    INSTANCES FOR THIS BASE COMPONENT
+                  </Typography>
+                </Box>
+                { row.instances.length ? displayInstancesTable() : displayNoInstances() }
+              </Paper>
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </>
+  );
+}
+
+Row.propTypes = {
+  isItemSelected: PropTypes.bool,
+  row: PropTypes.array,
+  handleClick: PropTypes.func,
+  componentActionHandler: PropTypes.func
+};
 
 export default function BaseComponentsTable({ rows, componentActionHandler }) {
   const classes = useStyles();
@@ -200,31 +316,12 @@ export default function BaseComponentsTable({ rows, componentActionHandler }) {
                   const isItemSelected = isSelected(row.name);
 
                   return (
-                    <TableRow
-                      hover
-                      onClick={(event) => handleClick(event, row.name)}
-                      role="checkbox"
-                      aria-checked={isItemSelected}
-                      tabIndex={-1}
-                      key={row.id}
-                      selected={isItemSelected}
-                    >
-                      <TableCell component="th" id={row.id} scope="row" align="center">
-                        {row.name}
-                      </TableCell>
-                      <TableCell align="right">{row.base_description}</TableCell>
-                      <TableCell align="center">{row.occurences}</TableCell>
-                      <TableCell align="center">
-                        {row.proportion}
-                        %
-                      </TableCell>
-                      <TableCell align="center">
-                        <TableActionCell
-                          actionHandler={componentActionHandler}
-                          item={row}
-                        />
-                      </TableCell>
-                    </TableRow>
+                    <Row
+                      isItemSelected={isItemSelected}
+                      row={row}
+                      handleClick={handleClick}
+                      componentActionHandler={componentActionHandler}
+                    />
                   );
                 })}
               {emptyRows > 0 && (
