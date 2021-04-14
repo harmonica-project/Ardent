@@ -82,7 +82,7 @@ module.exports = {
                 "FROM components_instances AS c " +
                 "INNER JOIN architectures AS a ON c.architecture_id = a.id " +
                 "INNER JOIN papers AS p ON a.paper_id = p.id " +
-                "INNER JOIN components_base AS b ON c.component_base_id = b.id "
+                "FULL JOIN components_base AS b ON c.component_base_id = b.id "
             );
         }
         catch(err) {
@@ -92,14 +92,6 @@ module.exports = {
     getBaseComponents: async () => {
         try {
             return await client.query("SELECT * FROM components_base");
-        }
-        catch(err) {
-            return err;
-        }
-    },
-    getComponentsNames: async () => {
-        try {
-            return await client.query("SELECT DISTINCT name FROM components_instances");
         }
         catch(err) {
             return err;

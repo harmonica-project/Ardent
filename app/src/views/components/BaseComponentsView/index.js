@@ -8,7 +8,9 @@ import handleErrorRequest from 'src/utils/handleErrorRequest';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 import {
   getFullComponents as getFullComponentsRequest,
-  deleteBaseComponent as deleteBaseComponentRequest
+  deleteBaseComponent as deleteBaseComponentRequest,
+  saveExistingBaseComponent as saveExistingBaseComponentRequest,
+  saveNewBaseComponent as saveNewBaseComponentRequest
 } from 'src/requests/component';
 import BaseComponentInput from './BaseComponentsInput';
 import BaseComponentTable from './BaseComponentsTable';
@@ -69,6 +71,112 @@ export default function BaseComponentsView() {
     return false;
   };
 
+  const modifyBaseComponentState = (newComponent) => {
+    const newBaseComponents = [...baseComponents];
+    for (let i = 0; i < newBaseComponents.length; i++) {
+      if (newBaseComponents[i].id === newComponent.id) {
+        newBaseComponents[i] = newComponent;
+      }
+    }
+    setBaseComponents(newBaseComponents);
+  };
+
+  const saveExistingBaseComponent = (newComponent) => {
+    setOpen(true);
+    saveExistingBaseComponentRequest(newComponent)
+      .then((data) => {
+        if (data.success) {
+          displayMsg('Base component successfully modified.');
+          modifyBaseComponentState(newComponent);
+          if (baseComponentModalProps.open) {
+            setBaseComponentModalProps({
+              ...baseComponentModalProps,
+              open: false,
+              baseComponent: {},
+              actionType: ''
+            });
+          }
+        }
+      })
+      .catch((err) => {
+        handleErrorRequest(err, displayMsg);
+      })
+      .finally(() => { setOpen(false); });
+  };
+
+  const formatToBaseComponent = (components) => {
+    const newBaseComponents = [];
+    const componentToEntry = {};
+    const nbInstances = components.length;
+
+    components.forEach((c) => {
+      if (!componentToEntry[c.base_component_name]) {
+        componentToEntry[c.base_component_name] = newBaseComponents.length;
+        newBaseComponents.push({
+          id: c.base_component_id,
+          name: c.base_component_name,
+          base_description: c.base_description,
+          occurences: 0,
+          proportion: ((0 / nbInstances) * 100).toFixed(2),
+          instances: []
+        });
+      }
+      if (c.instance_component_id) {
+        const instance = {
+          architecture_id: c.architecture_id,
+          architecture_name: c.architecture_name,
+          paper_id: c.paper_id,
+          paper_name: c.paper_name,
+          instance_component_id: c.instance_component_id
+        };
+        const entry = newBaseComponents[componentToEntry[c.base_component_name]];
+        entry.instances.push(instance);
+        entry.occurences++;
+        entry.proportion = ((entry.occurences / nbInstances) * 100).toFixed(2);
+      }
+    });
+
+    return newBaseComponents;
+  };
+
+  const fetchComponentData = async () => {
+    try {
+      const compRes = await getFullComponentsRequest();
+
+      if (compRes.success) {
+        const newBaseComponents = formatToBaseComponent(compRes.result);
+        setBaseComponents(newBaseComponents);
+      }
+    } catch (error) {
+      handleErrorRequest(error, displayMsg);
+    } finally {
+      setOpen(false);
+    }
+  };
+
+  const saveNewBaseComponent = (newComponent) => {
+    setOpen(true);
+    saveNewBaseComponentRequest(newComponent)
+      .then((data) => {
+        if (data.success) {
+          displayMsg('Base component successfully added.');
+          fetchComponentData();
+          if (baseComponentModalProps.open) {
+            setBaseComponentModalProps({
+              ...baseComponentModalProps,
+              open: false,
+              baseComponent: {},
+              actionType: ''
+            });
+          }
+        }
+      })
+      .catch((err) => {
+        handleErrorRequest(err, displayMsg);
+      })
+      .finally(() => { setOpen(false); });
+  };
+
   const deleteBaseComponent = (componentId) => {
     setOpen(true);
     deleteBaseComponentRequest(componentId)
@@ -84,7 +192,6 @@ export default function BaseComponentsView() {
               actionType: ''
             });
           }
-          displayMsg('Paper successfully deleted.');
         }
       })
       .catch((err) => {
@@ -120,61 +227,7 @@ export default function BaseComponentsView() {
     }
   };
 
-  const formatToBaseComponent = (components) => {
-    const newBaseComponents = [];
-    const componentToEntry = {};
-    const nbInstances = components.length;
-
-    components.forEach((c) => {
-      if (!componentToEntry[c.base_component_name]) {
-        componentToEntry[c.base_component_name] = newBaseComponents.length;
-        newBaseComponents.push({
-          id: c.base_component_id,
-          name: c.base_component_name,
-          base_description: c.base_description,
-          occurences: 1,
-          proportion: ((1 / nbInstances) * 100).toFixed(2),
-          instances: [{
-            architecture_id: c.architecture_id,
-            architecture_name: c.architecture_name,
-            paper_id: c.paper_id,
-            paper_name: c.paper_name,
-            instance_component_id: c.instance_component_id
-          }]
-        });
-      } else {
-        const entry = newBaseComponents[componentToEntry[c.base_component_name]];
-        entry.instances.push({
-          architecture_id: c.architecture_id,
-          architecture_name: c.architecture_name,
-          paper_id: c.paper_id,
-          paper_name: c.paper_name,
-          component_id: c.component_id
-        });
-        entry.occurences++;
-        entry.proportion = ((entry.occurences / nbInstances) * 100).toFixed(2);
-      }
-    });
-
-    return newBaseComponents;
-  };
-
-  const fetchComponentData = async () => {
-    try {
-      const compRes = await getFullComponentsRequest();
-
-      if (compRes.success) {
-        const newBaseComponents = formatToBaseComponent(compRes.result);
-        setBaseComponents(newBaseComponents);
-      }
-    } catch (error) {
-      handleErrorRequest(error, displayMsg);
-    } finally {
-      setOpen(false);
-    }
-  };
-
-  const baseComponentActionModalHandler = (actionType) => {
+  const baseComponentActionModalHandler = (actionType, newBaseComponent) => {
     switch (actionType) {
       case 'delete':
         if (window.confirm('Warning: deleting this base component will also delete existing component instances and associated properties. Proceed?')) {
@@ -182,10 +235,10 @@ export default function BaseComponentsView() {
         }
         break;
       case 'new':
-        console.log('Create');
+        saveNewBaseComponent(newBaseComponent);
         break;
       case 'edit':
-        console.log('Save');
+        saveExistingBaseComponent(newBaseComponent);
         break;
       default:
         console.error('No action defined for this handler.');

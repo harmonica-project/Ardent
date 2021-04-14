@@ -494,14 +494,6 @@ app.get('/admin/invite_token', authorizedOnly, (req, res) => {
     });
 });
 
-app.get('/components_names', authorizedOnly, (req, res) => {
-    db.getComponentsNames().then((queryResult) => {
-        const parsedResult = parseDBResults(queryResult);
-        if(parsedResult.success) res.status(200).send(parsedResult);
-        else res.status(500).send(parsedResult);
-    })
-});
-
 app.get('/users', authorizedOnly, (req, res) => {
     db.getUsers().then((queryResult) => {
         const parsedResult = parseDBResults(queryResult);
