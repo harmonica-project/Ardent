@@ -87,6 +87,7 @@ function BaseComponentsTableHead(props) {
               active={orderBy === headCell.id}
               direction={orderBy === headCell.id ? order : 'asc'}
               onClick={createSortHandler(headCell.id)}
+              hideSortIcon={orderBy !== headCell.id}
             >
               {headCell.label}
               {orderBy === headCell.id ? (
@@ -140,6 +141,12 @@ function Row({
   componentActionHandler
 }) {
   const [open, setOpen] = React.useState(false);
+  const disableDelete = (() => {
+    if (!localStorage.getItem('danger') || localStorage.getItem('danger') === 'false') return true;
+    return false;
+  })();
+  console.log(disableDelete);
+
   const displayNoInstances = () => {
     return (
       <Typography variant="h6" color="textSecondary" gutterBottom component="div">
@@ -218,6 +225,7 @@ function Row({
           <TableActionCell
             actionHandler={componentActionHandler}
             item={row}
+            disableDelete={disableDelete}
           />
         </TableCell>
       </TableRow>
