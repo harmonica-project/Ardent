@@ -136,7 +136,7 @@ export default function BaseComponentsView() {
           proportion: ((1 / nbInstances) * 100).toFixed(2),
           instances: [{
             architecture_id: c.architecture_id,
-            architecture_name: c.name,
+            architecture_name: c.architecture_name,
             paper_id: c.paper_id,
             paper_name: c.paper_name,
           }]
@@ -145,7 +145,7 @@ export default function BaseComponentsView() {
         const entry = newBaseComponents[componentToEntry[c.name]];
         entry.instances.push({
           architecture_id: c.architecture_id,
-          architecture_name: c.name,
+          architecture_name: c.architecture_name,
           paper_id: c.paper_id,
           paper_name: c.paper_name
         });

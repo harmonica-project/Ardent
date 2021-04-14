@@ -109,7 +109,7 @@ function Row({
 
   const displayArchitecturesTable = () => {
     return (
-      <Table size="small" aria-label="purchases">
+      <Table size="small" aria-label="architectures">
         <TableHead>
           <TableRow>
             <TableCell align="center">Name</TableCell>
