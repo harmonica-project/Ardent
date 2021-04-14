@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import {
@@ -10,7 +10,9 @@ import {
   TextField,
   Grid,
   Divider,
-  makeStyles
+  makeStyles,
+  FormControlLabel,
+  Switch
 } from '@material-ui/core';
 
 const useStyles = makeStyles(({
@@ -25,6 +27,10 @@ const UserInfo = ({
   user, setUser, actionUserHandler, className, ...rest
 }) => {
   const classes = useStyles();
+  const [danger, setDanger] = useState(() => {
+    if (!localStorage.getItem('danger') || localStorage.getItem('danger') === 'false') return false;
+    return true;
+  });
 
   const handleInputChange = (key, value) => {
     setUser({
@@ -33,6 +39,14 @@ const UserInfo = ({
     });
   };
 
+  const handleDangerousSwitch = () => {
+    if (danger) {
+      localStorage.setItem('danger', false);
+    } else {
+      localStorage.setItem('danger', true);
+    }
+    setDanger(!danger);
+  };
   return (
     <form
       className={clsx(classes.root, className)}
@@ -78,6 +92,11 @@ const UserInfo = ({
                 defaultValue={user.role ? user.role : ''}
                 onChange={(e) => handleInputChange('role', e.target.value)}
                 variant="outlined"
+              />
+              <FormControlLabel
+                style={{ marginTop: '5px' }}
+                control={<Switch checked={danger} onChange={handleDangerousSwitch} />}
+                label="Activate dangerous features"
               />
             </Grid>
             <Grid item xs={3}>

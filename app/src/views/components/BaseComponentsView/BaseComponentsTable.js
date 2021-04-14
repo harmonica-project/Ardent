@@ -87,6 +87,7 @@ function BaseComponentsTableHead(props) {
               active={orderBy === headCell.id}
               direction={orderBy === headCell.id ? order : 'asc'}
               onClick={createSortHandler(headCell.id)}
+              hideSortIcon={orderBy !== headCell.id}
             >
               {headCell.label}
               {orderBy === headCell.id ? (
@@ -140,7 +141,12 @@ function Row({
   componentActionHandler
 }) {
   const [open, setOpen] = React.useState(false);
-  console.log(row);
+  const disableDelete = (() => {
+    if (!localStorage.getItem('danger') || localStorage.getItem('danger') === 'false') return true;
+    return false;
+  })();
+  console.log(disableDelete);
+
   const displayNoInstances = () => {
     return (
       <Typography variant="h6" color="textSecondary" gutterBottom component="div">
@@ -156,6 +162,7 @@ function Row({
           <TableRow>
             <TableCell>Paper name</TableCell>
             <TableCell>Architecture name</TableCell>
+            <TableCell>Component instance</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -173,6 +180,13 @@ function Row({
               >
                 <NavLink to={`/app/architecture/${instance.architecture_id}`}>
                   { instance.architecture_name }
+                </NavLink>
+              </TableCell>
+              <TableCell
+                style={{ cursor: 'pointer' }}
+              >
+                <NavLink to={`/app/component/${instance.instance_component_id}`}>
+                  Go to component
                 </NavLink>
               </TableCell>
             </TableRow>
@@ -211,6 +225,7 @@ function Row({
           <TableActionCell
             actionHandler={componentActionHandler}
             item={row}
+            disableDelete={disableDelete}
           />
         </TableCell>
       </TableRow>

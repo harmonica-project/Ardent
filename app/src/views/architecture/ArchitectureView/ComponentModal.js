@@ -7,6 +7,7 @@ import {
   Modal,
   TextField
 } from '@material-ui/core/';
+import * as yup from 'yup';
 import {
   Delete as DeleteIcon,
   Edit as EditIcon,
@@ -52,6 +53,7 @@ export default function ComponentModal({
   const [modalStyle] = useState(getModalStyle);
   const [innerComponent, setInnerComponent] = useState(modalProps.component);
   const [helperText, setHelperText] = useState('');
+  const [isBaseInputInvalid, setIsBaseInputInvalid] = useState(false);
 
   useEffect(() => {
     setInnerComponent(modalProps.component);
@@ -72,6 +74,8 @@ export default function ComponentModal({
   };
 
   const handleAutocompleteChange = (name) => {
+    setIsBaseInputInvalid(false);
+
     let index = -1;
     for (let i = 0; i < baseComponents.length; i++) {
       if (baseComponents[i].name.normalize() === name.normalize()) {
@@ -110,6 +114,26 @@ export default function ComponentModal({
         actionType: 'edit'
       });
     }
+  };
+
+  const validateAndSubmit = () => {
+    const schema = yup.object().shape({
+      name: yup.string()
+        .max(30, 'Component name is too long.')
+        .required('Base component name is required'),
+      author_description: yup.string(),
+      reader_description: yup.string(),
+      component_base_id: yup.string()
+    });
+
+    schema.validate(innerComponent, { abortEarly: false })
+      .then(() => {
+        actionModalHandler(modalProps.actionType, innerComponent);
+      })
+      .catch(() => {
+        setIsBaseInputInvalid(true);
+        setHelperText('Component name is missing or too long (30 car. max).');
+      });
   };
 
   const getModalHeader = () => {
@@ -166,6 +190,7 @@ export default function ComponentModal({
           defaultValue={modalProps.actionType === 'new' ? '' : modalProps.component}
           disabled={modalProps.actionType === 'view'}
           helperText={helperText}
+          error={isBaseInputInvalid}
         />
         <TextField
           id="author-description-field"
@@ -203,7 +228,7 @@ export default function ComponentModal({
             variant="contained"
             startIcon={<SaveIcon />}
             className={classes.headerButton}
-            onClick={() => actionModalHandler(modalProps.actionType, innerComponent)}
+            onClick={() => validateAndSubmit()}
           >
             Save
           </Button>
