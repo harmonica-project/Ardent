@@ -1,11 +1,10 @@
-const db = require('../db');
+const db = require('../data/users');
 var nJwt = require('njwt');
 var { SIGN_KEY } = require('../config');
 
 module.exports = {
     authorizedOnly: (req, res, next) => {
         const authHeader = req.headers['authorization'];
-
         try {
             const token = authHeader && authHeader.split(' ')[1];
             const verifiedToken = nJwt.verify(token, SIGN_KEY);

@@ -44,7 +44,7 @@ export function createUser(user) {
 }
 
 export default function getInviteToken() {
-  return axios.get(`${API_URL}/invite_token`, auth.getAuthHeaders())
+  return axios.get(`${API_URL}/users/token`, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))
     .catch((error) => {
       auth.handleResponse(error.response);

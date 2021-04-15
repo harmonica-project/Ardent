@@ -1,5 +1,5 @@
 const express = require('express'), router = express.Router();
-const db = require('../db');
+const db = require('../data/connections');
 const { authorizedOnly } = require('../utils/authorization');
 
 router

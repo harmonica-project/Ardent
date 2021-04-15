@@ -1,5 +1,5 @@
 const express = require('express'), router = express.Router();
-const db = require('../db');
+const db = require('../data/properties');
 const { authorizedOnly } = require('../utils/authorization');
 const { parseDBResults } = require('../utils/helpers');
 

@@ -2,7 +2,7 @@ const express = require('express'), router = express.Router();
 const multer = require('multer');
 const upload = multer({ dest: '../uploads/' }).single("xls");
 const xlsxj = require("xlsx-to-json");
-const db = require('../db');
+const db = require('../data/papers');
 const { authorizedOnly } = require('../utils/authorization');
 
 router

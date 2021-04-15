@@ -2,10 +2,11 @@ const express = require('express'), router = express.Router();
 const crypto = require("crypto");
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
-const db = require('../db');
+const db = require('../data/users');
 const { 
     authorizedOnly, 
     verifyClaimIdentity,
+    verifyClaimAdmin,
     generateToken 
 } = require('../utils/authorization');
 const { parseDBResults } = require('../utils/helpers');
@@ -17,6 +18,23 @@ router
             if(parsedResult.success) res.status(200).send(parsedResult);
             else res.status(500).send(parsedResult);
         })
+    })
+    .get('/token', authorizedOnly, (req, res) => {
+        verifyClaimAdmin(req).then(isAdmin => {
+            if (isAdmin) {
+                const token = crypto.randomBytes(10).toString('hex');
+                db.storeInviteToken(token).then((parsedResult) => {
+                    if(parsedResult.success) res.status(200).send(parsedResult);
+                    else res.status(500).send(parsedResult);
+                })
+            }
+            else {
+                res.status(500).send({
+                    success: false,
+                    errorMsg: "User role verification failed."
+                })
+            }
+        });
     })
     .get('/:username', authorizedOnly, (req, res) => {
         var username = req.params.username;
@@ -96,23 +114,6 @@ router
             }
             else {
                 res.status(500).send({ success: false, errorMsg: 'User already exists.' });
-            }
-        });
-    })
-    .get('/invite_token', authorizedOnly, (req, res) => {
-        verifyClaimAdmin(req).then(isAdmin => {
-            if (isAdmin) {
-                const token = crypto.randomBytes(10).toString('hex');
-                db.storeInviteToken(token).then((parsedResult) => {
-                    if(parsedResult.success) res.status(200).send(parsedResult);
-                    else res.status(500).send(parsedResult);
-                })
-            }
-            else {
-                res.status(500).send({
-                    success: false,
-                    errorMsg: "User role verification failed."
-                })
             }
         });
     })
