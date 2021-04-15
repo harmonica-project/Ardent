@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Container, Box, makeStyles, Button, Typography, Card, CardContent, Grid
 } from '@material-ui/core';
@@ -11,13 +11,17 @@ import {
 import LoadingOverlay from 'src/components/LoadingOverlay';
 import {
   getComponentInstance as getComponentInstanceRequest,
-  deleteComponentInstance as deleteComponentInstanceRequest
+  deleteComponentInstance as deleteComponentInstanceRequest,
+  saveExistingComponentInstance as saveExistingComponentInstanceRequest,
+  saveNewBaseComponent as saveNewBaseComponentRequest,
+  getBaseComponents as getBaseComponentsRequest
 } from 'src/requests/component';
 import {
   getArchitecture as getArchitectureRequest
 } from 'src/requests/architecture';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
+import ComponentModal from 'src/views/architecture/ArchitectureView/ComponentModal';
 import InstancePropertiesTable from './InstancePropertiesTable';
 
 const useStyles = makeStyles((theme) => ({
@@ -38,8 +42,10 @@ const useStyles = makeStyles((theme) => ({
 
 export default function InstanceComponentView() {
   const classes = useStyles();
+  const navigate = useNavigate();
   const { id } = useParams();
   const [component, setComponent] = useState({});
+  const [baseComponents, setBaseComponents] = useState([]);
   const [open, setOpen] = useState(false);
   const [breadcrumb, setBreadcrumb] = useState({
     architectureId: '',
@@ -54,6 +60,12 @@ export default function InstanceComponentView() {
     severity: 'information'
   });
 
+  const [componentModalProps, setComponentModalProps] = useState({
+    open: false,
+    component: {},
+    actionType: ''
+  });
+
   const displayMsg = (message, severity = 'success', duration = 6000) => {
     setMessageSnackbarProps({
       open: true,
@@ -63,17 +75,70 @@ export default function InstanceComponentView() {
     });
   };
 
+  const saveExistingComponent = async (newComponent) => {
+    setOpen(true);
+    try {
+      if (!newComponent.component_base_id || newComponent.component_base_id === '') {
+        const baseRes = await saveNewBaseComponentRequest({
+          name: newComponent.name,
+          base_description: ''
+        });
+        if (baseRes.success) {
+          newComponent = { ...newComponent, component_base_id: baseRes.componentId };
+        }
+      }
+
+      const data = await saveExistingComponentInstanceRequest(newComponent);
+      if (data.success) {
+        setComponent(newComponent);
+        setComponentModalProps({
+          ...componentModalProps,
+          component: newComponent,
+          open: false,
+        });
+        displayMsg('Component instance successfully modified.');
+      }
+    } catch (error) {
+      handleErrorRequest(error, displayMsg);
+    } finally {
+      setOpen(false);
+    }
+  };
+
   const deleteComponentInstance = async (componentId) => {
     setOpen(false);
     deleteComponentInstanceRequest(componentId)
       .then((data) => {
         if (data.success) {
-          // removeComponentFromState(componentId);
           displayMsg('Component successfully deleted.');
+          navigate(`/app/architecture/${component.architecture_id}`);
         }
       })
       .catch((error) => handleErrorRequest(error, displayMsg))
       .finally(() => { setOpen(true); });
+  };
+
+  const componentActionModalHandler = (actionType, newComponent) => {
+    switch (actionType) {
+      case 'edit':
+        saveExistingComponent(newComponent);
+        break;
+
+      case 'delete':
+        deleteComponentInstance(newComponent.id);
+        break;
+
+      default:
+        console.error('No action were provided to the handler.');
+    }
+  };
+
+  const handleEditClick = () => {
+    setComponentModalProps({
+      ...componentModalProps,
+      open: true,
+      actionType: 'edit'
+    });
   };
 
   const ComponentHeader = () => {
@@ -84,6 +149,7 @@ export default function InstanceComponentView() {
             color="primary"
             variant="contained"
             className={classes.buttonMargin}
+            onClick={handleEditClick}
           >
             Edit
           </Button>
@@ -133,7 +199,6 @@ export default function InstanceComponentView() {
   };
 
   const fetchComponentData = async () => {
-    setOpen(true);
     try {
       const compRes = await getComponentInstanceRequest(id);
 
@@ -147,18 +212,35 @@ export default function InstanceComponentView() {
           paper_id: archRes.result.paper_id,
           component_id: id
         });
-        console.log(compRes.result);
+        setComponentModalProps({
+          ...componentModalProps,
+          component: compRes.result
+        });
         setComponent(compRes.result);
       }
     } catch (error) {
       handleErrorRequest(error, displayMsg);
-    } finally {
-      setOpen(false);
+    }
+  };
+
+  const fetchBaseComponents = async () => {
+    try {
+      const data = await getBaseComponentsRequest();
+      if (data.success) {
+        setBaseComponents(data.result);
+      }
+    } catch (error) {
+      handleErrorRequest(error, displayMsg);
     }
   };
 
   useEffect(() => {
-    fetchComponentData();
+    setOpen(true);
+
+    Promise.all([fetchComponentData(), fetchBaseComponents()])
+      .then(() => {
+        setOpen(false);
+      });
   }, []);
 
   return (
@@ -227,6 +309,12 @@ export default function InstanceComponentView() {
         <MessageSnackbar
           messageSnackbarProps={messageSnackbarProps}
           setMessageSnackbarProps={setMessageSnackbarProps}
+        />
+        <ComponentModal
+          modalProps={componentModalProps}
+          setModalProps={setComponentModalProps}
+          actionModalHandler={componentActionModalHandler}
+          baseComponents={baseComponents}
         />
         <LoadingOverlay open={open} />
       </Container>
