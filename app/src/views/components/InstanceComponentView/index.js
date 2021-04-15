@@ -22,6 +22,7 @@ import {
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
 import ComponentModal from 'src/views/architecture/ArchitectureView/ComponentModal';
+import InstancePropertiesModal from './InstancePropertiesModal';
 import InstancePropertiesTable from './InstancePropertiesTable';
 
 const useStyles = makeStyles((theme) => ({
@@ -63,6 +64,12 @@ export default function InstanceComponentView() {
   const [componentModalProps, setComponentModalProps] = useState({
     open: false,
     component: {},
+    actionType: ''
+  });
+
+  const [propertyModalProps, setPropertyModalProps] = useState({
+    open: false,
+    property: {},
     actionType: ''
   });
 
@@ -116,6 +123,25 @@ export default function InstanceComponentView() {
       })
       .catch((error) => handleErrorRequest(error, displayMsg))
       .finally(() => { setOpen(true); });
+  };
+
+  const propertyActionModalHandler = (actionType, newProperty) => {
+    switch (actionType) {
+      case 'new':
+        console.log('new', newProperty);
+        break;
+
+      case 'edit':
+        console.log('edit', newProperty);
+        break;
+
+      case 'delete':
+        console.log('delete', newProperty.id);
+        break;
+
+      default:
+        console.error('No action were provided to the handler.');
+    }
   };
 
   const componentActionModalHandler = (actionType, newComponent) => {
@@ -243,6 +269,14 @@ export default function InstanceComponentView() {
       });
   }, []);
 
+  const handleNewPropertyClick = () => {
+    setPropertyModalProps({
+      ...propertyModalProps,
+      open: true,
+      actionType: 'new'
+    });
+  };
+
   return (
     <Page title="Component" className={classes.root}>
       <Container maxWidth={false}>
@@ -272,7 +306,7 @@ export default function InstanceComponentView() {
                       <Button
                         color="primary"
                         variant="contained"
-                        onClick={() => console.log('New property clicked!')}
+                        onClick={handleNewPropertyClick}
                       >
                         New&nbsp;property
                       </Button>
@@ -315,6 +349,11 @@ export default function InstanceComponentView() {
           setModalProps={setComponentModalProps}
           actionModalHandler={componentActionModalHandler}
           baseComponents={baseComponents}
+        />
+        <InstancePropertiesModal
+          modalProps={propertyModalProps}
+          setModalProps={setPropertyModalProps}
+          actionModalHandler={propertyActionModalHandler}
         />
         <LoadingOverlay open={open} />
       </Container>
