@@ -12,7 +12,7 @@ export function getUsers() {
 }
 
 export function getUser(username) {
-  return axios.get(`${API_URL}/user/${username}`, auth.getAuthHeaders())
+  return axios.get(`${API_URL}/users/${username}`, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))
     .catch((error) => {
       auth.handleResponse(error.response);
@@ -20,7 +20,7 @@ export function getUser(username) {
 }
 
 export function setUser(user) {
-  return axios.put(`${API_URL}/user/${user.username}/information`, user, auth.getAuthHeaders())
+  return axios.put(`${API_URL}/users/${user.username}/information`, user, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))
     .catch((error) => {
       auth.handleResponse(error.response);
@@ -28,7 +28,7 @@ export function setUser(user) {
 }
 
 export function setNewPassword(user) {
-  return axios.put(`${API_URL}/user/${user.username}/password`, user, auth.getAuthHeaders())
+  return axios.put(`${API_URL}/users/${user.username}/password`, user, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))
     .catch((error) => {
       auth.handleResponse(error.response);
@@ -36,7 +36,15 @@ export function setNewPassword(user) {
 }
 
 export function createUser(user) {
-  return axios.post(`${API_URL}/user/register`, user, auth.getAuthHeaders())
+  return axios.post(`${API_URL}/users/register`, user, auth.getAuthHeaders())
+    .then((data) => auth.handleResponse(data))
+    .catch((error) => {
+      auth.handleResponse(error.response);
+    });
+}
+
+export default function getInviteToken() {
+  return axios.get(`${API_URL}/invite_token`, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))
     .catch((error) => {
       auth.handleResponse(error.response);

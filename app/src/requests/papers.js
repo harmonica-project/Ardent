@@ -18,7 +18,7 @@ export function saveParsifalPapers(fileData) {
     fileData,
     fileData.name
   );
-  return axios.post(`${API_URL}/xls/`, formData, auth.getAuthHeaders())
+  return axios.post(`${API_URL}/papers/xls/`, formData, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))
     .catch((error) => {
       auth.handleResponse(error.response);
@@ -26,7 +26,7 @@ export function saveParsifalPapers(fileData) {
 }
 
 export function deletePaper(paperId) {
-  return axios.delete(`${API_URL}/paper/${paperId}`, auth.getAuthHeaders())
+  return axios.delete(`${API_URL}/papers/${paperId}`, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))
     .catch((error) => {
       auth.handleResponse(error.response);
@@ -34,7 +34,7 @@ export function deletePaper(paperId) {
 }
 
 export function saveExistingPaper(paper) {
-  return axios.put(`${API_URL}/paper/${paper.id}`, paper, auth.getAuthHeaders())
+  return axios.put(`${API_URL}/papers/${paper.id}`, paper, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))
     .catch((error) => {
       auth.handleResponse(error.response);
@@ -42,7 +42,7 @@ export function saveExistingPaper(paper) {
 }
 
 export function saveNewPaper(paper) {
-  return axios.post(`${API_URL}/paper`, paper, auth.getAuthHeaders())
+  return axios.post(`${API_URL}/papers`, paper, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))
     .catch((error) => {
       auth.handleResponse(error.response);

@@ -9,7 +9,7 @@ import Page from 'src/components/Page';
 import MessageSnackbar from 'src/components/MessageSnackbar';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 import authenticationService from 'src/requests/authentication';
-import { setUser as setUserRequest, setNewPassword as setNewPasswordRequest } from 'src/requests/user';
+import { setUser as setUserRequest, setNewPassword as setNewPasswordRequest } from 'src/requests/users';
 import Password from './Password';
 import Admin from './Admin';
 import UserInfo from './UserInfo';

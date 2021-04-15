@@ -15,10 +15,10 @@ import {
   saveExistingComponentInstance as saveExistingComponentInstanceRequest,
   saveNewBaseComponent as saveNewBaseComponentRequest,
   getBaseComponents as getBaseComponentsRequest
-} from 'src/requests/component';
+} from 'src/requests/components';
 import {
   getArchitecture as getArchitectureRequest
-} from 'src/requests/architecture';
+} from 'src/requests/architectures';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
 import ComponentModal from 'src/views/architecture/ArchitectureView/ComponentModal';

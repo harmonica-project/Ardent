@@ -12,7 +12,7 @@ import {
   makeStyles
 } from '@material-ui/core';
 import Page from 'src/components/Page';
-import { createUser as createUserRequest } from 'src/requests/user';
+import { createUser as createUserRequest } from 'src/requests/users';
 import MessageSnackbar from 'src/components/MessageSnackbar';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 
