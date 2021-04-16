@@ -13,14 +13,14 @@ import {
   deleteArchitecture as deleteArchitectureRequest,
   saveNewArchitecture as saveNewArchitectureRequest,
   saveExistingArchitecture as saveExistingArchitectureRequest
-} from 'src/requests/architecture';
+} from 'src/requests/architectures';
 import {
   saveNewPaper as saveNewPaperRequest,
   saveExistingPaper as saveExistingPaperRequest,
   deletePaper as deletePaperRequest,
   getPapers as getPapersRequest,
-} from 'src/requests/paper';
-import { getUsers as getUsersRequest } from 'src/requests/user';
+} from 'src/requests/papers';
+import { getUsers as getUsersRequest } from 'src/requests/users';
 import authenticationService from 'src/requests/authentication';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 import Page from 'src/components/Page';

@@ -11,7 +11,7 @@ import {
   deleteBaseComponent as deleteBaseComponentRequest,
   saveExistingBaseComponent as saveExistingBaseComponentRequest,
   saveNewBaseComponent as saveNewBaseComponentRequest
-} from 'src/requests/component';
+} from 'src/requests/components';
 import BaseComponentInput from './BaseComponentsInput';
 import BaseComponentTable from './BaseComponentsTable';
 import BaseComponentModal from './BaseComponentModal';

@@ -3,46 +3,40 @@ import { API_URL } from './config';
 
 import auth from './authentication';
 
-export function getPapers() {
-  return axios.get(`${API_URL}/papers`, auth.getAuthHeaders())
+export function getPropertiesNames(cname) {
+  return axios.get(`${API_URL}/properties/names/${cname}`, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))
     .catch((error) => {
       auth.handleResponse(error.response);
     });
 }
 
-export function saveParsifalPapers(fileData) {
-  const formData = new FormData();
-  formData.append(
-    'xlsArchitectures',
-    fileData,
-    fileData.name
-  );
-  return axios.post(`${API_URL}/xls/`, formData, auth.getAuthHeaders())
+export function getPropertyValues(pkey) {
+  return axios.get(`${API_URL}/properties/values/${pkey}`, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))
     .catch((error) => {
       auth.handleResponse(error.response);
     });
 }
 
-export function deletePaper(paperId) {
-  return axios.delete(`${API_URL}/paper/${paperId}`, auth.getAuthHeaders())
+export function saveProperty(property) {
+  return axios.post(`${API_URL}/properties`, property, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))
     .catch((error) => {
       auth.handleResponse(error.response);
     });
 }
 
-export function saveExistingPaper(paper) {
-  return axios.put(`${API_URL}/paper/${paper.id}`, paper, auth.getAuthHeaders())
+export function modifyProperty(property) {
+  return axios.put(`${API_URL}/properties`, property, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))
     .catch((error) => {
       auth.handleResponse(error.response);
     });
 }
 
-export function saveNewPaper(paper) {
-  return axios.post(`${API_URL}/paper`, paper, auth.getAuthHeaders())
+export function deleteProperty(propertyId) {
+  return axios.delete(`${API_URL}/properties/${propertyId}`, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))
     .catch((error) => {
       auth.handleResponse(error.response);

@@ -43,7 +43,7 @@ const AppBreadcrumb = ({ paperId, architectureId, componentId }) => {
     return (
       <Link
         color="textPrimary"
-        to={`/app/architecture/${componentId}`}
+        to={`/app/component/${componentId}`}
         aria-current="page"
       >
         Component #

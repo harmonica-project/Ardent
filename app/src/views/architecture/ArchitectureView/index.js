@@ -17,14 +17,14 @@ import {
   getArchitecture as getArchitectureRequest,
   deleteArchitecture as deleteArchitectureRequest,
   saveExistingArchitecture as saveExistingArchitectureRequest
-} from 'src/requests/architecture';
+} from 'src/requests/architectures';
 import {
   deleteComponentInstance as deleteComponentInstanceRequest,
   saveNewComponentInstance as saveNewComponentInstanceRequest,
   saveExistingComponentInstance as saveExistingComponentInstanceRequest,
   saveNewBaseComponent as saveNewBaseComponentRequest,
   getBaseComponents as getBaseComponentsRequest
-} from 'src/requests/component';
+} from 'src/requests/components';
 import MessageSnackbar from 'src/components/MessageSnackbar';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';

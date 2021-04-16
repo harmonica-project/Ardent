@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Container, Box, makeStyles, Button, Typography, Card, CardContent, Grid
 } from '@material-ui/core';
@@ -11,13 +11,23 @@ import {
 import LoadingOverlay from 'src/components/LoadingOverlay';
 import {
   getComponentInstance as getComponentInstanceRequest,
-  deleteComponentInstance as deleteComponentInstanceRequest
-} from 'src/requests/component';
+  deleteComponentInstance as deleteComponentInstanceRequest,
+  saveExistingComponentInstance as saveExistingComponentInstanceRequest,
+  saveNewBaseComponent as saveNewBaseComponentRequest,
+  getBaseComponents as getBaseComponentsRequest
+} from 'src/requests/components';
 import {
   getArchitecture as getArchitectureRequest
-} from 'src/requests/architecture';
+} from 'src/requests/architectures';
+import {
+  saveProperty as savePropertyRequest,
+  deleteProperty as deletePropertyRequest,
+  modifyProperty as modifyPropertyRequest
+} from 'src/requests/properties';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
+import ComponentModal from 'src/views/architecture/ArchitectureView/ComponentModal';
+import InstancePropertiesModal from './InstancePropertiesModal';
 import InstancePropertiesTable from './InstancePropertiesTable';
 
 const useStyles = makeStyles((theme) => ({
@@ -38,8 +48,10 @@ const useStyles = makeStyles((theme) => ({
 
 export default function InstanceComponentView() {
   const classes = useStyles();
+  const navigate = useNavigate();
   const { id } = useParams();
   const [component, setComponent] = useState({});
+  const [baseComponents, setBaseComponents] = useState([]);
   const [open, setOpen] = useState(false);
   const [breadcrumb, setBreadcrumb] = useState({
     architectureId: '',
@@ -54,6 +66,18 @@ export default function InstanceComponentView() {
     severity: 'information'
   });
 
+  const [componentModalProps, setComponentModalProps] = useState({
+    open: false,
+    component: {},
+    actionType: ''
+  });
+
+  const [propertyModalProps, setPropertyModalProps] = useState({
+    open: false,
+    property: {},
+    actionType: ''
+  });
+
   const displayMsg = (message, severity = 'success', duration = 6000) => {
     setMessageSnackbarProps({
       open: true,
@@ -63,17 +87,203 @@ export default function InstanceComponentView() {
     });
   };
 
+  const saveExistingComponent = async (newComponent) => {
+    setOpen(true);
+    try {
+      if (!newComponent.component_base_id || newComponent.component_base_id === '') {
+        const baseRes = await saveNewBaseComponentRequest({
+          name: newComponent.name,
+          base_description: ''
+        });
+        if (baseRes.success) {
+          newComponent = { ...newComponent, component_base_id: baseRes.componentId };
+        }
+      }
+
+      const data = await saveExistingComponentInstanceRequest(newComponent);
+      if (data.success) {
+        setComponent(newComponent);
+        setComponentModalProps({
+          ...componentModalProps,
+          component: newComponent,
+          open: false,
+        });
+        displayMsg('Component instance successfully modified.');
+      }
+    } catch (error) {
+      handleErrorRequest(error, displayMsg);
+    } finally {
+      setOpen(false);
+    }
+  };
+
   const deleteComponentInstance = async (componentId) => {
-    setOpen(false);
+    setOpen(true);
     deleteComponentInstanceRequest(componentId)
       .then((data) => {
         if (data.success) {
-          // removeComponentFromState(componentId);
           displayMsg('Component successfully deleted.');
+          navigate(`/app/architecture/${component.architecture_id}`);
         }
       })
       .catch((error) => handleErrorRequest(error, displayMsg))
-      .finally(() => { setOpen(true); });
+      .finally(() => { setOpen(false); });
+  };
+
+  const saveProperty = (newProperty) => {
+    console.log(newProperty);
+    setOpen(true);
+    savePropertyRequest({ ...newProperty, component_id: component.id })
+      .then((data) => {
+        if (data.success) {
+          displayMsg('Property successfully added.');
+          setComponent({
+            ...component,
+            properties: [...component.properties, newProperty]
+          });
+          setPropertyModalProps({
+            ...propertyModalProps,
+            property: {},
+            open: false,
+          });
+        }
+      })
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
+  };
+
+  const removePropertyFromState = (propertyId) => {
+    let i;
+    const newProperties = [...component.properties];
+    for (i = 0; i < newProperties.length; i++) {
+      if (newProperties[i].id === propertyId) {
+        newProperties.splice(i, 1);
+        setComponent({
+          ...component,
+          properties: newProperties
+        });
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  const modifyPropertyFromState = (newProperty) => {
+    let i;
+    const newProperties = [...component.properties];
+    for (i = 0; i < newProperties.length; i++) {
+      if (newProperties[i].id === newProperty.id) {
+        newProperties[i] = newProperty;
+        setComponent({
+          ...component,
+          properties: newProperties
+        });
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  const modifyProperty = (newProperty) => {
+    setOpen(true);
+    modifyPropertyRequest(newProperty)
+      .then((data) => {
+        if (data.success) {
+          displayMsg('Property successfully modified.');
+          modifyPropertyFromState(newProperty);
+          setPropertyModalProps({
+            ...propertyModalProps,
+            property: {},
+            open: false,
+          });
+        }
+      })
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
+  };
+
+  const deleteProperty = (propertyId) => {
+    setOpen(true);
+    deletePropertyRequest(propertyId)
+      .then((data) => {
+        if (data.success) {
+          displayMsg('Property successfully deleted.');
+          removePropertyFromState(propertyId);
+          setPropertyModalProps({
+            ...propertyModalProps,
+            property: {},
+            open: false,
+          });
+        }
+      })
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
+  };
+
+  const propertyActionHandler = (actionType, property) => {
+    switch (actionType) {
+      case 'edit':
+      case 'view':
+        setPropertyModalProps({
+          ...componentModalProps,
+          open: true,
+          actionType,
+          property
+        });
+        break;
+
+      case 'delete':
+        // Can be replaced with a prettier modal later.
+        if (window.confirm('Property deletion is irreversible. Proceed?')) deleteProperty(property.id);
+        break;
+
+      default:
+        console.error('No action were provided to the handler.');
+    }
+  };
+
+  const propertyActionModalHandler = (actionType, newProperty) => {
+    switch (actionType) {
+      case 'new':
+        saveProperty(newProperty);
+        break;
+
+      case 'edit':
+        modifyProperty(newProperty);
+        break;
+
+      case 'delete':
+        deleteProperty(newProperty.id);
+        break;
+
+      default:
+        console.error('No action were provided to the handler.');
+    }
+  };
+
+  const componentActionModalHandler = (actionType, newComponent) => {
+    switch (actionType) {
+      case 'edit':
+        saveExistingComponent(newComponent);
+        break;
+
+      case 'delete':
+        deleteComponentInstance(newComponent.id);
+        break;
+
+      default:
+        console.error('No action were provided to the handler.');
+    }
+  };
+
+  const handleEditClick = () => {
+    setComponentModalProps({
+      ...componentModalProps,
+      open: true,
+      actionType: 'edit'
+    });
   };
 
   const ComponentHeader = () => {
@@ -84,6 +294,7 @@ export default function InstanceComponentView() {
             color="primary"
             variant="contained"
             className={classes.buttonMargin}
+            onClick={handleEditClick}
           >
             Edit
           </Button>
@@ -133,7 +344,6 @@ export default function InstanceComponentView() {
   };
 
   const fetchComponentData = async () => {
-    setOpen(true);
     try {
       const compRes = await getComponentInstanceRequest(id);
 
@@ -147,19 +357,44 @@ export default function InstanceComponentView() {
           paper_id: archRes.result.paper_id,
           component_id: id
         });
-        console.log(compRes.result);
+        setComponentModalProps({
+          ...componentModalProps,
+          component: compRes.result
+        });
         setComponent(compRes.result);
       }
     } catch (error) {
       handleErrorRequest(error, displayMsg);
-    } finally {
-      setOpen(false);
+    }
+  };
+
+  const fetchBaseComponents = async () => {
+    try {
+      const data = await getBaseComponentsRequest();
+      if (data.success) {
+        setBaseComponents(data.result);
+      }
+    } catch (error) {
+      handleErrorRequest(error, displayMsg);
     }
   };
 
   useEffect(() => {
-    fetchComponentData();
+    setOpen(true);
+
+    Promise.all([fetchComponentData(), fetchBaseComponents()])
+      .then(() => {
+        setOpen(false);
+      });
   }, []);
+
+  const handleNewPropertyClick = () => {
+    setPropertyModalProps({
+      ...propertyModalProps,
+      open: true,
+      actionType: 'new'
+    });
+  };
 
   return (
     <Page title="Component" className={classes.root}>
@@ -169,10 +404,19 @@ export default function InstanceComponentView() {
             <ComponentHeader />
           </Grid>
           <Grid item xs={6}>
+            <Box mb={3}>
+              <Button
+                color="primary"
+                variant="contained"
+                onClick={handleNewPropertyClick}
+              >
+                New&nbsp;property
+              </Button>
+            </Box>
             {component.properties && component.properties.length ? (
               <InstancePropertiesTable
                 properties={component.properties}
-                propertyActionHandler={() => console.log('handler')}
+                propertyActionHandler={propertyActionHandler}
               />
             )
               : (
@@ -190,7 +434,7 @@ export default function InstanceComponentView() {
                       <Button
                         color="primary"
                         variant="contained"
-                        onClick={() => console.log('New property clicked!')}
+                        onClick={handleNewPropertyClick}
                       >
                         New&nbsp;property
                       </Button>
@@ -200,6 +444,14 @@ export default function InstanceComponentView() {
               )}
           </Grid>
           <Grid item xs={6}>
+            <Box mb={3}>
+              <Button
+                color="primary"
+                variant="contained"
+              >
+                New&nbsp;connection
+              </Button>
+            </Box>
             <Card>
               <CardContent align="center">
                 <Typography variant="h1" component="div" style={{ fontSize: '200%' }} gutterBottom>
@@ -227,6 +479,17 @@ export default function InstanceComponentView() {
         <MessageSnackbar
           messageSnackbarProps={messageSnackbarProps}
           setMessageSnackbarProps={setMessageSnackbarProps}
+        />
+        <ComponentModal
+          modalProps={componentModalProps}
+          setModalProps={setComponentModalProps}
+          actionModalHandler={componentActionModalHandler}
+          baseComponents={baseComponents}
+        />
+        <InstancePropertiesModal
+          modalProps={propertyModalProps}
+          setModalProps={setPropertyModalProps}
+          actionModalHandler={propertyActionModalHandler}
         />
         <LoadingOverlay open={open} />
       </Container>

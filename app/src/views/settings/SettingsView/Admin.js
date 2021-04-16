@@ -8,7 +8,7 @@ import {
   TextField,
   Button
 } from '@material-ui/core';
-import getInviteTokenRequest from '../../../requests/admin';
+import getInviteTokenRequest from 'src/requests/users';
 
 const Admin = () => {
   const [inviteToken, setInviteToken] = useState('');
