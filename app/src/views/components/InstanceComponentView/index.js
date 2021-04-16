@@ -139,7 +139,10 @@ export default function InstanceComponentView() {
           displayMsg('Property successfully added.');
           setComponent({
             ...component,
-            properties: [...component.properties, newProperty]
+            properties: [...component.properties, {
+              ...newProperty,
+              id: data.propertyId
+            }]
           });
           setPropertyModalProps({
             ...propertyModalProps,
