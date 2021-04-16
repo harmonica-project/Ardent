@@ -19,6 +19,11 @@ import {
 import {
   getArchitecture as getArchitectureRequest
 } from 'src/requests/architectures';
+import {
+  saveProperty as savePropertyRequest,
+  deleteProperty as deletePropertyRequest,
+  modifyProperty as modifyPropertyRequest
+} from 'src/requests/properties';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
 import ComponentModal from 'src/views/architecture/ArchitectureView/ComponentModal';
@@ -113,7 +118,7 @@ export default function InstanceComponentView() {
   };
 
   const deleteComponentInstance = async (componentId) => {
-    setOpen(false);
+    setOpen(true);
     deleteComponentInstanceRequest(componentId)
       .then((data) => {
         if (data.success) {
@@ -122,21 +127,135 @@ export default function InstanceComponentView() {
         }
       })
       .catch((error) => handleErrorRequest(error, displayMsg))
-      .finally(() => { setOpen(true); });
+      .finally(() => { setOpen(false); });
+  };
+
+  const saveProperty = (newProperty) => {
+    console.log(newProperty);
+    setOpen(true);
+    savePropertyRequest({ ...newProperty, component_id: component.id })
+      .then((data) => {
+        if (data.success) {
+          displayMsg('Property successfully added.');
+          setComponent({
+            ...component,
+            properties: [...component.properties, newProperty]
+          });
+          setPropertyModalProps({
+            ...propertyModalProps,
+            property: {},
+            open: false,
+          });
+        }
+      })
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
+  };
+
+  const removePropertyFromState = (propertyId) => {
+    let i;
+    const newProperties = [...component.properties];
+    for (i = 0; i < newProperties.length; i++) {
+      if (newProperties[i].id === propertyId) {
+        newProperties.splice(i, 1);
+        setComponent({
+          ...component,
+          properties: newProperties
+        });
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  const modifyPropertyFromState = (newProperty) => {
+    let i;
+    const newProperties = [...component.properties];
+    for (i = 0; i < newProperties.length; i++) {
+      if (newProperties[i].id === newProperty.id) {
+        newProperties[i] = newProperty;
+        setComponent({
+          ...component,
+          properties: newProperties
+        });
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  const modifyProperty = (newProperty) => {
+    setOpen(true);
+    modifyPropertyRequest(newProperty)
+      .then((data) => {
+        if (data.success) {
+          displayMsg('Property successfully modified.');
+          modifyPropertyFromState(newProperty);
+          setPropertyModalProps({
+            ...propertyModalProps,
+            property: {},
+            open: false,
+          });
+        }
+      })
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
+  };
+
+  const deleteProperty = (propertyId) => {
+    setOpen(true);
+    deletePropertyRequest(propertyId)
+      .then((data) => {
+        if (data.success) {
+          displayMsg('Property successfully deleted.');
+          removePropertyFromState(propertyId);
+          setPropertyModalProps({
+            ...propertyModalProps,
+            property: {},
+            open: false,
+          });
+        }
+      })
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
+  };
+
+  const propertyActionHandler = (actionType, property) => {
+    switch (actionType) {
+      case 'edit':
+      case 'view':
+        setPropertyModalProps({
+          ...componentModalProps,
+          open: true,
+          actionType,
+          property
+        });
+        break;
+
+      case 'delete':
+        // Can be replaced with a prettier modal later.
+        if (window.confirm('Property deletion is irreversible. Proceed?')) deleteProperty(property.id);
+        break;
+
+      default:
+        console.error('No action were provided to the handler.');
+    }
   };
 
   const propertyActionModalHandler = (actionType, newProperty) => {
     switch (actionType) {
       case 'new':
-        console.log('new', newProperty);
+        saveProperty(newProperty);
         break;
 
       case 'edit':
-        console.log('edit', newProperty);
+        modifyProperty(newProperty);
         break;
 
       case 'delete':
-        console.log('delete', newProperty.id);
+        deleteProperty(newProperty.id);
         break;
 
       default:
@@ -285,10 +404,19 @@ export default function InstanceComponentView() {
             <ComponentHeader />
           </Grid>
           <Grid item xs={6}>
+            <Box mb={3}>
+              <Button
+                color="primary"
+                variant="contained"
+                onClick={handleNewPropertyClick}
+              >
+                New&nbsp;property
+              </Button>
+            </Box>
             {component.properties && component.properties.length ? (
               <InstancePropertiesTable
                 properties={component.properties}
-                propertyActionHandler={() => console.log('handler')}
+                propertyActionHandler={propertyActionHandler}
               />
             )
               : (
@@ -316,6 +444,14 @@ export default function InstanceComponentView() {
               )}
           </Grid>
           <Grid item xs={6}>
+            <Box mb={3}>
+              <Button
+                color="primary"
+                variant="contained"
+              >
+                New&nbsp;connection
+              </Button>
+            </Box>
             <Card>
               <CardContent align="center">
                 <Typography variant="h1" component="div" style={{ fontSize: '200%' }} gutterBottom>

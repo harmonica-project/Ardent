@@ -10,6 +10,12 @@ router
         else res.status(500).send(parsedResult);
     })
   })
+  .put('/', authorizedOnly, (req, res) => {
+    db.modifyProperty(req.body).then((parsedResult) => {
+        if(parsedResult.success) res.status(200).send(parsedResult);
+        else res.status(500).send(parsedResult);
+    })
+  })
   .delete('/:id', authorizedOnly, (req, res) => {
     db.deleteProperty(req.params.id).then((parsedResult) => {
         if(parsedResult.success) res.status(200).send(parsedResult);

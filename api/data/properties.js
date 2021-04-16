@@ -9,10 +9,10 @@ module.exports = {
     getPropertiesNames: async componentName => {
         try {
             if(componentName) {
-                return await client.query("SELECT DISTINCT key from properties JOIN components_instances on (properties.component_id = components_instances.id) WHERE components_instances.name = $1", [componentName]);
+                return await client.query("SELECT DISTINCT key from properties_instances JOIN components_instances on (properties_instances.component_instance_id = components_instances.id) WHERE components_instances.name = $1", [componentName]);
             }
             else {
-                return await client.query("SELECT DISTINCT key from properties", [componentName]);
+                return await client.query("SELECT DISTINCT key from properties_instances", [componentName]);
             }
         }
         catch(err) {
@@ -21,7 +21,7 @@ module.exports = {
     },
     getPropertyValues: async propertyKey => {
         try {
-            return await client.query("SELECT value from properties WHERE key = $1", [propertyKey]);
+            return await client.query("SELECT value from properties_instances WHERE key = $1", [propertyKey]);
         }
         catch(err) {
             return err;
@@ -29,7 +29,7 @@ module.exports = {
     },
     deleteProperty: async propertyId => {
         try {
-            await client.query("DELETE FROM properties WHERE id = $1", [propertyId]);
+            await client.query("DELETE FROM properties_instances WHERE id = $1", [propertyId]);
             
             return {
                 success: true
@@ -44,11 +44,13 @@ module.exports = {
     },
     storeProperty: async property => {
         try {
-            const foundProperties = await client.query("SELECT * FROM properties WHERE key = $1 AND component_id = $2", [property.key, property.component_id]);
+            const propertyId = uuidv4();
+            const foundProperties = await client.query("SELECT * FROM properties_instances WHERE key = $1 AND component_instance_id = $2", [property.key, property.component_id]);
             if(foundProperties["rows"].length === 0) {
-                await client.query("INSERT INTO properties VALUES ($1, $2, $3, $4)", [property.id, property.key, property.value, property.component_id])
+                await client.query("INSERT INTO properties_instances VALUES ($1, $2, $3, $4)", [propertyId, property.key, property.value, property.component_id])
                 return {
-                    success: true
+                    success: true,
+                    propertyId
                 }
             }
             else {
@@ -57,6 +59,26 @@ module.exports = {
                     errorMsg: 'Property already exists for this component.'
                 };
             }
+        }
+        catch(err) {
+            console.log('error: ' + err)
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
+    modifyProperty: async property => {
+        try {
+            await client.query(`
+            UPDATE properties_instances SET (key, value) =
+            ($1, $2) WHERE id = $3`, 
+            [
+                property.key, 
+                property.value, 
+                property.id
+            ])
+            return {success: true};
         }
         catch(err) {
             console.log('error: ' + err)

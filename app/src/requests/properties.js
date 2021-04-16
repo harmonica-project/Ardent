@@ -27,6 +27,14 @@ export function saveProperty(property) {
     });
 }
 
+export function modifyProperty(property) {
+  return axios.put(`${API_URL}/properties`, property, auth.getAuthHeaders())
+    .then((data) => auth.handleResponse(data))
+    .catch((error) => {
+      auth.handleResponse(error.response);
+    });
+}
+
 export function deleteProperty(propertyId) {
   return axios.delete(`${API_URL}/properties/${propertyId}`, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))
