@@ -15,5 +15,12 @@ router
         else res.status(500).send(parsedResult);
     })
   })
+  .put('/', authorizedOnly, (req, res) => {
+    console.log(req.body);
+    db.modifyConnection(req.body).then((parsedResult) => {
+      if(parsedResult.success) res.status(200).send(parsedResult);
+      else res.status(500).send(parsedResult);
+    })
+  });
 
 module.exports = router;

@@ -24,11 +24,18 @@ import {
   deleteProperty as deletePropertyRequest,
   modifyProperty as modifyPropertyRequest
 } from 'src/requests/properties';
+import {
+  saveConnection as saveConnectionRequest,
+  deleteConnection as deleteConnectionRequest,
+  modifyConnection as modifyConnectionRequest
+} from 'src/requests/connections';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
 import ComponentModal from 'src/views/architecture/ArchitectureView/ComponentModal';
 import InstancePropertiesModal from './InstancePropertiesModal';
 import InstancePropertiesTable from './InstancePropertiesTable';
+import ConnectionsTable from './ConnectionsTable';
+import ConnectionsModal from './ConnectionsModal';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -52,6 +59,7 @@ export default function InstanceComponentView() {
   const { id } = useParams();
   const [component, setComponent] = useState({});
   const [baseComponents, setBaseComponents] = useState([]);
+  const [architectureComponents, setArchitectureComponents] = useState([]);
   const [open, setOpen] = useState(false);
   const [breadcrumb, setBreadcrumb] = useState({
     architectureId: '',
@@ -75,6 +83,13 @@ export default function InstanceComponentView() {
   const [propertyModalProps, setPropertyModalProps] = useState({
     open: false,
     property: {},
+    actionType: ''
+  });
+
+  const [connectionModalProps, setConnectionModalProps] = useState({
+    open: false,
+    connection: {},
+    currentComponentId: '',
     actionType: ''
   });
 
@@ -131,7 +146,6 @@ export default function InstanceComponentView() {
   };
 
   const saveProperty = (newProperty) => {
-    console.log(newProperty);
     setOpen(true);
     savePropertyRequest({ ...newProperty, component_id: component.id })
       .then((data) => {
@@ -172,6 +186,23 @@ export default function InstanceComponentView() {
     return false;
   };
 
+  const removeConnectionFromState = (connectionId) => {
+    let i;
+    const newConnections = [...component.connections];
+    for (i = 0; i < newConnections.length; i++) {
+      if (newConnections[i].id === connectionId) {
+        newConnections.splice(i, 1);
+        setComponent({
+          ...component,
+          connections: newConnections
+        });
+        return true;
+      }
+    }
+
+    return false;
+  };
+
   const modifyPropertyFromState = (newProperty) => {
     let i;
     const newProperties = [...component.properties];
@@ -181,6 +212,23 @@ export default function InstanceComponentView() {
         setComponent({
           ...component,
           properties: newProperties
+        });
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  const modifyConnectionFromState = (newConnection) => {
+    let i;
+    const newConnections = [...component.connections];
+    for (i = 0; i < newConnections.length; i++) {
+      if (newConnections[i].id === newConnection.id) {
+        newConnections[i] = newConnection;
+        setComponent({
+          ...component,
+          connections: newConnections
         });
         return true;
       }
@@ -207,6 +255,24 @@ export default function InstanceComponentView() {
       .finally(() => { setOpen(false); });
   };
 
+  const modifyConnection = (newConnection) => {
+    setOpen(true);
+    modifyConnectionRequest(newConnection)
+      .then((data) => {
+        if (data.success) {
+          displayMsg('Connection successfully modified.');
+          modifyConnectionFromState(newConnection);
+          setConnectionModalProps({
+            ...connectionModalProps,
+            connection: {},
+            open: false,
+          });
+        }
+      })
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
+  };
+
   const deleteProperty = (propertyId) => {
     setOpen(true);
     deletePropertyRequest(propertyId)
@@ -217,6 +283,24 @@ export default function InstanceComponentView() {
           setPropertyModalProps({
             ...propertyModalProps,
             property: {},
+            open: false,
+          });
+        }
+      })
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
+  };
+
+  const deleteConnection = (connectionId) => {
+    setOpen(true);
+    deleteConnectionRequest(connectionId)
+      .then((data) => {
+        if (data.success) {
+          displayMsg('Connection successfully deleted.');
+          removeConnectionFromState(connectionId);
+          setConnectionModalProps({
+            ...connectionModalProps,
+            connection: {},
             open: false,
           });
         }
@@ -247,6 +331,28 @@ export default function InstanceComponentView() {
     }
   };
 
+  const connectionActionHandler = (actionType, connection) => {
+    switch (actionType) {
+      case 'edit':
+      case 'view':
+        setConnectionModalProps({
+          ...componentModalProps,
+          open: true,
+          actionType,
+          connection
+        });
+        break;
+
+      case 'delete':
+        // Can be replaced with a prettier modal later.
+        if (window.confirm('Connection deletion is irreversible. Proceed?')) deleteConnection(connection.id);
+        break;
+
+      default:
+        console.error('No action were provided to the handler.');
+    }
+  };
+
   const propertyActionModalHandler = (actionType, newProperty) => {
     switch (actionType) {
       case 'new':
@@ -259,6 +365,49 @@ export default function InstanceComponentView() {
 
       case 'delete':
         deleteProperty(newProperty.id);
+        break;
+
+      default:
+        console.error('No action were provided to the handler.');
+    }
+  };
+
+  const saveConnection = (newConnection) => {
+    setOpen(true);
+    saveConnectionRequest({ ...newConnection, component_id: component.id })
+      .then((data) => {
+        if (data.success) {
+          displayMsg('Connection successfully added.');
+          setComponent({
+            ...component,
+            connections: [...component.connections, {
+              ...newConnection,
+              id: data.connectionId
+            }]
+          });
+          setConnectionModalProps({
+            ...connectionModalProps,
+            connection: {},
+            open: false,
+          });
+        }
+      })
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
+  };
+
+  const connectionActionModalHandler = (actionType, newConnection) => {
+    switch (actionType) {
+      case 'new':
+        saveConnection(newConnection);
+        break;
+
+      case 'edit':
+        modifyConnection(newConnection);
+        break;
+
+      case 'delete':
+        deleteConnection(newConnection.id);
         break;
 
       default:
@@ -360,9 +509,14 @@ export default function InstanceComponentView() {
           paper_id: archRes.result.paper_id,
           component_id: id
         });
+        setArchitectureComponents(archRes.result.components);
         setComponentModalProps({
           ...componentModalProps,
           component: compRes.result
+        });
+        setConnectionModalProps({
+          ...connectionModalProps,
+          currentComponentId: compRes.result.id
         });
         setComponent(compRes.result);
       }
@@ -395,7 +549,17 @@ export default function InstanceComponentView() {
     setPropertyModalProps({
       ...propertyModalProps,
       open: true,
-      actionType: 'new'
+      actionType: 'new',
+      property: {}
+    });
+  };
+
+  const handleNewConnectionClick = () => {
+    setConnectionModalProps({
+      ...connectionModalProps,
+      open: true,
+      actionType: 'new',
+      connection: { first_component: component.id }
     });
   };
 
@@ -451,32 +615,41 @@ export default function InstanceComponentView() {
               <Button
                 color="primary"
                 variant="contained"
+                onClick={handleNewConnectionClick}
               >
                 New&nbsp;connection
               </Button>
             </Box>
-            <Card>
-              <CardContent align="center">
-                <Typography variant="h1" component="div" style={{ fontSize: '200%' }} gutterBottom>
-                  No connections yet.
-                </Typography>
-                <Typography variant="body1">
-                  <p>
-                    This feature is not implemented yet.
-                    Soon, you&apos;ll be able to create a connection here.
-                  </p>
-                </Typography>
-                <Box mt={3}>
-                  <Button
-                    color="primary"
-                    variant="contained"
-                    onClick={() => console.log('New connection clicked!')}
-                  >
-                    New&nbsp;connection
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
+            {component.connections && component.connections.length ? (
+              <ConnectionsTable
+                connections={component.connections}
+                connectionActionHandler={connectionActionHandler}
+                architectureComponents={architectureComponents}
+              />
+            )
+              : (
+                <Card>
+                  <CardContent align="center">
+                    <Typography variant="h1" component="div" style={{ fontSize: '200%' }} gutterBottom>
+                      No connection yet.
+                    </Typography>
+                    <Typography variant="body1">
+                      <p>
+                        You can add a new connection by clicking the button below.
+                      </p>
+                    </Typography>
+                    <Box mt={3}>
+                      <Button
+                        color="primary"
+                        variant="contained"
+                        onClick={handleNewConnectionClick}
+                      >
+                        New&nbsp;connection
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              )}
           </Grid>
         </Grid>
         <MessageSnackbar
@@ -493,6 +666,12 @@ export default function InstanceComponentView() {
           modalProps={propertyModalProps}
           setModalProps={setPropertyModalProps}
           actionModalHandler={propertyActionModalHandler}
+        />
+        <ConnectionsModal
+          modalProps={connectionModalProps}
+          setModalProps={setConnectionModalProps}
+          actionModalHandler={connectionActionModalHandler}
+          architectureComponents={architectureComponents}
         />
         <LoadingOverlay open={open} />
       </Container>
