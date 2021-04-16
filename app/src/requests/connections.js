@@ -18,3 +18,12 @@ export function deleteConnection(connectionId) {
       auth.handleResponse(error.response);
     });
 }
+
+export function modifyConnection(connection) {
+  console.log(connection);
+  return axios.put(`${API_URL}/connections`, connection, auth.getAuthHeaders())
+    .then((data) => auth.handleResponse(data))
+    .catch((error) => {
+      auth.handleResponse(error.response);
+    });
+}

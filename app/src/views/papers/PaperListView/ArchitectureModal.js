@@ -88,7 +88,7 @@ export default function ArchitectureModal({
     if (modalProps.actionType === 'new') {
       return (
         <Typography variant="h2" component="h3" gutterBottom>
-          {modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)}
+          {`${modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)} architecture`}
         </Typography>
       );
     }
@@ -97,7 +97,7 @@ export default function ArchitectureModal({
       <Box display="flex" className={classes.boxMargin}>
         <Box width="100%">
           <Typography variant="h2" gutterBottom>
-            {modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)}
+            {`${modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)} architecture`}
           </Typography>
         </Box>
         <Box flexShrink={0} className={classes.boxMargin}>

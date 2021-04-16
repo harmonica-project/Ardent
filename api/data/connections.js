@@ -46,5 +46,25 @@ module.exports = {
                 errorMsg: 'Failed connexion to DB: ' + err
             };
         }
+    },
+    modifyConnection: async connection => {
+        try {
+            await client.query(`
+            UPDATE connections SET (first_component, second_component) =
+            ($1, $2) WHERE id = $3`, 
+            [
+                connection.first_component, 
+                connection.second_component, 
+                connection.id
+            ])
+            return {success: true};
+        }
+        catch(err) {
+            console.log('error: ' + err)
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
     }
 }

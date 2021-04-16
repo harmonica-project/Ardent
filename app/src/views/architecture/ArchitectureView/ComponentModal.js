@@ -59,11 +59,17 @@ export default function ComponentModal({
     setInnerComponent(modalProps.component);
   }, [modalProps.component]);
 
+  const resetContext = () => {
+    setHelperText('');
+    setIsBaseInputInvalid(false);
+  };
+
   const handleClose = () => {
     setModalProps({
       ...modalProps,
       open: false
     });
+    resetContext();
   };
 
   const handleInputChange = (key, value) => {
@@ -140,7 +146,7 @@ export default function ComponentModal({
     if (modalProps.actionType === 'new') {
       return (
         <Typography variant="h2" component="h3" gutterBottom>
-          {modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)}
+          {`${modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)} component instance`}
         </Typography>
       );
     }
@@ -149,7 +155,7 @@ export default function ComponentModal({
       <Box display="flex" className={classes.boxMargin}>
         <Box width="100%">
           <Typography variant="h2" gutterBottom>
-            {modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)}
+            {`${modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)} component instance`}
           </Typography>
         </Box>
         <Box flexShrink={0} className={classes.boxMargin}>

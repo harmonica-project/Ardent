@@ -58,11 +58,17 @@ export default function BaseComponentModal({
     setInnerBaseComponent(modalProps.baseComponent);
   }, [modalProps.baseComponent]);
 
+  const resetContext = () => {
+    setNameError(false);
+    setNameHelper('');
+  };
+
   const handleClose = () => {
     setModalProps({
       ...modalProps,
       open: false
     });
+    resetContext();
   };
 
   const handleInputChange = (key, value) => {
