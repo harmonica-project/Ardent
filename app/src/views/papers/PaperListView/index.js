@@ -517,7 +517,7 @@ const PapersListView = () => {
     >
       <Container maxWidth={false}>
         {
-        displayedPapers.length
+        papers.length
           ? (
             <Box>
               <Toolbar
@@ -526,15 +526,26 @@ const PapersListView = () => {
                 papers={papers}
               />
               <Box mt={3}>
-                {displayedPapers.length && (
-                <Results
-                  papers={displayedPapers}
-                  paperActionHandler={paperActionHandler}
-                  architectureActionHandler={architectureActionHandler}
-                  architectureClickHandler={architectureClickHandler}
-                  users={users}
-                />
+                {displayedPapers.length ? (
+                  <Results
+                    papers={displayedPapers}
+                    paperActionHandler={paperActionHandler}
+                    architectureActionHandler={architectureActionHandler}
+                    architectureClickHandler={architectureClickHandler}
+                    users={users}
+                  />
+                ) : (
+                  <Box mt={3} align="center">
+                    <Card>
+                      <CardContent>
+                        <Typography variant="h1" component="div" gutterBottom>
+                          No paper found for this query.
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Box>
                 )}
+
               </Box>
             </Box>
           )
