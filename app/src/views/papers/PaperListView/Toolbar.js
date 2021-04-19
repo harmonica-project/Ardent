@@ -43,11 +43,21 @@ const Toolbar = ({
           className={classes.marginButton}
           color="primary"
           variant="contained"
-          onClick={() => actionHandler('new', null)}
+          onClick={() => actionHandler('paper')}
         >
           Add paper
         </Button>
-        <Button>
+        <Button
+          className={classes.marginButton}
+          color="primary"
+          variant="contained"
+          onClick={() => actionHandler('bibtex')}
+        >
+          Add BibTeX
+        </Button>
+        <Button
+          onClick={() => actionHandler('parsifal')}
+        >
           Import papers from Parsif.al
         </Button>
       </Box>

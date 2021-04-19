@@ -30,6 +30,7 @@ import Results from './Results';
 import Toolbar from './Toolbar';
 import PaperModal from './PaperModal';
 import ArchitectureModal from './ArchitectureModal';
+import BibtexModal from './BibtexModal';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -52,6 +53,9 @@ const PapersListView = () => {
   const [displayedPapers, setDisplayedPapers] = useState([]);
   const [titleFilter, setTitleFilter] = useState('');
   const [open, setOpen] = useState(false);
+
+  const [bibtexModalOpen, setBibtexModalOpen] = useState(false);
+
   const [paperModalProps, setPaperModalProps] = useState({
     open: false,
     paper: {},
@@ -201,11 +205,13 @@ const PapersListView = () => {
       .finally(() => { setOpen(false); });
   };
 
-  const saveNewPaper = (newPaper) => {
+  const saveNewPaper = async (newPaper, handleAdditionHere = true) => {
     setOpen(true);
-    saveNewPaperRequest(newPaper)
-      .then((data) => {
-        if (data.success) {
+    try {
+      const data = await saveNewPaperRequest(newPaper);
+      setOpen(false);
+      if (data.success) {
+        if (handleAdditionHere) {
           setPapers([
             ...papers,
             {
@@ -222,10 +228,21 @@ const PapersListView = () => {
             actionType: ''
           });
           displayMsg('Paper successfully added.');
+        } else {
+          return {
+            ...newPaper,
+            id: data.paperId,
+            status: 0,
+            architectures: []
+          };
         }
-      })
-      .catch((error) => handleErrorRequest(error, displayMsg))
-      .finally(() => { setOpen(false); });
+      }
+    } catch (error) {
+      if (handleAdditionHere) handleErrorRequest(error, displayMsg);
+    }
+
+    setOpen(false);
+    return {};
   };
 
   const saveNewArchitecture = (newArchitecture) => {
@@ -330,6 +347,25 @@ const PapersListView = () => {
     }
   };
 
+  const toolbarActionHandler = (source) => {
+    switch (source) {
+      case 'paper':
+        paperActionHandler('new');
+        break;
+
+      case 'bibtex':
+        setBibtexModalOpen(true);
+        break;
+
+      case 'parsifal':
+        console.log('parsifal');
+        break;
+
+      default:
+        console.error('No action were provided for this source.');
+    }
+  };
+
   const architectureActionHandler = (actionType, architecture) => {
     switch (actionType) {
       case 'new':
@@ -381,7 +417,6 @@ const PapersListView = () => {
   };
 
   const architectureActionModalHandler = (actionType, newArchitecture) => {
-    console.log(newArchitecture);
     switch (actionType) {
       case 'delete':
         if (window.confirm('Architecture deletion is irreversible. Associated components and properties will also be deleted. Proceed?')) { deleteArchitecture(architectureModalProps.architecture.paper_id, architectureModalProps.architecture.id); }
@@ -412,6 +447,34 @@ const PapersListView = () => {
       }
     } catch (error) {
       handleErrorRequest(error, displayMsg);
+    }
+  };
+
+  const saveHandler = async (newPapers) => {
+    const requests = [];
+    for (let i = 0; i < newPapers.length; i++) {
+      requests.push(saveNewPaper({
+        ...newPapers[i],
+        added_by: currentUser.username,
+        updated_by: currentUser.username
+      }, false));
+    }
+
+    let results = await Promise.all(requests);
+    results = results.filter((result) => JSON.stringify(result) !== '{}');
+    const paperDiff = newPapers.length - results.length;
+    setPapers([...papers, ...results]);
+    setBibtexModalOpen(false);
+    if (!paperDiff) {
+      if (results.length) {
+        displayMsg(`${results.length} paper${results.length > 1 ? 's' : ''} successfully added from the BibTeX file.`, 'success', 6000);
+      } else {
+        displayMsg('No paper were found in the BibTeX file or found papers already exist.', 'info', 6000);
+      }
+    } else if (results.length) {
+      displayMsg(`${results.length} paper${results.length > 1 ? 's' : ''} were successfully added from the BibTeX file, but ${paperDiff} paper${paperDiff > 1 ? 's' : ''} were not added due to an unknown problem.`, 'warning', 6000);
+    } else {
+      displayMsg(`No paper were added, but ${paperDiff} paper${paperDiff > 1 ? 's' : ''} were not added due to an unknown problem.`, 'error', 6000);
     }
   };
 
@@ -459,7 +522,7 @@ const PapersListView = () => {
             <Box>
               <Toolbar
                 setTitleFilter={setTitleFilter}
-                actionHandler={paperActionHandler}
+                actionHandler={toolbarActionHandler}
                 papers={papers}
               />
               <Box mt={3}>
@@ -507,6 +570,11 @@ const PapersListView = () => {
             </Box>
           )
       }
+        <BibtexModal
+          open={bibtexModalOpen}
+          setOpen={setBibtexModalOpen}
+          saveHandler={saveHandler}
+        />
         <PaperModal
           modalProps={paperModalProps}
           setModalProps={setPaperModalProps}

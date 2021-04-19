@@ -45,7 +45,7 @@ const ComponentSummary = ({ className, nbComponents }) => {
               gutterBottom
               variant="h6"
             >
-              DISTINCT COMPONENTS
+              BASE COMPONENTS
             </Typography>
             <Typography
               color="textPrimary"

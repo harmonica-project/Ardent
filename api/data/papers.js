@@ -127,5 +127,18 @@ module.exports = {
                 errorMsg: 'Failed connexion to DB: ' + err
             };
         }
+    },
+    paperExists: async name => {
+        try {
+            const foundPaper = await client.query("SELECT * FROM papers WHERE name = $1", [name]);
+            return { success: true, found: foundPaper["rows"].length !== 0 }
+        }
+        catch(err) {
+            console.log('error: ' + err)
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
     }
 }

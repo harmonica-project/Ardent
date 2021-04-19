@@ -147,7 +147,7 @@ export default function PaperModal({
   };
 
   const setPaperTypeDefault = () => {
-    const definedValues = ['inproceedings', 'article', 'book'];
+    const definedValues = ['inproceedings', 'article-journal', 'book'];
 
     if (modalProps.actionType === 'new') return '';
     if (definedValues.includes(modalProps.paper.paper_type)) return modalProps.paper.paper_type;
@@ -287,7 +287,7 @@ export default function PaperModal({
                     Paper type?
                   </MenuItem>
                   <MenuItem value="other">Other</MenuItem>
-                  <MenuItem value="article">Journal article</MenuItem>
+                  <MenuItem value="article-journal">Journal article</MenuItem>
                   <MenuItem value="book">Book</MenuItem>
                   <MenuItem value="inproceedings">Conference paper</MenuItem>
                 </Select>
