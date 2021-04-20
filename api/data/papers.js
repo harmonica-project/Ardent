@@ -8,36 +8,16 @@ client.connect();
 module.exports = {
     getPapers: async () => {
         try {
-            var queryResult = await client.query(
-                `SELECT papers.*, array_agg(architectures.id || ';' || architectures.name || ';' || architectures.reader_description || ';' || architectures.author_description) architectures 
-                FROM papers 
-                FULL JOIN architectures on papers.id = architectures.paper_id 
-                GROUP BY papers.id`
-            );
+            var paperResult = (await client.query('SELECT * from papers'))["rows"];
 
-            var results = queryResult["rows"];
-
-            for(var i = 0; i < results.length; i++) {
-                if(results[i].architectures[0] != null) {
-                    for(var j = 0; j < results[i].architectures.length; j++) {
-                        var content = results[i].architectures[j].split(';');
-                        results[i].architectures[j] = {
-                            id: content[0],
-                            name: content[1],
-                            reader_description: content[2],
-                            author_description: content[3],
-                            paper_id: results[i].id
-                        }
-                    }
-                }
-                else {
-                    results[i].architectures = []
-                }
+            for (let i = 0; i < paperResult.length; i++) {
+                var architectureResult = (await client.query('SELECT * from architectures WHERE paper_id = $1', [paperResult[i].id]))["rows"];
+                paperResult[i]["architectures"] = architectureResult;
             }
 
             return {
                 success: true,
-                result: results
+                result: paperResult
             };
         }
         catch(err) {
