@@ -26,11 +26,12 @@ import LoadingOverlay from 'src/components/LoadingOverlay';
 import Page from 'src/components/Page';
 import MessageSnackbar from 'src/components/MessageSnackbar';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
+import PaperModal from 'src/modals/PaperModal';
+import ArchitectureModal from 'src/modals/ArchitectureModal';
+import BibtexModal from 'src/modals/BibtexModal';
+import ConfirmModal from 'src/modals/ConfirmModal';
 import Results from './Results';
 import Toolbar from './Toolbar';
-import PaperModal from '../../../modals/PaperModal';
-import ArchitectureModal from '../../../modals/ArchitectureModal';
-import BibtexModal from '../../../modals/BibtexModal';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -55,7 +56,11 @@ const PapersListView = () => {
   const [open, setOpen] = useState(false);
 
   const [bibtexModalOpen, setBibtexModalOpen] = useState(false);
-
+  const [confirmModalProps, setConfirmModalProps] = useState({
+    open: false,
+    actionModalHandler: null,
+    message: ''
+  });
   const [paperModalProps, setPaperModalProps] = useState({
     open: false,
     paper: {},
@@ -190,7 +195,7 @@ const PapersListView = () => {
       .then((data) => {
         if (data.success) {
           removeArchitectureFromState(paperId, architectureId);
-          if (setArchitectureModalProps.open) {
+          if (architectureModalProps.open) {
             setArchitectureModalProps({
               open: false,
               architecture: {},
@@ -337,8 +342,12 @@ const PapersListView = () => {
         break;
 
       case 'delete':
-        // Can be replaced with a prettier modal later.
-        if (window.confirm('Paper deletion is irreversible. Associated architectures, components, and properties will also be deleted. Proceed?')) deletePaper(paper.id);
+        setConfirmModalProps({
+          ...confirmModalProps,
+          open: true,
+          message: 'Paper deletion is irreversible. Associated architectures, components, and properties will also be deleted. Proceed?',
+          actionModalHandler: () => deletePaper(paper.id)
+        });
         break;
 
       default:
@@ -357,7 +366,7 @@ const PapersListView = () => {
         break;
 
       case 'parsifal':
-        console.log('parsifal');
+        console.log('Parsif.al import not implemented yet.');
         break;
 
       default:
@@ -385,7 +394,15 @@ const PapersListView = () => {
 
       case 'delete':
         // Can be replaced with a prettier modal later.
-        if (window.confirm('Architecture deletion is irreversible. Associated components and properties will also be deleted. Proceed?')) deleteArchitecture(architecture.paper_id, architecture.id);
+        setConfirmModalProps({
+          ...confirmModalProps,
+          open: true,
+          message: 'Architecture deletion is irreversible. Associated components and properties will also be deleted. Proceed?',
+          actionModalHandler: () => deleteArchitecture(
+            architecture.paper_id,
+            architecture.id
+          )
+        });
         break;
 
       default:
@@ -396,7 +413,12 @@ const PapersListView = () => {
   const paperActionModalHandler = (actionType, newPaper) => {
     switch (actionType) {
       case 'delete':
-        if (window.confirm('Paper deletion is irreversible. Associated architectures, components, and properties will also be deleted. Proceed?')) deletePaper(paperModalProps.paper.id);
+        setConfirmModalProps({
+          ...confirmModalProps,
+          open: true,
+          message: 'Paper deletion is irreversible. Associated architectures, components, and properties will also be deleted. Proceed?',
+          actionModalHandler: () => deletePaper(paperModalProps.paper.id)
+        });
         break;
 
       case 'new':
@@ -415,7 +437,15 @@ const PapersListView = () => {
   const architectureActionModalHandler = (actionType, newArchitecture) => {
     switch (actionType) {
       case 'delete':
-        if (window.confirm('Architecture deletion is irreversible. Associated components and properties will also be deleted. Proceed?')) { deleteArchitecture(architectureModalProps.architecture.paper_id, architectureModalProps.architecture.id); }
+        setConfirmModalProps({
+          ...confirmModalProps,
+          open: true,
+          message: 'Architecture deletion is irreversible. Associated components and properties will also be deleted. Proceed?',
+          actionModalHandler: () => deleteArchitecture(
+            architectureModalProps.architecture.paper_id,
+            architectureModalProps.architecture.id
+          )
+        });
         break;
 
       case 'new':
@@ -591,6 +621,10 @@ const PapersListView = () => {
           modalProps={architectureModalProps}
           setModalProps={setArchitectureModalProps}
           actionModalHandler={architectureActionModalHandler}
+        />
+        <ConfirmModal
+          modalProps={confirmModalProps}
+          setModalProps={setConfirmModalProps}
         />
         <MessageSnackbar
           messageSnackbarProps={messageSnackbarProps}

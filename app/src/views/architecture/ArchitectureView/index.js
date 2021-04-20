@@ -31,6 +31,7 @@ import AppBreadcrumb from 'src/components/AppBreadcrumb';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 import ComponentModal from 'src/modals/ComponentModal';
 import ArchitectureModal from 'src/modals/ArchitectureModal';
+import ConfirmModal from 'src/modals/ConfirmModal';
 import ComponentsTable from './ComponentsTable';
 
 const useStyles = makeStyles((theme) => ({
@@ -61,6 +62,12 @@ const ArchitectureView = () => {
     open: false,
     architecture: { components: [] },
     actionType: ''
+  });
+
+  const [confirmModalProps, setConfirmModalProps] = useState({
+    open: false,
+    actionModalHandler: null,
+    message: ''
   });
 
   const [componentModalProps, setComponentModalProps] = useState({
@@ -185,7 +192,12 @@ const ArchitectureView = () => {
   const architectureActionModalHandler = (actionType, newArchitecture) => {
     switch (actionType) {
       case 'delete':
-        if (window.confirm('Architecture deletion is irreversible. Associated components and properties will also be deleted. Proceed?')) { deleteArchitecture(architectureModalProps.architecture.id); }
+        setConfirmModalProps({
+          ...confirmModalProps,
+          open: true,
+          message: 'Architecture deletion is irreversible. Associated components and properties will also be deleted. Proceed?',
+          actionModalHandler: () => deleteArchitecture(architectureModalProps.architecture.id)
+        });
         break;
 
       case 'edit':
@@ -222,9 +234,12 @@ const ArchitectureView = () => {
             style={{ backgroundColor: '#f50057', color: 'white' }}
             startIcon={<DeleteIcon />}
             onClick={() => {
-              if (window.confirm('Architecture deletion is irreversible. Associated components and properties will also be deleted. Proceed?')) {
-                deleteArchitecture(architecture.id);
-              }
+              setConfirmModalProps({
+                ...confirmModalProps,
+                open: true,
+                message: 'Architecture deletion is irreversible. Associated components and properties will also be deleted. Proceed?',
+                actionModalHandler: () => deleteArchitecture(architecture.id)
+              });
             }}
           >
             Delete
@@ -280,8 +295,12 @@ const ArchitectureView = () => {
         break;
 
       case 'delete':
-        // Can be replaced with a prettier modal later.
-        if (window.confirm('Component deletion is irreversible. Associated connections and properties will also be deleted. Proceed?')) deleteComponentInstance(component.id);
+        setConfirmModalProps({
+          ...confirmModalProps,
+          open: true,
+          message: 'Component deletion is irreversible. Associated connections and properties will also be deleted. Proceed?',
+          actionModalHandler: () => deleteComponentInstance(component.id)
+        });
         break;
 
       default:
@@ -457,6 +476,10 @@ const ArchitectureView = () => {
         setModalProps={setComponentModalProps}
         actionModalHandler={componentActionModalHandler}
         baseComponents={baseComponents}
+      />
+      <ConfirmModal
+        modalProps={confirmModalProps}
+        setModalProps={setConfirmModalProps}
       />
       <LoadingOverlay open={open} />
     </Page>

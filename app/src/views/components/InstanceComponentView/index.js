@@ -32,10 +32,11 @@ import {
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
 import ComponentModal from 'src/modals/ComponentModal';
-import InstancePropertiesModal from '../../../modals/InstancePropertiesModal';
+import ConfirmModal from 'src/modals/ConfirmModal';
+import InstancePropertiesModal from 'src/modals/InstancePropertiesModal';
+import ConnectionsModal from 'src/modals/ConnectionsModal';
 import InstancePropertiesTable from './InstancePropertiesTable';
 import ConnectionsTable from './ConnectionsTable';
-import ConnectionsModal from '../../../modals/ConnectionsModal';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -72,6 +73,12 @@ export default function InstanceComponentView() {
     message: '',
     duration: 0,
     severity: 'information'
+  });
+
+  const [confirmModalProps, setConfirmModalProps] = useState({
+    open: false,
+    actionModalHandler: null,
+    message: ''
   });
 
   const [componentModalProps, setComponentModalProps] = useState({
@@ -322,8 +329,12 @@ export default function InstanceComponentView() {
         break;
 
       case 'delete':
-        // Can be replaced with a prettier modal later.
-        if (window.confirm('Property deletion is irreversible. Proceed?')) deleteProperty(property.id);
+        setConfirmModalProps({
+          ...confirmModalProps,
+          open: true,
+          message: 'Property deletion is irreversible. Proceed?',
+          actionModalHandler: () => deleteProperty(property.id)
+        });
         break;
 
       default:
@@ -344,8 +355,12 @@ export default function InstanceComponentView() {
         break;
 
       case 'delete':
-        // Can be replaced with a prettier modal later.
-        if (window.confirm('Connection deletion is irreversible. Proceed?')) deleteConnection(connection.id);
+        setConfirmModalProps({
+          ...confirmModalProps,
+          open: true,
+          message: 'Connection deletion is irreversible. Proceed?',
+          actionModalHandler: () => deleteConnection(connection.id)
+        });
         break;
 
       default:
@@ -455,9 +470,12 @@ export default function InstanceComponentView() {
             style={{ backgroundColor: '#f50057', color: 'white' }}
             startIcon={<DeleteIcon />}
             onClick={() => {
-              if (window.confirm('Architecture deletion is irreversible. Associated components and properties will also be deleted. Proceed?')) {
-                deleteComponentInstance(component.id);
-              }
+              setConfirmModalProps({
+                ...confirmModalProps,
+                open: true,
+                message: 'Component deletion is irreversible. Associated connections and properties will also be deleted. Proceed?',
+                actionModalHandler: () => deleteComponentInstance(component.id)
+              });
             }}
           >
             Delete
@@ -672,6 +690,10 @@ export default function InstanceComponentView() {
           setModalProps={setConnectionModalProps}
           actionModalHandler={connectionActionModalHandler}
           architectureComponents={architectureComponents}
+        />
+        <ConfirmModal
+          modalProps={confirmModalProps}
+          setModalProps={setConfirmModalProps}
         />
         <LoadingOverlay open={open} />
       </Container>
