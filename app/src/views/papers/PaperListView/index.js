@@ -28,9 +28,9 @@ import MessageSnackbar from 'src/components/MessageSnackbar';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
 import Results from './Results';
 import Toolbar from './Toolbar';
-import PaperModal from './PaperModal';
-import ArchitectureModal from './ArchitectureModal';
-import BibtexModal from './BibtexModal';
+import PaperModal from '../../../modals/PaperModal';
+import ArchitectureModal from '../../../modals/ArchitectureModal';
+import BibtexModal from '../../../modals/BibtexModal';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -60,7 +60,6 @@ const PapersListView = () => {
     open: false,
     paper: {},
     users: [],
-    currentUser: {},
     actionType: ''
   });
 
@@ -322,7 +321,7 @@ const PapersListView = () => {
           ...paperModalProps,
           open: true,
           actionType,
-          paper: {}
+          paper: { added_by: currentUser.username }
         });
         break;
       case 'edit':
@@ -401,10 +400,7 @@ const PapersListView = () => {
         break;
 
       case 'new':
-        saveNewPaper({
-          ...newPaper,
-          added_by: currentUser.username
-        });
+        saveNewPaper(newPaper);
         break;
 
       case 'edit':

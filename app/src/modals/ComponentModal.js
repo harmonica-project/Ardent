@@ -15,7 +15,7 @@ import {
   Save as SaveIcon
 } from '@material-ui/icons/';
 import PropTypes from 'prop-types';
-import BaseComponentInput from '../../components/BaseComponentsView/BaseComponentsInput';
+import BaseComponentInput from '../views/components/BaseComponentsView/BaseComponentsInput';
 
 function getModalStyle() {
   const top = 50;

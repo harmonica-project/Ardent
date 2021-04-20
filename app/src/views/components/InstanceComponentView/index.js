@@ -31,11 +31,11 @@ import {
 } from 'src/requests/connections';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
-import ComponentModal from 'src/views/architecture/ArchitectureView/ComponentModal';
-import InstancePropertiesModal from './InstancePropertiesModal';
+import ComponentModal from 'src/modals/ComponentModal';
+import InstancePropertiesModal from '../../../modals/InstancePropertiesModal';
 import InstancePropertiesTable from './InstancePropertiesTable';
 import ConnectionsTable from './ConnectionsTable';
-import ConnectionsModal from './ConnectionsModal';
+import ConnectionsModal from '../../../modals/ConnectionsModal';
 
 const useStyles = makeStyles((theme) => ({
   root: {

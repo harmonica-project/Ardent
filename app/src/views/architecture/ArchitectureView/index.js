@@ -29,9 +29,9 @@ import MessageSnackbar from 'src/components/MessageSnackbar';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
 import LoadingOverlay from 'src/components/LoadingOverlay';
-import ArchitectureModal from 'src/views/papers/PaperListView/ArchitectureModal';
+import ComponentModal from 'src/modals/ComponentModal';
+import ArchitectureModal from 'src/modals/ArchitectureModal';
 import ComponentsTable from './ComponentsTable';
-import ComponentModal from './ComponentModal';
 
 const useStyles = makeStyles((theme) => ({
   root: {

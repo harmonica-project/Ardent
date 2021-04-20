@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import * as yup from 'yup';
 import {
   Box,
   Typography,
@@ -48,8 +49,10 @@ export default function ArchitectureModal({
 }) {
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
-  const [modalStyle] = React.useState(getModalStyle);
-  const [innerArchitecture, setInnerArchitecture] = React.useState(modalProps.architecture);
+  const [modalStyle] = useState(getModalStyle);
+  const [innerArchitecture, setInnerArchitecture] = useState(modalProps.architecture);
+  const [error, setError] = useState(false);
+  const [helper, setHelper] = useState('');
 
   useEffect(() => {
     setInnerArchitecture(modalProps.architecture);
@@ -60,6 +63,8 @@ export default function ArchitectureModal({
       ...modalProps,
       open: false
     });
+    setHelper('');
+    setError(false);
   };
 
   const handleInputChange = (key, value) => {
@@ -82,6 +87,25 @@ export default function ArchitectureModal({
         actionType: 'edit'
       });
     }
+  };
+
+  const validateAndSubmit = () => {
+    const schema = yup.object().shape({
+      name: yup.string()
+        .max(30, 'Architecture name is too long.')
+        .required('Architecture name is required'),
+      author_description: yup.string(),
+      reader_description: yup.string()
+    });
+
+    schema.validate(innerArchitecture, { abortEarly: false })
+      .then(() => {
+        actionModalHandler(modalProps.actionType, innerArchitecture);
+      })
+      .catch(() => {
+        setError(true);
+        setHelper('Architecture name is missing or too long (30 car. max).');
+      });
   };
 
   const getModalHeader = () => {
@@ -144,6 +168,8 @@ export default function ArchitectureModal({
           InputLabelProps={{
             shrink: true,
           }}
+          error={error}
+          helperText={helper}
         />
         <TextField
           id="reader-description-field"
@@ -181,7 +207,7 @@ export default function ArchitectureModal({
             variant="contained"
             startIcon={<SaveIcon />}
             className={classes.headerButton}
-            onClick={() => actionModalHandler(modalProps.actionType, innerArchitecture)}
+            onClick={validateAndSubmit}
           >
             Save
           </Button>

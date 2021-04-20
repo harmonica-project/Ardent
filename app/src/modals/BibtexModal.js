@@ -130,7 +130,11 @@ export default function BibtexModal({
         paper_type: paper.bib_type
       };
     } catch (err) {
-      console.log(err, paper);
+      return {
+        paper: newPaper,
+        found: false,
+        error: true
+      };
     }
     try {
       const data = await doesPaperExists(p.title[0].text);
