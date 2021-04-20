@@ -6,10 +6,9 @@ import {
   Button,
   Card,
   CardContent,
-  TextField,
   makeStyles
 } from '@material-ui/core';
-import { Autocomplete } from '@material-ui/lab';
+import PaperAutocomplete from './PaperAutocomplete';
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -21,15 +20,7 @@ const useStyles = makeStyles((theme) => ({
 const Toolbar = ({
   setTitleFilter, actionHandler, papers, className, ...rest
 }) => {
-  const [inputValue, setInputValue] = React.useState('');
   const classes = useStyles();
-  const options = papers.map((option) => {
-    const firstLetter = option.name[0].toUpperCase();
-    return {
-      firstLetter: /[0-9]/.test(firstLetter) ? '0-9' : firstLetter,
-      ...option
-    };
-  });
 
   return (
     <div
@@ -65,18 +56,11 @@ const Toolbar = ({
         <Card>
           <CardContent>
             <Box>
-              <Autocomplete
-                id="papers"
-                options={options.sort((a, b) => -b.firstLetter.localeCompare(a.firstLetter))}
-                groupBy={(option) => option.firstLetter}
-                getOptionLabel={(option) => option.name}
-                style={{ width: '100%' }}
-                renderInput={(params) => <TextField {...params} label="Search paper" variant="outlined" />}
-                inputValue={inputValue}
-                onInputChange={(event, newInputValue) => {
-                  setInputValue(newInputValue);
-                  setTitleFilter(newInputValue);
-                }}
+              <PaperAutocomplete
+                papers={papers}
+                changeHandler={setTitleFilter}
+                label="Search paper"
+                variant="outlined"
               />
             </Box>
           </CardContent>

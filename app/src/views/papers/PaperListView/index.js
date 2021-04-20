@@ -28,6 +28,7 @@ import MessageSnackbar from 'src/components/MessageSnackbar';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
 import PaperModal from 'src/modals/PaperModal';
 import ArchitectureModal from 'src/modals/ArchitectureModal';
+import CloneModal from 'src/modals/CloneModal';
 import BibtexModal from 'src/modals/BibtexModal';
 import ConfirmModal from 'src/modals/ConfirmModal';
 import Results from './Results';
@@ -71,6 +72,13 @@ const PapersListView = () => {
   const [architectureModalProps, setArchitectureModalProps] = useState({
     open: false,
     architecture: {},
+    actionType: ''
+  });
+
+  const [cloneModalProps, setCloneModalProps] = useState({
+    open: false,
+    architecture: {},
+    papers: [],
     actionType: ''
   });
 
@@ -391,9 +399,14 @@ const PapersListView = () => {
           architecture
         });
         break;
-
+      case 'clone':
+        setCloneModalProps({
+          open: true,
+          architecture,
+          papers
+        });
+        break;
       case 'delete':
-        // Can be replaced with a prettier modal later.
         setConfirmModalProps({
           ...confirmModalProps,
           open: true,
@@ -629,6 +642,11 @@ const PapersListView = () => {
         <MessageSnackbar
           messageSnackbarProps={messageSnackbarProps}
           setMessageSnackbarProps={setMessageSnackbarProps}
+        />
+        <CloneModal
+          modalProps={cloneModalProps}
+          setModalProps={setCloneModalProps}
+          actionModalHandler={() => console.log('clone clicked')}
         />
         <LoadingOverlay open={open} />
       </Container>
