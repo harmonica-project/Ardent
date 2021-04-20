@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import * as yup from 'yup';
 import {
   FormControl,
   TextField,
@@ -54,8 +55,30 @@ export default function PaperModal({
 }) {
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
-  const [modalStyle] = React.useState(getModalStyle);
-  const [innerPaper, setInnerPaper] = React.useState(modalProps.paper);
+  const [modalStyle] = useState(getModalStyle);
+  const [innerPaper, setInnerPaper] = useState(modalProps.paper);
+
+  const getEmptyErrors = () => {
+    return {
+      name: false,
+      authors: false,
+      added_by: false,
+      updated_by: false
+    };
+  };
+
+  const [errorFields, setErrorFields] = useState(getEmptyErrors());
+
+  const getEmptyHelpers = () => {
+    return {
+      name: '',
+      authors: '',
+      added_by: '',
+      updated_by: ''
+    };
+  };
+
+  const [helperFields, setHelperFields] = useState(getEmptyHelpers());
 
   useEffect(() => {
     setInnerPaper(modalProps.paper);
@@ -66,9 +89,13 @@ export default function PaperModal({
       ...modalProps,
       open: false
     });
+    setErrorFields(getEmptyErrors());
+    setHelperFields(getEmptyHelpers());
   };
 
   const handleInputChange = (key, value) => {
+    setHelperFields({ ...helperFields, [key]: '' });
+    setErrorFields({ ...errorFields, [key]: false });
     setInnerPaper({
       ...innerPaper,
       [key]: value
@@ -88,6 +115,43 @@ export default function PaperModal({
         actionType: 'edit'
       });
     }
+  };
+
+  const validateAndSubmit = () => {
+    const schema = yup.object().shape({
+      name: yup.string()
+        .max(100, 'Paper name is too long.')
+        .required('Paper name is required'),
+      added_by: yup.string()
+        .required('You need to specify who is creating the paper.'),
+      updated_by: yup.string()
+        .required('You need to specify who is in charge of the paper.'),
+      authors: yup.string()
+        .required('Author(s) must be specified.'),
+      status: yup.string(),
+      doi: yup.string(),
+      paper_type: yup.string(),
+      journal: yup.string(),
+      abstract: yup.string(),
+      comments: yup.string()
+    });
+
+    schema.validate(innerPaper, { abortEarly: false })
+      .then(() => {
+        actionModalHandler(modalProps.actionType, innerPaper);
+      })
+      .catch((errs) => {
+        const newErrorFields = {};
+        const newHelperFields = {};
+
+        errs.inner.forEach((err) => {
+          newErrorFields[err.path] = true;
+          newHelperFields[err.path] = err.message;
+        });
+
+        setErrorFields({ ...errorFields, ...newErrorFields });
+        setHelperFields({ ...helperFields, ...newHelperFields });
+      });
   };
 
   const getModalHeader = () => {
@@ -147,7 +211,7 @@ export default function PaperModal({
   };
 
   const setPaperTypeDefault = () => {
-    const definedValues = ['inproceedings', 'article', 'book'];
+    const definedValues = ['inproceedings', 'article-journal', 'book'];
 
     if (modalProps.actionType === 'new') return '';
     if (definedValues.includes(modalProps.paper.paper_type)) return modalProps.paper.paper_type;
@@ -164,7 +228,7 @@ export default function PaperModal({
         <Grid container spacing={4}>
           <Grid container item xs={6}>
             <Grid container item xs={4}>
-              <FormControl className={classes.formControl} style={{ width: '100%' }} margin="normal">
+              <FormControl className={classes.formControl} style={{ width: '100%' }} margin="normal" error={errorFields.added_by}>
                 <InputLabel shrink id="added-by-select-label" disabled={modalProps.actionType === 'view'}>
                   Added by
                 </InputLabel>
@@ -172,6 +236,8 @@ export default function PaperModal({
                   labelId="added-by-select-label"
                   id="added-by-select"
                   disabled
+                  error={errorFields.added_by}
+                  helperText={helperFields.added_by}
                   displayEmpty
                   defaultValue={modalProps.actionType === 'new' ? modalProps.currentUser.username : modalProps.paper.added_by}
                   className={classes.selectEmpty}
@@ -183,10 +249,11 @@ export default function PaperModal({
                     return <MenuItem value={user.username}>{`${user.first_name} ${user.last_name}`}</MenuItem>;
                   })}
                 </Select>
+                <FormHelperText>{helperFields.added_by}</FormHelperText>
               </FormControl>
             </Grid>
             <Grid container item xs={4}>
-              <FormControl className={classes.formControl} style={{ width: '100%' }} margin="normal">
+              <FormControl className={classes.formControl} style={{ width: '100%' }} margin="normal" error={errorFields.updated_by}>
                 <InputLabel shrink id="updated-by-select-label" disabled={modalProps.actionType === 'view'}>
                   Updated by
                 </InputLabel>
@@ -206,6 +273,7 @@ export default function PaperModal({
                     return <MenuItem value={user.username}>{`${user.first_name} ${user.last_name}`}</MenuItem>;
                   })}
                 </Select>
+                <FormHelperText>{helperFields.updated_by}</FormHelperText>
               </FormControl>
             </Grid>
             <Grid container item xs={4}>
@@ -243,6 +311,8 @@ export default function PaperModal({
                 InputLabelProps={{
                   shrink: true,
                 }}
+                error={errorFields.name}
+                helperText={helperFields.name}
               />
               <TextField
                 id="doi-field"
@@ -269,6 +339,8 @@ export default function PaperModal({
                 InputLabelProps={{
                   shrink: true,
                 }}
+                error={errorFields.authors}
+                helperText={helperFields.authors}
               />
               <FormControl className={classes.formControl} style={{ width: '100%' }} margin="normal">
                 <InputLabel shrink id="paper-type-select-label" disabled={modalProps.actionType === 'view'}>
@@ -287,7 +359,7 @@ export default function PaperModal({
                     Paper type?
                   </MenuItem>
                   <MenuItem value="other">Other</MenuItem>
-                  <MenuItem value="article">Journal article</MenuItem>
+                  <MenuItem value="article-journal">Journal article</MenuItem>
                   <MenuItem value="book">Book</MenuItem>
                   <MenuItem value="inproceedings">Conference paper</MenuItem>
                 </Select>
@@ -355,7 +427,7 @@ export default function PaperModal({
             variant="contained"
             startIcon={<SaveIcon />}
             className={classes.headerButton}
-            onClick={() => actionModalHandler(modalProps.actionType, innerPaper)}
+            onClick={validateAndSubmit}
           >
             Save
           </Button>

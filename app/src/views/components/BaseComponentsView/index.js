@@ -12,9 +12,10 @@ import {
   saveExistingBaseComponent as saveExistingBaseComponentRequest,
   saveNewBaseComponent as saveNewBaseComponentRequest
 } from 'src/requests/components';
+import ConfirmModal from 'src/modals/ConfirmModal';
+import BaseComponentModal from 'src/modals/BaseComponentModal';
 import BaseComponentInput from './BaseComponentsInput';
 import BaseComponentTable from './BaseComponentsTable';
-import BaseComponentModal from './BaseComponentModal';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -36,6 +37,12 @@ export default function BaseComponentsView() {
     message: '',
     duration: 0,
     severity: 'information'
+  });
+
+  const [confirmModalProps, setConfirmModalProps] = useState({
+    open: false,
+    actionModalHandler: null,
+    message: ''
   });
 
   const [baseComponentModalProps, setBaseComponentModalProps] = useState({
@@ -203,9 +210,12 @@ export default function BaseComponentsView() {
   const componentActionHandler = (actionType, baseComponent) => {
     switch (actionType) {
       case 'delete':
-        if (window.confirm('Warning: deleting this base component will also delete existing component instances and associated properties. Proceed?')) {
-          deleteBaseComponent(baseComponent.id);
-        }
+        setConfirmModalProps({
+          ...confirmModalProps,
+          open: true,
+          message: 'Warning: deleting this base component will also delete existing component instances and associated properties. Proceed?',
+          actionModalHandler: () => deleteBaseComponent(baseComponent.id)
+        });
         break;
       case 'new':
         setBaseComponentModalProps({
@@ -230,9 +240,12 @@ export default function BaseComponentsView() {
   const baseComponentActionModalHandler = (actionType, newBaseComponent) => {
     switch (actionType) {
       case 'delete':
-        if (window.confirm('Warning: deleting this base component will also delete existing component instances and associated properties. Proceed?')) {
-          deleteBaseComponent(baseComponentModalProps.baseComponent.id);
-        }
+        setConfirmModalProps({
+          ...confirmModalProps,
+          open: true,
+          message: 'Warning: deleting this base component will also delete existing component instances and associated properties. Proceed?',
+          actionModalHandler: () => deleteBaseComponent(baseComponentModalProps.baseComponent.id)
+        });
         break;
       case 'new':
         saveNewBaseComponent(newBaseComponent);
@@ -289,6 +302,10 @@ export default function BaseComponentsView() {
           modalProps={baseComponentModalProps}
           setModalProps={setBaseComponentModalProps}
           actionModalHandler={baseComponentActionModalHandler}
+        />
+        <ConfirmModal
+          modalProps={confirmModalProps}
+          setModalProps={setConfirmModalProps}
         />
         <LoadingOverlay open={open} />
       </Container>

@@ -48,3 +48,11 @@ export function saveNewPaper(paper) {
       auth.handleResponse(error.response);
     });
 }
+
+export function doesPaperExists(name) {
+  return axios.get(`${API_URL}/papers/${name}/exists`, auth.getAuthHeaders())
+    .then((data) => auth.handleResponse(data))
+    .catch((error) => {
+      auth.handleResponse(error.response);
+    });
+}

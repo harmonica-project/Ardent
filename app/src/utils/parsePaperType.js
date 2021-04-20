@@ -1,6 +1,6 @@
 export default (paperType = '') => {
-  if (paperType === 'article') {
-    return 'Article';
+  if (paperType === 'article-journal') {
+    return 'Journal article';
   }
   if (paperType === 'inproceedings') {
     return 'Conference paper';

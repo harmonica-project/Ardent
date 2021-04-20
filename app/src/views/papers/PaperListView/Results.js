@@ -20,7 +20,6 @@ import FirstPageIcon from '@material-ui/icons/FirstPage';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
-import parsePaperType from '../../../utils/parsePaperType';
 import reduceLongText from '../../../utils/reduceLongText';
 import SubToolbar from './SubToolbar';
 import DisplayStatus from '../../../components/DisplayStatus';
@@ -157,13 +156,16 @@ function Row({
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
-        <TableCell align="center"><a href={`https://doi.org/${row.doi}`}>{row.doi}</a></TableCell>
+        <TableCell
+          align="center"
+          style={{ wordBreak: 'break-all' }}
+        >
+          <a href={`https://doi.org/${row.doi}`}>
+            {row.doi}
+          </a>
+        </TableCell>
         <TableCell>{row.name}</TableCell>
-        <TableCell>{reduceLongText(row.abstract, 100)}</TableCell>
         <TableCell align="center">{row.authors}</TableCell>
-        <TableCell>{row.journal}</TableCell>
-        <TableCell align="center">{parsePaperType(row.paper_type)}</TableCell>
-        <TableCell align="center">{usersMapping[row.added_by]}</TableCell>
         <TableCell align="center">{usersMapping[row.updated_by]}</TableCell>
         <TableCell align="center"><DisplayStatus status={row.status} /></TableCell>
         <TableCell align="center"><TableActionCell item={row} actionHandler={paperActionHandler} /></TableCell>
@@ -247,11 +249,7 @@ export default function Results({
             <TableCell />
             <TableCell align="center">DOI</TableCell>
             <TableCell>Name</TableCell>
-            <TableCell>Abstract</TableCell>
             <TableCell align="center">Authors</TableCell>
-            <TableCell>Journal</TableCell>
-            <TableCell align="center">Paper type</TableCell>
-            <TableCell align="center">Added by</TableCell>
             <TableCell align="center">Updated by</TableCell>
             <TableCell align="center">Status</TableCell>
             <TableCell align="center">Actions</TableCell>

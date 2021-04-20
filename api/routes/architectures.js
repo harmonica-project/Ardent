@@ -20,7 +20,7 @@ router
   })
   .post('/', authorizedOnly, (req, res) => {
     const newArchitecture = req.body;
-    if(newArchitecture.name && newArchitecture.paper_id && newArchitecture.reader_description) {
+    if(newArchitecture.name && newArchitecture.paper_id) {
         db.storeArchitecture(newArchitecture).then((parsedResult) => {
             if(parsedResult.success) res.status(200).send(parsedResult);
             else res.status(500).send(parsedResult);

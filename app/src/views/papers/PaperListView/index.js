@@ -26,10 +26,12 @@ import LoadingOverlay from 'src/components/LoadingOverlay';
 import Page from 'src/components/Page';
 import MessageSnackbar from 'src/components/MessageSnackbar';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
+import PaperModal from 'src/modals/PaperModal';
+import ArchitectureModal from 'src/modals/ArchitectureModal';
+import BibtexModal from 'src/modals/BibtexModal';
+import ConfirmModal from 'src/modals/ConfirmModal';
 import Results from './Results';
 import Toolbar from './Toolbar';
-import PaperModal from './PaperModal';
-import ArchitectureModal from './ArchitectureModal';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -52,11 +54,17 @@ const PapersListView = () => {
   const [displayedPapers, setDisplayedPapers] = useState([]);
   const [titleFilter, setTitleFilter] = useState('');
   const [open, setOpen] = useState(false);
+
+  const [bibtexModalOpen, setBibtexModalOpen] = useState(false);
+  const [confirmModalProps, setConfirmModalProps] = useState({
+    open: false,
+    actionModalHandler: null,
+    message: ''
+  });
   const [paperModalProps, setPaperModalProps] = useState({
     open: false,
     paper: {},
     users: [],
-    currentUser: {},
     actionType: ''
   });
 
@@ -187,7 +195,7 @@ const PapersListView = () => {
       .then((data) => {
         if (data.success) {
           removeArchitectureFromState(paperId, architectureId);
-          if (setArchitectureModalProps.open) {
+          if (architectureModalProps.open) {
             setArchitectureModalProps({
               open: false,
               architecture: {},
@@ -201,11 +209,13 @@ const PapersListView = () => {
       .finally(() => { setOpen(false); });
   };
 
-  const saveNewPaper = (newPaper) => {
+  const saveNewPaper = async (newPaper, handleAdditionHere = true) => {
     setOpen(true);
-    saveNewPaperRequest(newPaper)
-      .then((data) => {
-        if (data.success) {
+    try {
+      const data = await saveNewPaperRequest(newPaper);
+      setOpen(false);
+      if (data.success) {
+        if (handleAdditionHere) {
           setPapers([
             ...papers,
             {
@@ -222,10 +232,21 @@ const PapersListView = () => {
             actionType: ''
           });
           displayMsg('Paper successfully added.');
+        } else {
+          return {
+            ...newPaper,
+            id: data.paperId,
+            status: 0,
+            architectures: []
+          };
         }
-      })
-      .catch((error) => handleErrorRequest(error, displayMsg))
-      .finally(() => { setOpen(false); });
+      }
+    } catch (error) {
+      if (handleAdditionHere) handleErrorRequest(error, displayMsg);
+    }
+
+    setOpen(false);
+    return {};
   };
 
   const saveNewArchitecture = (newArchitecture) => {
@@ -305,7 +326,7 @@ const PapersListView = () => {
           ...paperModalProps,
           open: true,
           actionType,
-          paper: {}
+          paper: { added_by: currentUser.username }
         });
         break;
       case 'edit':
@@ -321,12 +342,35 @@ const PapersListView = () => {
         break;
 
       case 'delete':
-        // Can be replaced with a prettier modal later.
-        if (window.confirm('Paper deletion is irreversible. Associated architectures, components, and properties will also be deleted. Proceed?')) deletePaper(paper.id);
+        setConfirmModalProps({
+          ...confirmModalProps,
+          open: true,
+          message: 'Paper deletion is irreversible. Associated architectures, components, and properties will also be deleted. Proceed?',
+          actionModalHandler: () => deletePaper(paper.id)
+        });
         break;
 
       default:
         console.error('No action were provided to the handler.');
+    }
+  };
+
+  const toolbarActionHandler = (source) => {
+    switch (source) {
+      case 'paper':
+        paperActionHandler('new');
+        break;
+
+      case 'bibtex':
+        setBibtexModalOpen(true);
+        break;
+
+      case 'parsifal':
+        console.log('Parsif.al import not implemented yet.');
+        break;
+
+      default:
+        console.error('No action were provided for this source.');
     }
   };
 
@@ -350,7 +394,15 @@ const PapersListView = () => {
 
       case 'delete':
         // Can be replaced with a prettier modal later.
-        if (window.confirm('Architecture deletion is irreversible. Associated components and properties will also be deleted. Proceed?')) deleteArchitecture(architecture.paper_id, architecture.id);
+        setConfirmModalProps({
+          ...confirmModalProps,
+          open: true,
+          message: 'Architecture deletion is irreversible. Associated components and properties will also be deleted. Proceed?',
+          actionModalHandler: () => deleteArchitecture(
+            architecture.paper_id,
+            architecture.id
+          )
+        });
         break;
 
       default:
@@ -361,14 +413,16 @@ const PapersListView = () => {
   const paperActionModalHandler = (actionType, newPaper) => {
     switch (actionType) {
       case 'delete':
-        if (window.confirm('Paper deletion is irreversible. Associated architectures, components, and properties will also be deleted. Proceed?')) deletePaper(paperModalProps.paper.id);
+        setConfirmModalProps({
+          ...confirmModalProps,
+          open: true,
+          message: 'Paper deletion is irreversible. Associated architectures, components, and properties will also be deleted. Proceed?',
+          actionModalHandler: () => deletePaper(paperModalProps.paper.id)
+        });
         break;
 
       case 'new':
-        saveNewPaper({
-          ...newPaper,
-          added_by: currentUser.username
-        });
+        saveNewPaper(newPaper);
         break;
 
       case 'edit':
@@ -381,10 +435,17 @@ const PapersListView = () => {
   };
 
   const architectureActionModalHandler = (actionType, newArchitecture) => {
-    console.log(newArchitecture);
     switch (actionType) {
       case 'delete':
-        if (window.confirm('Architecture deletion is irreversible. Associated components and properties will also be deleted. Proceed?')) { deleteArchitecture(architectureModalProps.architecture.paper_id, architectureModalProps.architecture.id); }
+        setConfirmModalProps({
+          ...confirmModalProps,
+          open: true,
+          message: 'Architecture deletion is irreversible. Associated components and properties will also be deleted. Proceed?',
+          actionModalHandler: () => deleteArchitecture(
+            architectureModalProps.architecture.paper_id,
+            architectureModalProps.architecture.id
+          )
+        });
         break;
 
       case 'new':
@@ -412,6 +473,34 @@ const PapersListView = () => {
       }
     } catch (error) {
       handleErrorRequest(error, displayMsg);
+    }
+  };
+
+  const saveHandler = async (newPapers) => {
+    const requests = [];
+    for (let i = 0; i < newPapers.length; i++) {
+      requests.push(saveNewPaper({
+        ...newPapers[i],
+        added_by: currentUser.username,
+        updated_by: currentUser.username
+      }, false));
+    }
+
+    let results = await Promise.all(requests);
+    results = results.filter((result) => JSON.stringify(result) !== '{}');
+    const paperDiff = newPapers.length - results.length;
+    setPapers([...papers, ...results]);
+    setBibtexModalOpen(false);
+    if (!paperDiff) {
+      if (results.length) {
+        displayMsg(`${results.length} paper${results.length > 1 ? 's' : ''} successfully added from the BibTeX file.`, 'success', 6000);
+      } else {
+        displayMsg('No paper were found in the BibTeX file or found papers already exist.', 'info', 6000);
+      }
+    } else if (results.length) {
+      displayMsg(`${results.length} paper${results.length > 1 ? 's' : ''} were successfully added from the BibTeX file, but ${paperDiff} paper${paperDiff > 1 ? 's' : ''} were not added due to an unknown problem.`, 'warning', 6000);
+    } else {
+      displayMsg(`No paper were added, but ${paperDiff} paper${paperDiff > 1 ? 's' : ''} were not added due to an unknown problem.`, 'error', 6000);
     }
   };
 
@@ -454,24 +543,35 @@ const PapersListView = () => {
     >
       <Container maxWidth={false}>
         {
-        displayedPapers.length
+        papers.length
           ? (
             <Box>
               <Toolbar
                 setTitleFilter={setTitleFilter}
-                actionHandler={paperActionHandler}
+                actionHandler={toolbarActionHandler}
                 papers={papers}
               />
               <Box mt={3}>
-                {displayedPapers.length && (
-                <Results
-                  papers={displayedPapers}
-                  paperActionHandler={paperActionHandler}
-                  architectureActionHandler={architectureActionHandler}
-                  architectureClickHandler={architectureClickHandler}
-                  users={users}
-                />
+                {displayedPapers.length ? (
+                  <Results
+                    papers={displayedPapers}
+                    paperActionHandler={paperActionHandler}
+                    architectureActionHandler={architectureActionHandler}
+                    architectureClickHandler={architectureClickHandler}
+                    users={users}
+                  />
+                ) : (
+                  <Box mt={3} align="center">
+                    <Card>
+                      <CardContent>
+                        <Typography variant="h1" component="div" gutterBottom>
+                          No paper found for this query.
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Box>
                 )}
+
               </Box>
             </Box>
           )
@@ -507,6 +607,11 @@ const PapersListView = () => {
             </Box>
           )
       }
+        <BibtexModal
+          open={bibtexModalOpen}
+          setOpen={setBibtexModalOpen}
+          saveHandler={saveHandler}
+        />
         <PaperModal
           modalProps={paperModalProps}
           setModalProps={setPaperModalProps}
@@ -516,6 +621,10 @@ const PapersListView = () => {
           modalProps={architectureModalProps}
           setModalProps={setArchitectureModalProps}
           actionModalHandler={architectureActionModalHandler}
+        />
+        <ConfirmModal
+          modalProps={confirmModalProps}
+          setModalProps={setConfirmModalProps}
         />
         <MessageSnackbar
           messageSnackbarProps={messageSnackbarProps}
