@@ -15,6 +15,13 @@ export default function PaperAutocomplete({
     };
   });
 
+  const searchIdInPapers = (name) => {
+    for (let i = 0; i < papers.length; i++) {
+      if (papers[i].name === name) return papers[i].id;
+    }
+    return '';
+  };
+
   return (
     <Autocomplete
       id="papers"
@@ -34,7 +41,10 @@ export default function PaperAutocomplete({
       inputValue={inputValue}
       onInputChange={(event, newInputValue) => {
         setInputValue(newInputValue);
-        changeHandler(newInputValue);
+        changeHandler({
+          name: newInputValue,
+          id: searchIdInPapers(newInputValue)
+        });
       }}
     />
   );

@@ -34,6 +34,54 @@ module.exports = {
             };
         }
     },
+    cloneArchitecture: async (architectureId, paperId) => {
+        try {
+            const newArchitectureId = uuidv4();
+            const architecture = (await client.query("SELECT * FROM architectures WHERE id = $1", [architectureId]))["rows"];
+            if (architecture.length) {
+                console.log(architecture[0]);
+                await client.query(
+                    `INSERT INTO architectures (id, name, reader_description, paper_id, author_description) 
+                    VALUES ($1, $2, $3, $4, $5)`, [newArchitectureId, architecture[0].name, architecture[0].reader_description, paperId, architecture[0].author_description]
+                );
+                const components = (await client.query("SELECT * FROM components_instances WHERE architecture_id = $1", [architectureId]))["rows"];
+
+                for (let i = 0; i < components.length; i++) {
+                    let component = components[i];
+                    let newComponentId = uuidv4();
+
+                    await client.query(
+                        `INSERT INTO components_instances (id, name, architecture_id, reader_description, author_description, component_base_id)
+                        VALUES ($1, $2, $3, $4, $5, $6)`, 
+                        [
+                            newComponentId, 
+                            component.name, 
+                            newArchitectureId, 
+                            component.reader_description, 
+                            component.author_description, 
+                            component.component_base_id
+                        ]
+                    );
+                }
+
+                return {
+                    success: true,
+                    architectureId: newArchitectureId
+                }
+            }
+
+            return {
+                success: true,
+                errorMsg: 'Architecture not found.'
+            }
+        }
+        catch(err) {
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
     deleteArchitecture: async architectureId => {
         try {
             await client.query("DELETE FROM architectures WHERE id = $1", [architectureId]);

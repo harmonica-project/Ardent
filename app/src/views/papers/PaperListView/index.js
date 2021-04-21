@@ -12,7 +12,8 @@ import {
 import {
   deleteArchitecture as deleteArchitectureRequest,
   saveNewArchitecture as saveNewArchitectureRequest,
-  saveExistingArchitecture as saveExistingArchitectureRequest
+  saveExistingArchitecture as saveExistingArchitectureRequest,
+  cloneArchitecture as cloneArchitectureRequest
 } from 'src/requests/architectures';
 import {
   saveNewPaper as saveNewPaperRequest,
@@ -53,7 +54,10 @@ const PapersListView = () => {
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState([]);
   const [displayedPapers, setDisplayedPapers] = useState([]);
-  const [titleFilter, setTitleFilter] = useState('');
+  const [titleFilter, setTitleFilter] = useState({
+    name: '',
+    id: ''
+  });
   const [open, setOpen] = useState(false);
 
   const [bibtexModalOpen, setBibtexModalOpen] = useState(false);
@@ -313,12 +317,12 @@ const PapersListView = () => {
   };
 
   const fillDisplayedPapers = () => {
-    if (!titleFilter.length) setDisplayedPapers(papers);
+    if (!titleFilter.name.length) setDisplayedPapers(papers);
     else {
       const newDisplayedPapers = [];
 
       papers.forEach((paper) => {
-        if (paper.name.includes(titleFilter)) {
+        if (paper.name.includes(titleFilter.name)) {
           newDisplayedPapers.push(paper);
         }
       });
@@ -537,6 +541,25 @@ const PapersListView = () => {
     }
   };
 
+  const handleClone = async ({ architecture, paper }) => {
+    setOpen(true);
+    cloneArchitectureRequest(architecture.id, paper.id)
+      .then((data) => {
+        if (data.success) {
+          setCloneModalProps({
+            open: false,
+            architecture: {},
+            papers: [],
+            actionType: ''
+          });
+          addArchitectureToState({ ...architecture, id: data.architectureId, paper_id: paper.id });
+          displayMsg('Architecture successfully added.');
+        }
+      })
+      .catch((error) => handleErrorRequest(error, displayMsg))
+      .finally(() => { setOpen(false); });
+  };
+
   useEffect(() => {
     setOpen(true);
     Promise.all([getPapers(), getUsersProps()])
@@ -646,7 +669,7 @@ const PapersListView = () => {
         <CloneModal
           modalProps={cloneModalProps}
           setModalProps={setCloneModalProps}
-          actionModalHandler={() => console.log('clone clicked')}
+          actionModalHandler={handleClone}
         />
         <LoadingOverlay open={open} />
       </Container>

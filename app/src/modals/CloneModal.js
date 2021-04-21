@@ -47,15 +47,18 @@ export default function CloneModal({
   // getModalStyle is not a pure function, we roll the style only on the first render
   const [modalStyle] = useState(getModalStyle);
   const [transferInfo, setTransferInfo] = useState({
-    architecture_id: modalProps.architecture,
-    paper_id: ''
+    architecture: modalProps.architecture,
+    paper: {
+      name: '',
+      id: ''
+    }
   });
 
   const [error, setError] = useState(false);
   const [helper, setHelper] = useState('');
 
   useEffect(() => {
-    setTransferInfo({ ...transferInfo, architecture_id: modalProps.architecture.id });
+    setTransferInfo({ ...transferInfo, architecture: modalProps.architecture });
   }, [modalProps.architecture]);
 
   const handleClose = () => {
@@ -70,9 +73,11 @@ export default function CloneModal({
   const validateAndSubmit = () => {
     console.log(transferInfo);
     const schema = yup.object().shape({
-      paper_id: yup.string()
-        .required('You must select a paper target.'),
-      architecture_id: yup.string()
+      paper: yup.object().shape({
+        id: yup.string().required(),
+        name: yup.string().required()
+      }),
+      architecture: yup.object()
     });
 
     schema.validate(transferInfo, { abortEarly: false })
@@ -106,7 +111,7 @@ export default function CloneModal({
         <PaperAutocomplete
           papers={modalProps.papers}
           changeHandler={(selected) => {
-            setTransferInfo({ ...transferInfo, paper_id: selected });
+            setTransferInfo({ ...transferInfo, paper: selected });
             setError(false);
             setHelper('');
           }}
