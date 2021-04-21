@@ -27,6 +27,14 @@ export function saveNewArchitecture(architecture) {
     });
 }
 
+export function cloneArchitecture(architectureId, paperId) {
+  return axios.post(`${API_URL}/architectures/clone`, { architectureId, paperId }, auth.getAuthHeaders())
+    .then((data) => auth.handleResponse(data))
+    .catch((error) => {
+      auth.handleResponse(error.response);
+    });
+}
+
 export function saveExistingArchitecture(architecture) {
   return axios.put(`${API_URL}/architectures/${architecture.id}`, architecture, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))

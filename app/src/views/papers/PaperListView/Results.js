@@ -5,6 +5,7 @@ import Collapse from '@material-ui/core/Collapse';
 import IconButton from '@material-ui/core/IconButton';
 import Table from '@material-ui/core/Table';
 import Box from '@material-ui/core/Box';
+import Grid from '@material-ui/core/Grid';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
@@ -18,6 +19,7 @@ import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import FirstPageIcon from '@material-ui/icons/FirstPage';
 import LastPageIcon from '@material-ui/icons/LastPage';
+import { FileCopy as CopyIcon } from '@material-ui/icons';
 import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import reduceLongText from '../../../utils/reduceLongText';
@@ -132,7 +134,22 @@ function Row({
               >
                 {reduceLongText(architectureRow.reader_description, 100)}
               </TableCell>
-              <TableCell align="center"><TableActionCell item={{ ...architectureRow, paper_id: row.id }} actionHandler={architectureActionHandler} /></TableCell>
+              <TableCell>
+                <Grid container style={{ alignItems: 'center', justifyContent: 'center' }}>
+                  <Grid item>
+                    <TableActionCell
+                      item={{ ...architectureRow, paper_id: row.id }}
+                      actionHandler={architectureActionHandler}
+                    />
+                  </Grid>
+                  <Grid item style={{ marginLeft: '3px' }}>
+                    <CopyIcon
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => architectureActionHandler('clone', { ...architectureRow, paper_id: row.id })}
+                    />
+                  </Grid>
+                </Grid>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

@@ -33,6 +33,23 @@ router
         })
     }
   })
+  .post('/clone', authorizedOnly, (req, res) => {
+    const architectureId = req.body.architectureId;
+    const paperId = req.body.paperId;
+
+    if(architectureId && paperId) {
+        db.cloneArchitecture(architectureId, paperId).then((parsedResult) => {
+            if(parsedResult.success) res.status(200).send(parsedResult);
+            else res.status(500).send(parsedResult);
+        })
+    }
+    else {
+        res.status(500).send({
+            success: false,
+            errorMsg: "Missing fields."
+        })
+    }
+  })
   .delete('/:id', authorizedOnly, (req, res) => {
     db.deleteArchitecture(req.params.id).then((parsedResult) => {
         if(parsedResult.success) res.status(200).send(parsedResult);

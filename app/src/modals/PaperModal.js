@@ -484,6 +484,5 @@ PaperModal.propTypes = {
     })
   }).isRequired,
   setModalProps: PropTypes.func.isRequired,
-  actionModalHandler: PropTypes.func.isRequired,
-  users: PropTypes.array.isRequired
+  actionModalHandler: PropTypes.func.isRequired
 };
