@@ -79,7 +79,7 @@ To start the redirection service, type the following inside redirect:
 
 ```bash
 npm install
-npm start redirect
+npm start
 ```
 
 ## Contact
