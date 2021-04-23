@@ -32,6 +32,7 @@ export default function BaseComponentsView() {
   const classes = useStyles();
   const [baseComponents, setBaseComponents] = useState([]);
   const [open, setOpen] = useState(false);
+  const [displayedComponents, setDisplayedComponents] = useState([]);
   const [messageSnackbarProps, setMessageSnackbarProps] = useState({
     open: false,
     message: '',
@@ -61,7 +62,13 @@ export default function BaseComponentsView() {
   };
 
   const handleAutocompleteChange = (value) => {
-    console.log(value);
+    if (value.length) {
+      setDisplayedComponents(
+        baseComponents.filter((component) => component.name.includes(value))
+      );
+    } else {
+      setDisplayedComponents(baseComponents);
+    }
   };
 
   const removeBaseComponentFromState = (componentId) => {
@@ -115,9 +122,10 @@ export default function BaseComponentsView() {
     const newBaseComponents = [];
     const componentToEntry = {};
     const nbInstances = components.length;
-
+    console.log(components);
     components.forEach((c) => {
-      if (!componentToEntry[c.base_component_name]) {
+      console.log(componentToEntry, c.base_component_name);
+      if (componentToEntry[c.base_component_name] === undefined) {
         componentToEntry[c.base_component_name] = newBaseComponents.length;
         newBaseComponents.push({
           id: c.base_component_id,
@@ -141,8 +149,8 @@ export default function BaseComponentsView() {
         entry.occurences++;
         entry.proportion = ((entry.occurences / nbInstances) * 100).toFixed(2);
       }
+      console.log([...newBaseComponents]);
     });
-
     return newBaseComponents;
   };
 
@@ -153,6 +161,7 @@ export default function BaseComponentsView() {
       if (compRes.success) {
         const newBaseComponents = formatToBaseComponent(compRes.result);
         setBaseComponents(newBaseComponents);
+        setDisplayedComponents(newBaseComponents);
       }
     } catch (error) {
       handleErrorRequest(error, displayMsg);
@@ -287,7 +296,7 @@ export default function BaseComponentsView() {
               />
               <Box mt={3}>
                 <BaseComponentTable
-                  rows={baseComponents}
+                  rows={displayedComponents}
                   componentActionHandler={componentActionHandler}
                 />
               </Box>

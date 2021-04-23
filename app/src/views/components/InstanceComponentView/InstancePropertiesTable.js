@@ -8,8 +8,6 @@ import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import TablePagination from '@material-ui/core/TablePagination';
-import TableFooter from '@material-ui/core/TableFooter';
 import Paper from '@material-ui/core/Paper';
 import FirstPageIcon from '@material-ui/icons/FirstPage';
 import LastPageIcon from '@material-ui/icons/LastPage';
@@ -120,23 +118,9 @@ Row.propTypes = {
 export default function InstancePropertiesTable({
   properties, propertyActionHandler
 }) {
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-
-  // const emptyRows = rowsPerPage - Math.min(rowsPerPage, rows.length - page * rowsPerPage);
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
   return (
     <TableContainer component={Paper}>
-      <Table aria-label="collapsible table" stickyHeader>
+      <Table aria-label="table" stickyHeader size="small">
         <TableHead>
           <TableRow>
             <TableCell align="center">Key</TableCell>
@@ -145,35 +129,14 @@ export default function InstancePropertiesTable({
           </TableRow>
         </TableHead>
         <TableBody>
-          {(rowsPerPage > 0
-            ? properties.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            : properties
-          ).map((row) => (
+          {properties.map((prop) => (
             <Row
-              key={row.id}
-              row={row}
+              key={prop.id}
+              row={prop}
               propertyActionHandler={propertyActionHandler}
             />
           ))}
         </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TablePagination
-              rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
-              colSpan={3}
-              count={properties.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              SelectProps={{
-                inputProps: { 'aria-label': 'rows per page' },
-                native: true,
-              }}
-              onChangePage={handleChangePage}
-              onChangeRowsPerPage={handleChangeRowsPerPage}
-              ActionsComponent={TablePaginationActions}
-            />
-          </TableRow>
-        </TableFooter>
       </Table>
     </TableContainer>
   );

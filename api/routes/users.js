@@ -97,7 +97,6 @@ router
         db.getUser(newUser.username).then(userResult => {
             if (!userResult.result) {
                 db.consumeInviteToken(newUser.token).then(tokenResult => {
-                    console.log(tokenResult);
                     if (tokenResult.success) {
                         bcrypt.hash(newUser.password, saltRounds, function(err, hash) {
                             newUser["hash"] = hash;

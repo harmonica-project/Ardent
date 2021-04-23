@@ -119,7 +119,6 @@ export default function ConnectionsModal({
       second_component: yup.string()
         .required('Selecting a second component is required'),
     });
-    console.log(innerConnection);
     schema.validate(innerConnection, { abortEarly: false })
       .then(() => {
         if (checkPres(innerConnection.first_component, innerConnection.second_component)) {

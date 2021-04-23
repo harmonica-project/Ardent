@@ -71,7 +71,6 @@ export default function CloneModal({
   };
 
   const validateAndSubmit = () => {
-    console.log(transferInfo);
     const schema = yup.object().shape({
       paper: yup.object().shape({
         id: yup.string().required(),

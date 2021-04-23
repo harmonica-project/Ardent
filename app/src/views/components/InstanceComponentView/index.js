@@ -35,8 +35,8 @@ import ComponentModal from 'src/modals/ComponentModal';
 import ConfirmModal from 'src/modals/ConfirmModal';
 import InstancePropertiesModal from 'src/modals/InstancePropertiesModal';
 import ConnectionsModal from 'src/modals/ConnectionsModal';
-import InstancePropertiesTable from './InstancePropertiesTable';
 import ConnectionsTable from './ConnectionsTable';
+import AccordionOverlay from './AccordionOverlay';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -599,7 +599,7 @@ export default function InstanceComponentView() {
               </Button>
             </Box>
             {component.properties && component.properties.length ? (
-              <InstancePropertiesTable
+              <AccordionOverlay
                 properties={component.properties}
                 propertyActionHandler={propertyActionHandler}
               />

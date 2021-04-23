@@ -87,10 +87,17 @@ export default function InstancePropertiesModal({
     setErrors({ ...errors, [key]: false });
     setHelpers({ ...helpers, [key]: false });
 
-    setInnerProperty({
-      ...innerProperty,
-      [key]: value
-    });
+    if (key === 'category') {
+      setInnerProperty({
+        ...innerProperty,
+        category: (value.length ? (value.charAt(0).toUpperCase() + value.slice(1)) : value)
+      });
+    } else {
+      setInnerProperty({
+        ...innerProperty,
+        [key]: value
+      });
+    }
   };
 
   const validateAndSubmit = () => {
@@ -101,6 +108,7 @@ export default function InstancePropertiesModal({
       value: yup.string()
         .max(30, 'Property value is too long.')
         .required('Property value is required'),
+      category: yup.string()
     });
 
     schema.validate(innerProperty, { abortEarly: false })
@@ -183,6 +191,19 @@ export default function InstancePropertiesModal({
       </Typography>
       <form noValidate className={classes.form}>
         <TextField
+          id="category-field"
+          label="Category"
+          placeholder="Enter a category name"
+          fullWidth
+          margin="normal"
+          disabled={modalProps.actionType === 'view'}
+          onChange={(e) => handleInputChange('category', e.target.value)}
+          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.property.category}
+          InputLabelProps={{
+            shrink: true,
+          }}
+        />
+        <TextField
           id="key-field"
           label="Key"
           placeholder="Enter a property key"
@@ -250,6 +271,7 @@ InstancePropertiesModal.propTypes = {
       id: PropTypes.string,
       key: PropTypes.string,
       value: PropTypes.string,
+      category: PropTypes.string
     }),
     actionType: PropTypes.string.isRequired
   }).isRequired,
