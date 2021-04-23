@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import genValuesFromSchema from 'src/utils/genValuesFromSchema';
 import * as yup from 'yup';
 import {
   Box,
@@ -49,8 +50,20 @@ export default function InstancePropertiesModal({
 }) {
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
+
+  const schema = yup.object().shape({
+    key: yup.string()
+      .max(30, 'Property key is too long.')
+      .required('Property key is required'),
+    value: yup.string()
+      .max(30, 'Property value is too long.')
+      .required('Property value is required'),
+    category: yup.string()
+  });
   const [modalStyle] = useState(getModalStyle);
-  const [innerProperty, setInnerProperty] = useState(modalProps.property);
+  const [innerProperty, setInnerProperty] = useState(
+    genValuesFromSchema(modalProps.property, schema)
+  );
   const [errors, setErrors] = useState({
     key: false,
     value: false
@@ -61,7 +74,7 @@ export default function InstancePropertiesModal({
   });
 
   useEffect(() => {
-    setInnerProperty(modalProps.property);
+    setInnerProperty(genValuesFromSchema(modalProps.property, schema));
   }, [modalProps.property]);
 
   const resetContext = () => {
@@ -101,16 +114,6 @@ export default function InstancePropertiesModal({
   };
 
   const validateAndSubmit = () => {
-    const schema = yup.object().shape({
-      key: yup.string()
-        .max(30, 'Property key is too long.')
-        .required('Property key is required'),
-      value: yup.string()
-        .max(30, 'Property value is too long.')
-        .required('Property value is required'),
-      category: yup.string()
-    });
-
     schema.validate(innerProperty, { abortEarly: false })
       .then(() => {
         actionModalHandler(modalProps.actionType, innerProperty);

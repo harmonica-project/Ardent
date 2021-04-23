@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import genValuesFromSchema from 'src/utils/genValuesFromSchema';
 import * as yup from 'yup';
 import {
   Box,
@@ -64,8 +65,16 @@ export default function ConnectionsModal({
 }) {
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
+  const schema = yup.object().shape({
+    first_component: yup.string()
+      .required('Selecting a first component is required'),
+    second_component: yup.string()
+      .required('Selecting a second component is required'),
+  });
   const [modalStyle] = useState(getModalStyle);
-  const [innerConnection, setInnerConnection] = useState(modalProps.connection);
+  const [innerConnection, setInnerConnection] = useState(
+    genValuesFromSchema(modalProps.connection, schema)
+  );
   const [errors, setErrors] = useState({
     first_component: false,
     second_component: false
@@ -87,7 +96,7 @@ export default function ConnectionsModal({
   };
 
   useEffect(() => {
-    setInnerConnection(modalProps.connection);
+    setInnerConnection(genValuesFromSchema(modalProps.connection, schema));
   }, [modalProps.connection]);
 
   const handleClose = () => {
@@ -113,12 +122,6 @@ export default function ConnectionsModal({
       return (first === modalProps.currentComponentId || second === modalProps.currentComponentId);
     };
 
-    const schema = yup.object().shape({
-      first_component: yup.string()
-        .required('Selecting a first component is required'),
-      second_component: yup.string()
-        .required('Selecting a second component is required'),
-    });
     schema.validate(innerConnection, { abortEarly: false })
       .then(() => {
         if (checkPres(innerConnection.first_component, innerConnection.second_component)) {

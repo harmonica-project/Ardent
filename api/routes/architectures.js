@@ -58,7 +58,7 @@ router
   })
   .put('/:id', authorizedOnly, (req, res) => {
     const newArchitecture = req.body;
-    if(newArchitecture.reader_description && newArchitecture.name && newArchitecture.id) {
+    if(newArchitecture.name && newArchitecture.id) {
         db.modifyArchitecture(newArchitecture).then((parsedResult) => {
             if(parsedResult.success) res.status(200).send(parsedResult);
             else res.status(500).send(parsedResult);
