@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import genValuesFromSchema from 'src/utils/genValuesFromSchema';
 import * as yup from 'yup';
 import {
   Box,
@@ -49,13 +50,24 @@ export default function ArchitectureModal({
 }) {
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
+
+  const schema = yup.object().shape({
+    name: yup.string()
+      .max(30, 'Architecture name is too long.')
+      .required('Architecture name is required'),
+    author_description: yup.string(),
+    reader_description: yup.string()
+  });
+
   const [modalStyle] = useState(getModalStyle);
-  const [innerArchitecture, setInnerArchitecture] = useState(modalProps.architecture);
+  const [innerArchitecture, setInnerArchitecture] = useState(
+    genValuesFromSchema(modalProps.architecture, schema)
+  );
   const [error, setError] = useState(false);
   const [helper, setHelper] = useState('');
 
   useEffect(() => {
-    setInnerArchitecture(modalProps.architecture);
+    setInnerArchitecture(genValuesFromSchema(modalProps.architecture, schema));
   }, [modalProps.architecture]);
 
   const handleClose = () => {
@@ -90,14 +102,7 @@ export default function ArchitectureModal({
   };
 
   const validateAndSubmit = () => {
-    const schema = yup.object().shape({
-      name: yup.string()
-        .max(30, 'Architecture name is too long.')
-        .required('Architecture name is required'),
-      author_description: yup.string(),
-      reader_description: yup.string()
-    });
-
+    console.log(innerArchitecture);
     schema.validate(innerArchitecture, { abortEarly: false })
       .then(() => {
         actionModalHandler(modalProps.actionType, innerArchitecture);

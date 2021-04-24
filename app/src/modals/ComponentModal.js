@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import genValuesFromSchema from 'src/utils/genValuesFromSchema';
 import {
   Box,
   Typography,
@@ -50,13 +51,23 @@ export default function ComponentModal({
 }) {
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
+  const schema = yup.object().shape({
+    name: yup.string()
+      .max(30, 'Component name is too long.')
+      .required('Base component name is required'),
+    author_description: yup.string(),
+    reader_description: yup.string(),
+    component_base_id: yup.string()
+  });
   const [modalStyle] = useState(getModalStyle);
-  const [innerComponent, setInnerComponent] = useState(modalProps.component);
+  const [innerComponent, setInnerComponent] = useState(
+    genValuesFromSchema(modalProps.component, schema)
+  );
   const [helperText, setHelperText] = useState('');
   const [isBaseInputInvalid, setIsBaseInputInvalid] = useState(false);
 
   useEffect(() => {
-    setInnerComponent(modalProps.component);
+    setInnerComponent(genValuesFromSchema(modalProps.component, schema));
   }, [modalProps.component]);
 
   const resetContext = () => {
@@ -123,15 +134,6 @@ export default function ComponentModal({
   };
 
   const validateAndSubmit = () => {
-    const schema = yup.object().shape({
-      name: yup.string()
-        .max(30, 'Component name is too long.')
-        .required('Base component name is required'),
-      author_description: yup.string(),
-      reader_description: yup.string(),
-      component_base_id: yup.string()
-    });
-
     schema.validate(innerComponent, { abortEarly: false })
       .then(() => {
         actionModalHandler(modalProps.actionType, innerComponent);

@@ -47,7 +47,10 @@ module.exports = {
             const propertyId = uuidv4();
             const foundProperties = await client.query("SELECT * FROM properties_instances WHERE key = $1 AND component_instance_id = $2", [property.key, property.component_id]);
             if(foundProperties["rows"].length === 0) {
-                await client.query("INSERT INTO properties_instances VALUES ($1, $2, $3, $4)", [propertyId, property.key, property.value, property.component_id])
+                await client.query(
+                    `INSERT INTO properties_instances(id, key, value, component_instance_id, category) 
+                    VALUES ($1, $2, $3, $4, $5)`, [propertyId, property.key, property.value, property.component_id, property.category]
+                )
                 return {
                     success: true,
                     propertyId
@@ -71,11 +74,12 @@ module.exports = {
     modifyProperty: async property => {
         try {
             await client.query(`
-            UPDATE properties_instances SET (key, value) =
-            ($1, $2) WHERE id = $3`, 
+            UPDATE properties_instances SET (key, value, category) =
+            ($1, $2, $3) WHERE id = $4`, 
             [
                 property.key, 
                 property.value, 
+                property.category,
                 property.id
             ])
             return {success: true};

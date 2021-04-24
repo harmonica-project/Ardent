@@ -39,7 +39,6 @@ module.exports = {
             const newArchitectureId = uuidv4();
             const architecture = (await client.query("SELECT * FROM architectures WHERE id = $1", [architectureId]))["rows"];
             if (architecture.length) {
-                console.log(architecture[0]);
                 await client.query(
                     `INSERT INTO architectures (id, name, reader_description, paper_id, author_description) 
                     VALUES ($1, $2, $3, $4, $5)`, [newArchitectureId, architecture[0].name, architecture[0].reader_description, paperId, architecture[0].author_description]

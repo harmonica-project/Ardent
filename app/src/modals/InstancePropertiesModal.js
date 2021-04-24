@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import genValuesFromSchema from 'src/utils/genValuesFromSchema';
 import * as yup from 'yup';
 import {
   Box,
@@ -49,8 +50,20 @@ export default function InstancePropertiesModal({
 }) {
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
+
+  const schema = yup.object().shape({
+    key: yup.string()
+      .max(30, 'Property key is too long.')
+      .required('Property key is required'),
+    value: yup.string()
+      .max(30, 'Property value is too long.')
+      .required('Property value is required'),
+    category: yup.string()
+  });
   const [modalStyle] = useState(getModalStyle);
-  const [innerProperty, setInnerProperty] = useState(modalProps.property);
+  const [innerProperty, setInnerProperty] = useState(
+    genValuesFromSchema(modalProps.property, schema)
+  );
   const [errors, setErrors] = useState({
     key: false,
     value: false
@@ -61,7 +74,7 @@ export default function InstancePropertiesModal({
   });
 
   useEffect(() => {
-    setInnerProperty(modalProps.property);
+    setInnerProperty(genValuesFromSchema(modalProps.property, schema));
   }, [modalProps.property]);
 
   const resetContext = () => {
@@ -87,22 +100,20 @@ export default function InstancePropertiesModal({
     setErrors({ ...errors, [key]: false });
     setHelpers({ ...helpers, [key]: false });
 
-    setInnerProperty({
-      ...innerProperty,
-      [key]: value
-    });
+    if (key === 'category') {
+      setInnerProperty({
+        ...innerProperty,
+        category: (value.length ? (value.charAt(0).toUpperCase() + value.slice(1)) : value)
+      });
+    } else {
+      setInnerProperty({
+        ...innerProperty,
+        [key]: value
+      });
+    }
   };
 
   const validateAndSubmit = () => {
-    const schema = yup.object().shape({
-      key: yup.string()
-        .max(30, 'Property key is too long.')
-        .required('Property key is required'),
-      value: yup.string()
-        .max(30, 'Property value is too long.')
-        .required('Property value is required'),
-    });
-
     schema.validate(innerProperty, { abortEarly: false })
       .then(() => {
         actionModalHandler(modalProps.actionType, innerProperty);
@@ -183,6 +194,19 @@ export default function InstancePropertiesModal({
       </Typography>
       <form noValidate className={classes.form}>
         <TextField
+          id="category-field"
+          label="Category"
+          placeholder="Enter a category name"
+          fullWidth
+          margin="normal"
+          disabled={modalProps.actionType === 'view'}
+          onChange={(e) => handleInputChange('category', e.target.value)}
+          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.property.category}
+          InputLabelProps={{
+            shrink: true,
+          }}
+        />
+        <TextField
           id="key-field"
           label="Key"
           placeholder="Enter a property key"
@@ -250,6 +274,7 @@ InstancePropertiesModal.propTypes = {
       id: PropTypes.string,
       key: PropTypes.string,
       value: PropTypes.string,
+      category: PropTypes.string
     }),
     actionType: PropTypes.string.isRequired
   }).isRequired,

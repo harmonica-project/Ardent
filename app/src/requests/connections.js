@@ -20,7 +20,6 @@ export function deleteConnection(connectionId) {
 }
 
 export function modifyConnection(connection) {
-  console.log(connection);
   return axios.put(`${API_URL}/connections`, connection, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))
     .catch((error) => {

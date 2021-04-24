@@ -31,7 +31,9 @@ const useStyles = makeStyles((theme) => ({
 export default function BaseComponentsView() {
   const classes = useStyles();
   const [baseComponents, setBaseComponents] = useState([]);
+  const [autocompleteValue, setAutocompleteValue] = useState('');
   const [open, setOpen] = useState(false);
+  const [displayedComponents, setDisplayedComponents] = useState([]);
   const [messageSnackbarProps, setMessageSnackbarProps] = useState({
     open: false,
     message: '',
@@ -61,7 +63,17 @@ export default function BaseComponentsView() {
   };
 
   const handleAutocompleteChange = (value) => {
-    console.log(value);
+    setAutocompleteValue(value);
+  };
+
+  const filterAutocomplete = () => {
+    if (autocompleteValue.length) {
+      setDisplayedComponents(
+        baseComponents.filter((component) => component.name.includes(autocompleteValue))
+      );
+    } else {
+      setDisplayedComponents(baseComponents);
+    }
   };
 
   const removeBaseComponentFromState = (componentId) => {
@@ -115,9 +127,8 @@ export default function BaseComponentsView() {
     const newBaseComponents = [];
     const componentToEntry = {};
     const nbInstances = components.length;
-
     components.forEach((c) => {
-      if (!componentToEntry[c.base_component_name]) {
+      if (componentToEntry[c.base_component_name] === undefined) {
         componentToEntry[c.base_component_name] = newBaseComponents.length;
         newBaseComponents.push({
           id: c.base_component_id,
@@ -142,7 +153,6 @@ export default function BaseComponentsView() {
         entry.proportion = ((entry.occurences / nbInstances) * 100).toFixed(2);
       }
     });
-
     return newBaseComponents;
   };
 
@@ -153,6 +163,7 @@ export default function BaseComponentsView() {
       if (compRes.success) {
         const newBaseComponents = formatToBaseComponent(compRes.result);
         setBaseComponents(newBaseComponents);
+        setDisplayedComponents(newBaseComponents);
       }
     } catch (error) {
       handleErrorRequest(error, displayMsg);
@@ -262,6 +273,10 @@ export default function BaseComponentsView() {
     fetchComponentData();
   }, []);
 
+  useEffect(() => {
+    filterAutocomplete();
+  }, [baseComponents]);
+
   return (
     <Page title="Base components" className={classes.root}>
       <Container maxWidth={false}>
@@ -287,7 +302,7 @@ export default function BaseComponentsView() {
               />
               <Box mt={3}>
                 <BaseComponentTable
-                  rows={baseComponents}
+                  rows={displayedComponents}
                   componentActionHandler={componentActionHandler}
                 />
               </Box>

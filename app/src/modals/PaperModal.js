@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import * as yup from 'yup';
+import genValuesFromSchema from 'src/utils/genValuesFromSchema';
 import {
   FormControl,
   TextField,
@@ -56,7 +57,26 @@ export default function PaperModal({
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
   const [modalStyle] = useState(getModalStyle);
-  const [innerPaper, setInnerPaper] = useState(modalProps.paper);
+
+  const schema = yup.object().shape({
+    name: yup.string()
+      .max(100, 'Paper name is too long.')
+      .required('Paper name is required'),
+    added_by: yup.string()
+      .required('You need to specify who is creating the paper.'),
+    updated_by: yup.string()
+      .required('You need to specify who is in charge of the paper.'),
+    authors: yup.string()
+      .required('Author(s) must be specified.'),
+    status: yup.number(),
+    doi: yup.string(),
+    paper_type: yup.string(),
+    journal: yup.string(),
+    abstract: yup.string(),
+    comments: yup.string()
+  });
+
+  const [innerPaper, setInnerPaper] = useState(genValuesFromSchema(modalProps.paper, schema));
 
   const getEmptyErrors = () => {
     return {
@@ -81,7 +101,7 @@ export default function PaperModal({
   const [helperFields, setHelperFields] = useState(getEmptyHelpers());
 
   useEffect(() => {
-    setInnerPaper(modalProps.paper);
+    setInnerPaper(genValuesFromSchema(modalProps.paper, schema));
   }, [modalProps.paper]);
 
   const handleClose = () => {
@@ -118,29 +138,12 @@ export default function PaperModal({
   };
 
   const validateAndSubmit = () => {
-    const schema = yup.object().shape({
-      name: yup.string()
-        .max(100, 'Paper name is too long.')
-        .required('Paper name is required'),
-      added_by: yup.string()
-        .required('You need to specify who is creating the paper.'),
-      updated_by: yup.string()
-        .required('You need to specify who is in charge of the paper.'),
-      authors: yup.string()
-        .required('Author(s) must be specified.'),
-      status: yup.string(),
-      doi: yup.string(),
-      paper_type: yup.string(),
-      journal: yup.string(),
-      abstract: yup.string(),
-      comments: yup.string()
-    });
-
     schema.validate(innerPaper, { abortEarly: false })
       .then(() => {
         actionModalHandler(modalProps.actionType, innerPaper);
       })
       .catch((errs) => {
+        console.log(errs);
         const newErrorFields = {};
         const newHelperFields = {};
 
