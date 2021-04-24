@@ -7,7 +7,11 @@ import {
   Typography,
   Button,
   Modal,
-  TextField
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  FormHelperText
 } from '@material-ui/core/';
 import {
   Delete as DeleteIcon,
@@ -40,53 +44,60 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     flexWrap: 'wrap'
   },
+  upperForm: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    marginTop: theme.spacing(2),
+  },
+  bottomForm: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(3)
+  },
   headerButton: {
     margin: theme.spacing(1),
   },
 }));
 
-export default function InstancePropertiesModal({
-  modalProps, setModalProps, actionModalHandler, doNotShowSwitch
+export default function ConnectionModal({
+  modalProps, setModalProps, actionModalHandler, architectureComponents, doNotShowSwitch
 }) {
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
-
   const schema = yup.object().shape({
-    key: yup.string()
-      .max(30, 'Property key is too long.')
-      .required('Property key is required'),
-    value: yup.string()
-      .max(30, 'Property value is too long.')
-      .required('Property value is required'),
-    category: yup.string()
+    first_component: yup.string()
+      .required('Selecting a first component is required'),
+    second_component: yup.string()
+      .required('Selecting a second component is required'),
   });
   const [modalStyle] = useState(getModalStyle);
-  const [innerProperty, setInnerProperty] = useState(
-    genValuesFromSchema(modalProps.property, schema)
+  const [innerConnection, setInnerConnection] = useState(
+    genValuesFromSchema(modalProps.connection, schema)
   );
   const [errors, setErrors] = useState({
-    key: false,
-    value: false
+    first_component: false,
+    second_component: false
   });
   const [helpers, setHelpers] = useState({
-    key: '',
-    value: ''
+    first_component: '',
+    second_component: ''
   });
-
-  useEffect(() => {
-    setInnerProperty(genValuesFromSchema(modalProps.property, schema));
-  }, [modalProps.property]);
 
   const resetContext = () => {
     setErrors({
-      key: false,
-      value: false
+      first_component: false,
+      second_component: false
     });
     setHelpers({
-      key: '',
-      value: ''
+      first_component: '',
+      second_component: ''
     });
   };
+
+  useEffect(() => {
+    setInnerConnection(genValuesFromSchema(modalProps.connection, schema));
+  }, [modalProps.connection]);
 
   const handleClose = () => {
     setModalProps({
@@ -100,23 +111,31 @@ export default function InstancePropertiesModal({
     setErrors({ ...errors, [key]: false });
     setHelpers({ ...helpers, [key]: false });
 
-    if (key === 'category') {
-      setInnerProperty({
-        ...innerProperty,
-        category: (value.length ? (value.charAt(0).toUpperCase() + value.slice(1)) : value)
-      });
-    } else {
-      setInnerProperty({
-        ...innerProperty,
-        [key]: value
-      });
-    }
+    setInnerConnection({
+      ...innerConnection,
+      [key]: value
+    });
   };
 
   const validateAndSubmit = () => {
-    schema.validate(innerProperty, { abortEarly: false })
+    const checkPres = (first, second) => {
+      return (first === modalProps.currentComponentId || second === modalProps.currentComponentId);
+    };
+
+    schema.validate(innerConnection, { abortEarly: false })
       .then(() => {
-        actionModalHandler(modalProps.actionType, innerProperty);
+        if (checkPres(innerConnection.first_component, innerConnection.second_component)) {
+          actionModalHandler(modalProps.actionType, innerConnection);
+        } else {
+          setErrors({
+            first_component: true,
+            second_component: true
+          });
+          setHelpers({
+            first_component: 'At least one component must be the current instance.',
+            second_component: 'At least one component must be the current instance.'
+          });
+        }
       })
       .catch((err) => {
         let newErrors = {};
@@ -149,7 +168,7 @@ export default function InstancePropertiesModal({
     if (modalProps.actionType === 'new') {
       return (
         <Typography variant="h2" component="h3" gutterBottom>
-          {`${modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)} property instance`}
+          {`${modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)} connection`}
         </Typography>
       );
     }
@@ -158,7 +177,7 @@ export default function InstancePropertiesModal({
       <Box display="flex" className={classes.boxMargin}>
         <Box width="100%">
           <Typography variant="h2" gutterBottom>
-            {`${modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)} property instance`}
+            {`${modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)} connection`}
           </Typography>
         </Box>
         <Box flexShrink={0} className={classes.boxMargin}>
@@ -193,51 +212,51 @@ export default function InstancePropertiesModal({
         {getModalHeader()}
       </Typography>
       <form noValidate className={classes.form}>
-        <TextField
-          id="category-field"
-          label="Category"
-          placeholder="Enter a category name"
-          fullWidth
-          margin="normal"
-          disabled={modalProps.actionType === 'view'}
-          onChange={(e) => handleInputChange('category', e.target.value)}
-          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.property.category}
-          InputLabelProps={{
-            shrink: true,
-          }}
-        />
-        <TextField
-          id="key-field"
-          label="Key"
-          placeholder="Enter a property key"
-          fullWidth
-          margin="normal"
-          disabled={modalProps.actionType === 'view'}
-          onChange={(e) => handleInputChange('key', e.target.value)}
-          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.property.key}
-          InputLabelProps={{
-            shrink: true,
-          }}
-          error={errors.key}
-          helperText={helpers.key}
-        />
-        <TextField
-          id="value-field"
-          label="Value"
-          placeholder="Enter a property value"
-          fullWidth
-          margin="normal"
-          disabled={modalProps.actionType === 'view'}
-          onChange={(e) => handleInputChange('value', e.target.value)}
-          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.property.value}
-          InputLabelProps={{
-            shrink: true,
-          }}
-          multiline
-          error={errors.value}
-          helperText={helpers.value}
-          rows={4}
-        />
+        <FormControl className={classes.upperForm} fullWidth error={errors.first_component}>
+          <InputLabel id="first-component-label">First component</InputLabel>
+          <Select
+            labelId="first-component-select"
+            id="first-component-select"
+            onChange={(e) => { handleInputChange('first_component', e.target.value); }}
+            fullWidth
+            margin="normal"
+            label="First component"
+            disabled={modalProps.actionType === 'view'}
+            defaultValue={modalProps.actionType === 'new' ? modalProps.currentComponentId : modalProps.connection.first_component}
+          >
+            <MenuItem value="">
+              <em>Select a first component</em>
+            </MenuItem>
+            {
+              architectureComponents.map((c) => (
+                <MenuItem value={c.id}>{c.name}</MenuItem>
+              ))
+            }
+          </Select>
+          <FormHelperText>{helpers.first_component}</FormHelperText>
+        </FormControl>
+        <FormControl className={classes.bottomForm} fullWidth error={errors.second_component}>
+          <InputLabel id="second-component-label">Second component</InputLabel>
+          <Select
+            labelId="second-component-select"
+            id="second-component-select"
+            onChange={(e) => { handleInputChange('second_component', e.target.value); }}
+            fullWidth
+            margin="normal"
+            disabled={modalProps.actionType === 'view'}
+            defaultValue={modalProps.actionType === 'new' ? '' : modalProps.connection.second_component}
+          >
+            <MenuItem value="">
+              <em>Select a second component</em>
+            </MenuItem>
+            {
+              architectureComponents.map((c) => (
+                <MenuItem value={c.id}>{c.name}</MenuItem>
+              ))
+            }
+          </Select>
+          <FormHelperText>{helpers.second_component}</FormHelperText>
+        </FormControl>
         {modalProps.actionType !== 'view' ? (
           <Button
             color="primary"
@@ -259,7 +278,7 @@ export default function InstancePropertiesModal({
         open={modalProps.open}
         onClose={handleClose}
         aria-labelledby="title"
-        aria-describedby="property-modal"
+        aria-describedby="connection-modal"
       >
         {body}
       </Modal>
@@ -267,18 +286,20 @@ export default function InstancePropertiesModal({
   );
 }
 
-InstancePropertiesModal.propTypes = {
+ConnectionModal.propTypes = {
   modalProps: PropTypes.shape({
     open: PropTypes.bool.isRequired,
-    property: PropTypes.shape({
+    connection: PropTypes.shape({
       id: PropTypes.string,
-      key: PropTypes.string,
-      value: PropTypes.string,
-      category: PropTypes.string
+      first_component: PropTypes.string,
+      second_component: PropTypes.string,
     }),
-    actionType: PropTypes.string.isRequired
+    actionType: PropTypes.string.isRequired,
+    currentComponentId: PropTypes.string
   }).isRequired,
+  architectureComponents: PropTypes.array,
   setModalProps: PropTypes.func.isRequired,
   actionModalHandler: PropTypes.func.isRequired,
+
   doNotShowSwitch: PropTypes.bool
 };

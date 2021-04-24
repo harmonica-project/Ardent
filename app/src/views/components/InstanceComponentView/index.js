@@ -33,8 +33,8 @@ import AppBreadcrumb from 'src/components/AppBreadcrumb';
 import handleErrorRequest from 'src/utils/handleErrorRequest';
 import ComponentModal from 'src/modals/ComponentModal';
 import ConfirmModal from 'src/modals/ConfirmModal';
-import InstancePropertiesModal from 'src/modals/InstancePropertiesModal';
-import ConnectionsModal from 'src/modals/ConnectionsModal';
+import InstancePropertyModal from 'src/modals/InstancePropertyModal';
+import ConnectionModal from 'src/modals/ConnectionModal';
 import ConnectionsTable from './ConnectionsTable';
 import AccordionOverlay from './AccordionOverlay';
 
@@ -688,12 +688,12 @@ export default function InstanceComponentView() {
           actionModalHandler={componentActionModalHandler}
           baseComponents={baseComponents}
         />
-        <InstancePropertiesModal
+        <InstancePropertyModal
           modalProps={propertyModalProps}
           setModalProps={setPropertyModalProps}
           actionModalHandler={propertyActionModalHandler}
         />
-        <ConnectionsModal
+        <ConnectionModal
           modalProps={connectionModalProps}
           setModalProps={setConnectionModalProps}
           actionModalHandler={connectionActionModalHandler}

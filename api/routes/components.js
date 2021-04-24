@@ -5,8 +5,7 @@ const { parseDBResults } = require('../utils/helpers');
 
 router
   .get('/', authorizedOnly, (req, res) => {
-    db.getFullComponents().then(queryResult => {
-        const parsedResult = parseDBResults(queryResult);
+    db.getFullComponents().then(parsedResult => {
         if(parsedResult.success) res.status(200).send(parsedResult);
         else res.status(500).send(parsedResult);
     })

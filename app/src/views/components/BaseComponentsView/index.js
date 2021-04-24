@@ -14,6 +14,7 @@ import {
 } from 'src/requests/components';
 import ConfirmModal from 'src/modals/ConfirmModal';
 import BaseComponentModal from 'src/modals/BaseComponentModal';
+import BasePropertyModal from 'src/modals/BasePropertyModal';
 import BaseComponentInput from './BaseComponentsInput';
 import BaseComponentTable from './BaseComponentsTable';
 
@@ -50,6 +51,12 @@ export default function BaseComponentsView() {
   const [baseComponentModalProps, setBaseComponentModalProps] = useState({
     open: false,
     baseComponent: {},
+    actionType: ''
+  });
+
+  const [basePropertyModalProps, setBasePropertyModalProps] = useState({
+    open: false,
+    baseProperty: {},
     actionType: ''
   });
 
@@ -100,6 +107,15 @@ export default function BaseComponentsView() {
     setBaseComponents(newBaseComponents);
   };
 
+  const addStatsToBase = (newBaseComponents) => {
+    const nbInstances = newBaseComponents.reduce((acc, comp) => acc + comp.instances.length, 0);
+    newBaseComponents.forEach((bc) => {
+      bc.occurences = bc.instances.length;
+      bc.proportion = ((bc.instances.length / nbInstances) * 100).toFixed(2);
+    });
+    return newBaseComponents;
+  };
+
   const saveExistingBaseComponent = (newComponent) => {
     setOpen(true);
     saveExistingBaseComponentRequest(newComponent)
@@ -123,45 +139,12 @@ export default function BaseComponentsView() {
       .finally(() => { setOpen(false); });
   };
 
-  const formatToBaseComponent = (components) => {
-    const newBaseComponents = [];
-    const componentToEntry = {};
-    const nbInstances = components.length;
-    components.forEach((c) => {
-      if (componentToEntry[c.base_component_name] === undefined) {
-        componentToEntry[c.base_component_name] = newBaseComponents.length;
-        newBaseComponents.push({
-          id: c.base_component_id,
-          name: c.base_component_name,
-          base_description: c.base_description,
-          occurences: 0,
-          proportion: ((0 / nbInstances) * 100).toFixed(2),
-          instances: []
-        });
-      }
-      if (c.instance_component_id) {
-        const instance = {
-          architecture_id: c.architecture_id,
-          architecture_name: c.architecture_name,
-          paper_id: c.paper_id,
-          paper_name: c.paper_name,
-          instance_component_id: c.instance_component_id
-        };
-        const entry = newBaseComponents[componentToEntry[c.base_component_name]];
-        entry.instances.push(instance);
-        entry.occurences++;
-        entry.proportion = ((entry.occurences / nbInstances) * 100).toFixed(2);
-      }
-    });
-    return newBaseComponents;
-  };
-
   const fetchComponentData = async () => {
     try {
       const compRes = await getFullComponentsRequest();
 
       if (compRes.success) {
-        const newBaseComponents = formatToBaseComponent(compRes.result);
+        const newBaseComponents = addStatsToBase(compRes.result);
         setBaseComponents(newBaseComponents);
         setDisplayedComponents(newBaseComponents);
       }
@@ -248,6 +231,36 @@ export default function BaseComponentsView() {
     }
   };
 
+  const propertyActionHandler = (actionType, baseProperty) => {
+    switch (actionType) {
+      case 'delete':
+        setConfirmModalProps({
+          ...confirmModalProps,
+          open: true,
+          message: 'Warning: deleting this base property is definitive. Proceed?',
+          actionModalHandler: () => console.log('déso')
+        });
+        break;
+      case 'new':
+        setBasePropertyModalProps({
+          open: true,
+          actionType,
+          baseProperty: {}
+        });
+        break;
+      case 'edit':
+      case 'view':
+        setBasePropertyModalProps({
+          open: true,
+          actionType,
+          baseProperty
+        });
+        break;
+      default:
+        console.error('No action defined for this handler.');
+    }
+  };
+
   const baseComponentActionModalHandler = (actionType, newBaseComponent) => {
     switch (actionType) {
       case 'delete':
@@ -304,6 +317,7 @@ export default function BaseComponentsView() {
                 <BaseComponentTable
                   rows={displayedComponents}
                   componentActionHandler={componentActionHandler}
+                  propertyActionHandler={propertyActionHandler}
                 />
               </Box>
             </CardContent>
@@ -317,6 +331,11 @@ export default function BaseComponentsView() {
           modalProps={baseComponentModalProps}
           setModalProps={setBaseComponentModalProps}
           actionModalHandler={baseComponentActionModalHandler}
+        />
+        <BasePropertyModal
+          modalProps={basePropertyModalProps}
+          setModalProps={setBasePropertyModalProps}
+          actionModalHandler={() => console.log('yo')}
         />
         <ConfirmModal
           modalProps={confirmModalProps}
