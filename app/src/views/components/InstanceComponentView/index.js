@@ -119,6 +119,14 @@ export default function InstanceComponentView() {
         });
         if (baseRes.success) {
           newComponent = { ...newComponent, component_base_id: baseRes.componentId };
+          setBaseComponents([
+            ...baseComponents,
+            {
+              id: baseRes.componentId,
+              name: newComponent.name,
+              base_description: ''
+            }
+          ]);
         }
       }
 

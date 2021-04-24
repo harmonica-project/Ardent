@@ -315,6 +315,13 @@ const ArchitectureView = () => {
         const baseRes = await saveNewBaseComponentRequest(component);
         if (baseRes.success) {
           component = { ...component, component_base_id: baseRes.componentId };
+          setBaseComponents([
+            ...baseComponents,
+            {
+              ...component,
+              id: baseRes.componentId
+            }
+          ]);
         }
       }
 
@@ -362,6 +369,13 @@ const ArchitectureView = () => {
         const baseRes = await saveNewBaseComponentRequest(component);
         if (baseRes.success) {
           component = { ...component, component_base_id: baseRes.data.componentId };
+          setBaseComponents([
+            ...baseComponents,
+            {
+              ...component,
+              id: baseRes.componentId
+            }
+          ]);
         }
       }
 
