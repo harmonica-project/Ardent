@@ -31,6 +31,7 @@ const useStyles = makeStyles((theme) => ({
 export default function BaseComponentsView() {
   const classes = useStyles();
   const [baseComponents, setBaseComponents] = useState([]);
+  const [autocompleteValue, setAutocompleteValue] = useState('');
   const [open, setOpen] = useState(false);
   const [displayedComponents, setDisplayedComponents] = useState([]);
   const [messageSnackbarProps, setMessageSnackbarProps] = useState({
@@ -62,9 +63,13 @@ export default function BaseComponentsView() {
   };
 
   const handleAutocompleteChange = (value) => {
-    if (value.length) {
+    setAutocompleteValue(value);
+  };
+
+  const filterAutocomplete = () => {
+    if (autocompleteValue.length) {
       setDisplayedComponents(
-        baseComponents.filter((component) => component.name.includes(value))
+        baseComponents.filter((component) => component.name.includes(autocompleteValue))
       );
     } else {
       setDisplayedComponents(baseComponents);
@@ -122,9 +127,7 @@ export default function BaseComponentsView() {
     const newBaseComponents = [];
     const componentToEntry = {};
     const nbInstances = components.length;
-    console.log(components);
     components.forEach((c) => {
-      console.log(componentToEntry, c.base_component_name);
       if (componentToEntry[c.base_component_name] === undefined) {
         componentToEntry[c.base_component_name] = newBaseComponents.length;
         newBaseComponents.push({
@@ -149,7 +152,6 @@ export default function BaseComponentsView() {
         entry.occurences++;
         entry.proportion = ((entry.occurences / nbInstances) * 100).toFixed(2);
       }
-      console.log([...newBaseComponents]);
     });
     return newBaseComponents;
   };
@@ -270,6 +272,10 @@ export default function BaseComponentsView() {
   useEffect(() => {
     fetchComponentData();
   }, []);
+
+  useEffect(() => {
+    filterAutocomplete();
+  }, [baseComponents]);
 
   return (
     <Page title="Base components" className={classes.root}>
