@@ -218,18 +218,18 @@ function Row({
           </TableRow>
         </TableHead>
         <TableBody>
-          {row.properties.map((instance) => (
-            <TableRow key={instance.architecture_id}>
+          {row.properties.map((property) => (
+            <TableRow key={property.id}>
               <TableCell>
-                {instance.key}
+                {property.key}
               </TableCell>
               <TableCell>
-                {instance.category}
+                {property.category}
               </TableCell>
               <TableCell align="center">
                 <TableActionCell
                   actionHandler={propertyActionHandler}
-                  item={instance}
+                  item={{ ...property, component_base_id: row.id }}
                 />
               </TableCell>
             </TableRow>
@@ -285,12 +285,12 @@ function Row({
                           BASE PROPERTIES
                         </Typography>
                       </Box>
-                      <Box flexShrink={0}>
+                      <Box flexShrink={0} ml={3}>
                         <IconButton
                           style={{ color: '#263238', padding: 0 }}
                           aria-label="add property"
                           component="div"
-                          onClick={() => propertyActionHandler('new')}
+                          onClick={() => propertyActionHandler('new', { component_base_id: row.id })}
                         >
                           <AddCircleIcon />
                         </IconButton>

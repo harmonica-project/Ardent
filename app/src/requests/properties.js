@@ -42,3 +42,27 @@ export function deleteProperty(propertyId) {
       auth.handleResponse(error.response);
     });
 }
+
+export function deleteBaseProperty(propertyId) {
+  return axios.delete(`${API_URL}/properties/base/${propertyId}`, auth.getAuthHeaders())
+    .then((data) => auth.handleResponse(data))
+    .catch((error) => {
+      auth.handleResponse(error.response);
+    });
+}
+
+export function saveNewBaseProperty(property) {
+  return axios.post(`${API_URL}/properties/base`, property, auth.getAuthHeaders())
+    .then((data) => auth.handleResponse(data))
+    .catch((error) => {
+      auth.handleResponse(error.response);
+    });
+}
+
+export function saveExistingBaseProperty(property) {
+  return axios.put(`${API_URL}/properties/base`, property, auth.getAuthHeaders())
+    .then((data) => auth.handleResponse(data))
+    .catch((error) => {
+      auth.handleResponse(error.response);
+    });
+}

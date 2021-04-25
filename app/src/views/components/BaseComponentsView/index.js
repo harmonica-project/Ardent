@@ -10,8 +10,13 @@ import {
   getFullComponents as getFullComponentsRequest,
   deleteBaseComponent as deleteBaseComponentRequest,
   saveExistingBaseComponent as saveExistingBaseComponentRequest,
-  saveNewBaseComponent as saveNewBaseComponentRequest
+  saveNewBaseComponent as saveNewBaseComponentRequest,
 } from 'src/requests/components';
+import {
+  saveNewBaseProperty as saveNewBasePropertyRequest,
+  saveExistingBaseProperty as saveExistingBasePropertyRequest,
+  deleteBaseProperty as deleteBasePropertyRequest
+} from 'src/requests/properties';
 import ConfirmModal from 'src/modals/ConfirmModal';
 import BaseComponentModal from 'src/modals/BaseComponentModal';
 import BasePropertyModal from 'src/modals/BasePropertyModal';
@@ -178,6 +183,52 @@ export default function BaseComponentsView() {
       .finally(() => { setOpen(false); });
   };
 
+  const saveNewBaseProperty = (newProperty) => {
+    setOpen(true);
+    saveNewBasePropertyRequest(newProperty)
+      .then((data) => {
+        if (data.success) {
+          displayMsg('Base property successfully added.');
+          fetchComponentData();
+          if (basePropertyModalProps.open) {
+            setBasePropertyModalProps({
+              ...basePropertyModalProps,
+              open: false,
+              baseProperty: {},
+              actionType: ''
+            });
+          }
+        }
+      })
+      .catch((err) => {
+        handleErrorRequest(err, displayMsg);
+      })
+      .finally(() => { setOpen(false); });
+  };
+
+  const saveExistingBaseProperty = (newProperty) => {
+    setOpen(true);
+    saveExistingBasePropertyRequest(newProperty)
+      .then((data) => {
+        if (data.success) {
+          displayMsg('Base property successfully modified.');
+          fetchComponentData();
+          if (basePropertyModalProps.open) {
+            setBasePropertyModalProps({
+              ...basePropertyModalProps,
+              open: false,
+              baseProperty: {},
+              actionType: ''
+            });
+          }
+        }
+      })
+      .catch((err) => {
+        handleErrorRequest(err, displayMsg);
+      })
+      .finally(() => { setOpen(false); });
+  };
+
   const deleteBaseComponent = (componentId) => {
     setOpen(true);
     deleteBaseComponentRequest(componentId)
@@ -185,6 +236,29 @@ export default function BaseComponentsView() {
         if (data.success) {
           displayMsg('Base component successfully deleted.');
           removeBaseComponentFromState(componentId);
+          if (baseComponentModalProps.open) {
+            setBaseComponentModalProps({
+              ...baseComponentModalProps,
+              open: false,
+              baseComponent: {},
+              actionType: ''
+            });
+          }
+        }
+      })
+      .catch((err) => {
+        handleErrorRequest(err, displayMsg);
+      })
+      .finally(() => { setOpen(false); });
+  };
+
+  const deleteBaseProperty = (propertyId) => {
+    setOpen(true);
+    deleteBasePropertyRequest(propertyId)
+      .then((data) => {
+        if (data.success) {
+          displayMsg('Base property successfully deleted.');
+          fetchComponentData();
           if (baseComponentModalProps.open) {
             setBaseComponentModalProps({
               ...baseComponentModalProps,
@@ -238,16 +312,10 @@ export default function BaseComponentsView() {
           ...confirmModalProps,
           open: true,
           message: 'Warning: deleting this base property is definitive. Proceed?',
-          actionModalHandler: () => console.log('déso')
+          actionModalHandler: () => deleteBaseProperty(baseProperty.id)
         });
         break;
       case 'new':
-        setBasePropertyModalProps({
-          open: true,
-          actionType,
-          baseProperty: {}
-        });
-        break;
       case 'edit':
       case 'view':
         setBasePropertyModalProps({
@@ -276,6 +344,27 @@ export default function BaseComponentsView() {
         break;
       case 'edit':
         saveExistingBaseComponent(newBaseComponent);
+        break;
+      default:
+        console.error('No action defined for this handler.');
+    }
+  };
+
+  const basePropertyActionModalHandler = (actionType, newBaseProperty) => {
+    switch (actionType) {
+      case 'delete':
+        setConfirmModalProps({
+          ...confirmModalProps,
+          open: true,
+          message: 'Warning: deleting this base component will also delete existing component instances and associated properties. Proceed?',
+          actionModalHandler: () => deleteBaseProperty(newBaseProperty.id)
+        });
+        break;
+      case 'new':
+        saveNewBaseProperty(newBaseProperty);
+        break;
+      case 'edit':
+        saveExistingBaseProperty(newBaseProperty);
         break;
       default:
         console.error('No action defined for this handler.');
@@ -335,7 +424,7 @@ export default function BaseComponentsView() {
         <BasePropertyModal
           modalProps={basePropertyModalProps}
           setModalProps={setBasePropertyModalProps}
-          actionModalHandler={() => console.log('yo')}
+          actionModalHandler={basePropertyActionModalHandler}
         />
         <ConfirmModal
           modalProps={confirmModalProps}

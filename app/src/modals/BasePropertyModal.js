@@ -55,7 +55,8 @@ export default function BasePropertyModal({
     key: yup.string()
       .max(30, 'Property key is too long.')
       .required('Property key is required'),
-    category: yup.string()
+    category: yup.string(),
+    component_base_id: yup.string()
   });
   const [modalStyle] = useState(getModalStyle);
   const [innerProperty, setInnerProperty] = useState(
@@ -111,6 +112,7 @@ export default function BasePropertyModal({
   };
 
   const validateAndSubmit = () => {
+    console.log(innerProperty);
     schema.validate(innerProperty, { abortEarly: false })
       .then(() => {
         actionModalHandler(modalProps.actionType, innerProperty);

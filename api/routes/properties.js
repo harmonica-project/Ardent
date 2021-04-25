@@ -10,14 +10,26 @@ router
         else res.status(500).send(parsedResult);
     })
   })
+  .post('/base', authorizedOnly, (req, res) => {
+    db.storeBaseProperty(req.body).then((parsedResult) => {
+        if(parsedResult.success) res.status(200).send(parsedResult);
+        else res.status(500).send(parsedResult);
+    })
+  })
   .put('/', authorizedOnly, (req, res) => {
     db.modifyProperty(req.body).then((parsedResult) => {
         if(parsedResult.success) res.status(200).send(parsedResult);
         else res.status(500).send(parsedResult);
     })
   })
-  .delete('/:id', authorizedOnly, (req, res) => {
-    db.deleteProperty(req.params.id).then((parsedResult) => {
+  .put('/base', authorizedOnly, (req, res) => {
+    db.modifyBaseProperty(req.body).then((parsedResult) => {
+        if(parsedResult.success) res.status(200).send(parsedResult);
+        else res.status(500).send(parsedResult);
+    })
+  })
+  .delete('/base/:id', authorizedOnly, (req, res) => {
+    db.deleteBaseProperty(req.params.id).then((parsedResult) => {
         if(parsedResult.success) res.status(200).send(parsedResult);
         else res.status(500).send(parsedResult);
     })
@@ -41,6 +53,12 @@ router
     var pkey = req.params.pkey;
     db.getPropertyValues(pkey).then((queryResult) => {
         const parsedResult = parseDBResults(queryResult);
+        if(parsedResult.success) res.status(200).send(parsedResult);
+        else res.status(500).send(parsedResult);
+    })
+  })
+  .delete('/:id', authorizedOnly, (req, res) => {
+    db.deleteProperty(req.params.id).then((parsedResult) => {
         if(parsedResult.success) res.status(200).send(parsedResult);
         else res.status(500).send(parsedResult);
     })
