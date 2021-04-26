@@ -189,7 +189,15 @@ export default function BaseComponentsView() {
       .then((data) => {
         if (data.success) {
           displayMsg('Base property successfully added.');
-          fetchComponentData();
+          const newBaseComponents = [...baseComponents];
+          newBaseComponents.forEach((b) => {
+            if (b.id === newProperty.component_base_id) {
+              b.properties.push({
+                ...newProperty,
+                id: data.propertyId
+              });
+            }
+          });
           if (basePropertyModalProps.open) {
             setBasePropertyModalProps({
               ...basePropertyModalProps,
@@ -206,13 +214,31 @@ export default function BaseComponentsView() {
       .finally(() => { setOpen(false); });
   };
 
+  const modifyPropertyFromState = (property) => {
+    console.log(property);
+    const newBaseComponents = [...baseComponents];
+    newBaseComponents.forEach((c) => {
+      console.log(c);
+      if (property.component_base_id === c.id) {
+        c.properties.forEach((p) => {
+          console.log(p);
+          if (p.id === property.id) {
+            p.key = property.key;
+            p.category = property.category;
+          }
+        });
+      }
+    });
+    setBaseComponents(newBaseComponents);
+  };
+
   const saveExistingBaseProperty = (newProperty) => {
     setOpen(true);
     saveExistingBasePropertyRequest(newProperty)
       .then((data) => {
         if (data.success) {
           displayMsg('Base property successfully modified.');
-          fetchComponentData();
+          modifyPropertyFromState(newProperty);
           if (basePropertyModalProps.open) {
             setBasePropertyModalProps({
               ...basePropertyModalProps,
@@ -252,18 +278,32 @@ export default function BaseComponentsView() {
       .finally(() => { setOpen(false); });
   };
 
-  const deleteBaseProperty = (propertyId) => {
+  const removePropertyFromState = (propertyId, componentId) => {
+    const newBaseComponents = [...baseComponents];
+    newBaseComponents.forEach((c) => {
+      if (componentId === c.id) {
+        c.properties.forEach((p, i) => {
+          if (p.id === propertyId) {
+            c.properties.splice(i, 1);
+          }
+        });
+      }
+    });
+    setBaseComponents(newBaseComponents);
+  };
+
+  const deleteBaseProperty = (propertyId, componentId) => {
     setOpen(true);
     deleteBasePropertyRequest(propertyId)
       .then((data) => {
         if (data.success) {
           displayMsg('Base property successfully deleted.');
-          fetchComponentData();
-          if (baseComponentModalProps.open) {
-            setBaseComponentModalProps({
-              ...baseComponentModalProps,
+          removePropertyFromState(propertyId, componentId);
+          if (basePropertyModalProps.open) {
+            setBasePropertyModalProps({
+              ...basePropertyModalProps,
               open: false,
-              baseComponent: {},
+              baseProperty: {},
               actionType: ''
             });
           }
@@ -312,7 +352,10 @@ export default function BaseComponentsView() {
           ...confirmModalProps,
           open: true,
           message: 'Warning: deleting this base property is definitive. Proceed?',
-          actionModalHandler: () => deleteBaseProperty(baseProperty.id)
+          actionModalHandler: () => deleteBaseProperty(
+            baseProperty.id,
+            baseProperty.component_base_id
+          )
         });
         break;
       case 'new':
@@ -357,7 +400,10 @@ export default function BaseComponentsView() {
           ...confirmModalProps,
           open: true,
           message: 'Warning: deleting this base component will also delete existing component instances and associated properties. Proceed?',
-          actionModalHandler: () => deleteBaseProperty(newBaseProperty.id)
+          actionModalHandler: () => deleteBaseProperty(
+            newBaseProperty.id,
+            newBaseProperty.component_base_id
+          )
         });
         break;
       case 'new':

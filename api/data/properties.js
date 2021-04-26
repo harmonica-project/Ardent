@@ -87,7 +87,6 @@ module.exports = {
         }
     },
     storeBaseProperty: async property => {
-        console.log(property);
         try {
             const propertyId = uuidv4();
             const foundProperties = await client.query("SELECT * FROM properties_base WHERE key = $1 AND component_base_id = $2", [property.key, property.component_base_id]);

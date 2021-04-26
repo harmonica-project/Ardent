@@ -112,7 +112,6 @@ export default function BasePropertyModal({
   };
 
   const validateAndSubmit = () => {
-    console.log(innerProperty);
     schema.validate(innerProperty, { abortEarly: false })
       .then(() => {
         actionModalHandler(modalProps.actionType, innerProperty);
@@ -166,7 +165,7 @@ export default function BasePropertyModal({
             style={{ backgroundColor: '#f50057', color: 'white' }}
             className={classes.headerButton}
             startIcon={<DeleteIcon />}
-            onClick={() => actionModalHandler('delete')}
+            onClick={() => actionModalHandler('delete', innerProperty)}
           >
             Delete
           </Button>
