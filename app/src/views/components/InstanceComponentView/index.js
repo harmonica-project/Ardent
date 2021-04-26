@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useSnackbar } from 'notistack';
 import {
   Container, Box, makeStyles, Button, Typography, Card, CardContent, Grid
 } from '@material-ui/core';
 import Page from 'src/components/Page';
-import MessageSnackbar from 'src/components/MessageSnackbar';
 import {
   Delete as DeleteIcon
 } from '@material-ui/icons/';
@@ -30,7 +30,6 @@ import {
   modifyConnection as modifyConnectionRequest
 } from 'src/requests/connections';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
-import handleErrorRequest from 'src/utils/handleErrorRequest';
 import ComponentModal from 'src/modals/ComponentModal';
 import ConfirmModal from 'src/modals/ConfirmModal';
 import InstancePropertyModal from 'src/modals/InstancePropertyModal';
@@ -57,6 +56,7 @@ const useStyles = makeStyles((theme) => ({
 export default function InstanceComponentView() {
   const classes = useStyles();
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
   const { id } = useParams();
   const [component, setComponent] = useState({});
   const [baseComponents, setBaseComponents] = useState([]);
@@ -66,13 +66,6 @@ export default function InstanceComponentView() {
     architectureId: '',
     componentId: '',
     paperId: ''
-  });
-
-  const [messageSnackbarProps, setMessageSnackbarProps] = useState({
-    open: false,
-    message: '',
-    duration: 0,
-    severity: 'information'
   });
 
   const [confirmModalProps, setConfirmModalProps] = useState({
@@ -99,15 +92,6 @@ export default function InstanceComponentView() {
     currentComponentId: '',
     actionType: ''
   });
-
-  const displayMsg = (message, severity = 'success', duration = 6000) => {
-    setMessageSnackbarProps({
-      open: true,
-      severity,
-      duration,
-      message
-    });
-  };
 
   const saveExistingComponent = async (newComponent) => {
     setOpen(true);
@@ -138,10 +122,10 @@ export default function InstanceComponentView() {
           component: newComponent,
           open: false,
         });
-        displayMsg('Component instance successfully modified.');
+        enqueueSnackbar('Component instance successfully modified', { variant: 'success' });
       }
     } catch (error) {
-      handleErrorRequest(error, displayMsg);
+      enqueueSnackbar(error, 'error');
     } finally {
       setOpen(false);
     }
@@ -152,11 +136,11 @@ export default function InstanceComponentView() {
     deleteComponentInstanceRequest(componentId)
       .then((data) => {
         if (data.success) {
-          displayMsg('Component successfully deleted.');
+          enqueueSnackbar('Component successfully deleted.', { variant: 'success' });
           navigate(`/app/architecture/${component.architecture_id}`);
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg))
+      .catch((error) => enqueueSnackbar(error, 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -165,7 +149,7 @@ export default function InstanceComponentView() {
     savePropertyRequest({ ...newProperty, component_id: component.id })
       .then((data) => {
         if (data.success) {
-          displayMsg('Property successfully added.');
+          enqueueSnackbar('Property successfully added.', { variant: 'success' });
           setComponent({
             ...component,
             properties: [...component.properties, {
@@ -180,7 +164,7 @@ export default function InstanceComponentView() {
           });
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg))
+      .catch((error) => enqueueSnackbar(error, 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -257,7 +241,7 @@ export default function InstanceComponentView() {
     modifyPropertyRequest(newProperty)
       .then((data) => {
         if (data.success) {
-          displayMsg('Property successfully modified.');
+          enqueueSnackbar('Property successfully modified.', { variant: 'success' });
           modifyPropertyFromState(newProperty);
           setPropertyModalProps({
             ...propertyModalProps,
@@ -266,7 +250,7 @@ export default function InstanceComponentView() {
           });
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg))
+      .catch((error) => enqueueSnackbar(error, 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -275,7 +259,7 @@ export default function InstanceComponentView() {
     modifyConnectionRequest(newConnection)
       .then((data) => {
         if (data.success) {
-          displayMsg('Connection successfully modified.');
+          enqueueSnackbar('Connection successfully modified.', { variant: 'success' });
           modifyConnectionFromState(newConnection);
           setConnectionModalProps({
             ...connectionModalProps,
@@ -284,7 +268,7 @@ export default function InstanceComponentView() {
           });
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg))
+      .catch((error) => enqueueSnackbar(error, 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -293,7 +277,7 @@ export default function InstanceComponentView() {
     deletePropertyRequest(propertyId)
       .then((data) => {
         if (data.success) {
-          displayMsg('Property successfully deleted.');
+          enqueueSnackbar('Property successfully deleted.', { variant: 'success' });
           removePropertyFromState(propertyId);
           setPropertyModalProps({
             ...propertyModalProps,
@@ -302,7 +286,7 @@ export default function InstanceComponentView() {
           });
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg))
+      .catch((error) => enqueueSnackbar(error, 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -311,7 +295,7 @@ export default function InstanceComponentView() {
     deleteConnectionRequest(connectionId)
       .then((data) => {
         if (data.success) {
-          displayMsg('Connection successfully deleted.');
+          enqueueSnackbar('Connection successfully deleted.', { variant: 'success' });
           removeConnectionFromState(connectionId);
           setConnectionModalProps({
             ...connectionModalProps,
@@ -320,7 +304,7 @@ export default function InstanceComponentView() {
           });
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg))
+      .catch((error) => enqueueSnackbar(error, 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -400,7 +384,7 @@ export default function InstanceComponentView() {
     saveConnectionRequest({ ...newConnection, component_id: component.id })
       .then((data) => {
         if (data.success) {
-          displayMsg('Connection successfully added.');
+          enqueueSnackbar('Connection successfully added.', { variant: 'success' });
           setComponent({
             ...component,
             connections: [...component.connections, {
@@ -415,7 +399,7 @@ export default function InstanceComponentView() {
           });
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg))
+      .catch((error) => enqueueSnackbar(error, 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -547,7 +531,7 @@ export default function InstanceComponentView() {
         setComponent(compRes.result);
       }
     } catch (error) {
-      handleErrorRequest(error, displayMsg);
+      enqueueSnackbar(error, 'error');
     }
   };
 
@@ -558,7 +542,7 @@ export default function InstanceComponentView() {
         setBaseComponents(data.result);
       }
     } catch (error) {
-      handleErrorRequest(error, displayMsg);
+      enqueueSnackbar(error, 'error');
     }
   };
 
@@ -678,10 +662,6 @@ export default function InstanceComponentView() {
               )}
           </Grid>
         </Grid>
-        <MessageSnackbar
-          messageSnackbarProps={messageSnackbarProps}
-          setMessageSnackbarProps={setMessageSnackbarProps}
-        />
         <ComponentModal
           modalProps={componentModalProps}
           setModalProps={setComponentModalProps}

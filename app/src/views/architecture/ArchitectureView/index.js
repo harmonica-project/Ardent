@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSnackbar } from 'notistack';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   makeStyles,
@@ -25,8 +26,6 @@ import {
   saveNewBaseComponent as saveNewBaseComponentRequest,
   getBaseComponents as getBaseComponentsRequest
 } from 'src/requests/components';
-import MessageSnackbar from 'src/components/MessageSnackbar';
-import handleErrorRequest from 'src/utils/handleErrorRequest';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 import ComponentModal from 'src/modals/ComponentModal';
@@ -54,6 +53,7 @@ const ArchitectureView = () => {
   const classes = useStyles();
   const { id } = useParams();
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
 
   const [architecture, setArchitecture] = useState({ components: [] });
   const [baseComponents, setBaseComponents] = useState([]);
@@ -78,22 +78,6 @@ const ArchitectureView = () => {
     actionType: ''
   });
 
-  const [messageSnackbarProps, setMessageSnackbarProps] = useState({
-    open: false,
-    message: '',
-    duration: 0,
-    severity: 'information'
-  });
-
-  const displayMsg = (message, severity = 'success', duration = 6000) => {
-    setMessageSnackbarProps({
-      open: true,
-      severity,
-      duration,
-      message
-    });
-  };
-
   const getArchitecture = async () => {
     try {
       const data = await getArchitectureRequest(id);
@@ -105,7 +89,7 @@ const ArchitectureView = () => {
         });
       }
     } catch (error) {
-      handleErrorRequest(error, displayMsg);
+      enqueueSnackbar(error, { variant: 'error' });
     }
   };
 
@@ -116,7 +100,7 @@ const ArchitectureView = () => {
         setBaseComponents(data.result);
       }
     } catch (error) {
-      handleErrorRequest(error, displayMsg);
+      enqueueSnackbar(error, { variant: 'error' });
     }
   };
 
@@ -139,10 +123,10 @@ const ArchitectureView = () => {
             actionType: ''
           });
           setArchitecture(newArchitecture);
-          displayMsg('Architecture successfully modified.');
+          enqueueSnackbar('Architecture successfully modified.', { variant: 'success' });
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg))
+      .catch((error) => enqueueSnackbar(error, { variant: 'error' }))
       .finally(() => setOpen(false));
   };
 
@@ -151,11 +135,11 @@ const ArchitectureView = () => {
     deleteArchitectureRequest(architectureId)
       .then((data) => {
         if (data.success) {
-          displayMsg('Architecture successfully deleted.');
+          enqueueSnackbar('Architecture successfully deleted.', { variant: 'success' });
           navigate('/app/papers');
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg))
+      .catch((error) => enqueueSnackbar(error, { variant: 'error' }))
       .finally(() => setOpen(false));
   };
 
@@ -182,10 +166,10 @@ const ArchitectureView = () => {
       .then((data) => {
         if (data.success) {
           removeComponentFromState(componentId);
-          displayMsg('Component successfully deleted.');
+          enqueueSnackbar('Component successfully deleted.', { variant: 'success' });
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg))
+      .catch((error) => enqueueSnackbar(error, { variant: 'error' }))
       .finally(() => setOpen(false));
   };
 
@@ -340,10 +324,10 @@ const ArchitectureView = () => {
           component: { architecture_id: id },
           open: false,
         });
-        displayMsg('Component instance successfully added.');
+        enqueueSnackbar('Component instance successfully added.', { variant: 'success' });
       }
     } catch (error) {
-      handleErrorRequest(error, displayMsg);
+      enqueueSnackbar(error, { variant: 'error' });
     } finally {
       setOpen(false);
     }
@@ -387,10 +371,10 @@ const ArchitectureView = () => {
           component: { architecture_id: id },
           open: false,
         });
-        displayMsg('Component instance successfully modified.');
+        enqueueSnackbar('Component instance successfully modified.', { variant: 'success' });
       }
     } catch (error) {
-      handleErrorRequest(error, displayMsg);
+      enqueueSnackbar(error, { variant: 'error' });
     } finally {
       setOpen(false);
     }
@@ -475,10 +459,6 @@ const ArchitectureView = () => {
             )
         }
       </Container>
-      <MessageSnackbar
-        messageSnackbarProps={messageSnackbarProps}
-        setMessageSnackbarProps={setMessageSnackbarProps}
-      />
       <ArchitectureModal
         modalProps={architectureModalProps}
         setModalProps={setArchitectureModalProps}

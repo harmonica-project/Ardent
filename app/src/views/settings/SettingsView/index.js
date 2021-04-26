@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useSnackbar } from 'notistack';
 import {
   Box,
   Container,
   makeStyles
 } from '@material-ui/core';
-import handleErrorRequest from 'src/utils/handleErrorRequest';
 import Page from 'src/components/Page';
-import MessageSnackbar from 'src/components/MessageSnackbar';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 import authenticationService from 'src/requests/authentication';
 import { setUser as setUserRequest, setNewPassword as setNewPasswordRequest } from 'src/requests/users';
@@ -25,6 +24,7 @@ const useStyles = makeStyles((theme) => ({
 
 const SettingsView = () => {
   const classes = useStyles();
+  const { enqueueSnackbar } = useSnackbar();
   const [user, setUser] = useState({});
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState({
@@ -32,34 +32,18 @@ const SettingsView = () => {
     confirm: ''
   });
 
-  const [messageSnackbarProps, setMessageSnackbarProps] = useState({
-    open: false,
-    message: '',
-    duration: 0,
-    severity: 'information'
-  });
-
-  const displayMsg = (message, severity = 'success', duration = 6000) => {
-    setMessageSnackbarProps({
-      open: true,
-      severity,
-      duration,
-      message
-    });
-  };
-
   const actionUserHandler = async () => {
     setOpen(true);
     try {
       const res = await setUserRequest(user);
       if (res) {
-        displayMsg('Your profile has successfully been updated!');
+        enqueueSnackbar('Your profile has successfully been updated!', { variant: 'success' });
         authenticationService.updateUser(user);
       } else {
-        handleErrorRequest('Request failed.', displayMsg);
+        enqueueSnackbar('Request failed.', { variant: 'error' });
       }
     } catch (error) {
-      handleErrorRequest(`Error: ${error}`, displayMsg);
+      enqueueSnackbar(`Error: ${error}`, { variant: 'error' });
     } finally {
       setOpen(false);
     }
@@ -74,15 +58,15 @@ const SettingsView = () => {
           password: password.password
         });
         if (res) {
-          displayMsg('Your password has successfully been updated!');
+          enqueueSnackbar('Your password has successfully been updated!', { variant: 'success' });
         } else {
-          handleErrorRequest('Request failed.', displayMsg);
+          enqueueSnackbar('Request failed.', { variant: 'error' });
         }
       } else {
-        displayMsg('Password do not match.', 'error');
+        enqueueSnackbar('Password do not match.', { variant: 'error' });
       }
     } catch (error) {
-      handleErrorRequest(`Error: ${error}`, displayMsg);
+      enqueueSnackbar(`Error: ${error}`, { variant: 'error' });
     } finally {
       setOpen(false);
     }
@@ -125,10 +109,6 @@ const SettingsView = () => {
         )
           : <div />}
       </Container>
-      <MessageSnackbar
-        messageSnackbarProps={messageSnackbarProps}
-        setMessageSnackbarProps={setMessageSnackbarProps}
-      />
       <LoadingOverlay open={open} />
     </Page>
   );

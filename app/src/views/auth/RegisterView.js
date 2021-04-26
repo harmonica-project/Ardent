@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSnackbar } from 'notistack';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
@@ -13,7 +14,6 @@ import {
 } from '@material-ui/core';
 import Page from 'src/components/Page';
 import { createUser as createUserRequest } from 'src/requests/users';
-import MessageSnackbar from 'src/components/MessageSnackbar';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 
 const useStyles = makeStyles((theme) => ({
@@ -28,23 +28,9 @@ const useStyles = makeStyles((theme) => ({
 const RegisterView = () => {
   const classes = useStyles();
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
 
   const [open, setOpen] = useState(false);
-  const [messageSnackbarProps, setMessageSnackbarProps] = useState({
-    open: false,
-    message: '',
-    duration: 0,
-    severity: 'information'
-  });
-
-  const displayMsg = (message, severity = 'success', duration = 6000) => {
-    setMessageSnackbarProps({
-      open: true,
-      severity,
-      duration,
-      message
-    });
-  };
 
   return (
     <Page
@@ -91,9 +77,9 @@ const RegisterView = () => {
               })
                 .then((data) => {
                   if (data.success) navigate('/login');
-                  else displayMsg('Registration failed. Check that every field is filled, or check that your invite token is valid.', 'error');
+                  else enqueueSnackbar('Registration failed. Check that every field is filled, or check that your invite token is valid.', { variant: 'error' });
                 })
-                .catch(() => displayMsg('Registration failed. Check that every field is filled, or check that your invite token is valid.', 'error'))
+                .catch(() => enqueueSnackbar('Registration failed. Check that every field is filled, or check that your invite token is valid.', { variant: 'error' }))
                 .finally(() => setOpen(false));
             }}
           >
@@ -225,10 +211,6 @@ const RegisterView = () => {
           </Formik>
         </Container>
       </Box>
-      <MessageSnackbar
-        messageSnackbarProps={messageSnackbarProps}
-        setMessageSnackbarProps={setMessageSnackbarProps}
-      />
       <LoadingOverlay open={open} />
     </Page>
   );

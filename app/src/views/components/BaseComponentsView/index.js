@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useSnackbar } from 'notistack';
 import {
   Container, Box, Card, CardContent, makeStyles, Button
 } from '@material-ui/core';
 import Page from 'src/components/Page';
-import MessageSnackbar from 'src/components/MessageSnackbar';
-import handleErrorRequest from 'src/utils/handleErrorRequest';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 import {
   getFullComponents as getFullComponentsRequest,
@@ -13,6 +12,7 @@ import {
   saveNewBaseComponent as saveNewBaseComponentRequest,
 } from 'src/requests/components';
 import {
+  saveProperty as savePropertyRequest,
   saveNewBaseProperty as saveNewBasePropertyRequest,
   saveExistingBaseProperty as saveExistingBasePropertyRequest,
   deleteBaseProperty as deleteBasePropertyRequest
@@ -36,16 +36,11 @@ const useStyles = makeStyles((theme) => ({
 
 export default function BaseComponentsView() {
   const classes = useStyles();
+  const { enqueueSnackbar } = useSnackbar();
   const [baseComponents, setBaseComponents] = useState([]);
   const [autocompleteValue, setAutocompleteValue] = useState('');
   const [open, setOpen] = useState(false);
   const [displayedComponents, setDisplayedComponents] = useState([]);
-  const [messageSnackbarProps, setMessageSnackbarProps] = useState({
-    open: false,
-    message: '',
-    duration: 0,
-    severity: 'information'
-  });
 
   const [confirmModalProps, setConfirmModalProps] = useState({
     open: false,
@@ -64,15 +59,6 @@ export default function BaseComponentsView() {
     baseProperty: {},
     actionType: ''
   });
-
-  const displayMsg = (message, severity = 'success', duration = 6000) => {
-    setMessageSnackbarProps({
-      open: true,
-      severity,
-      duration,
-      message
-    });
-  };
 
   const handleAutocompleteChange = (value) => {
     setAutocompleteValue(value);
@@ -126,7 +112,7 @@ export default function BaseComponentsView() {
     saveExistingBaseComponentRequest(newComponent)
       .then((data) => {
         if (data.success) {
-          displayMsg('Base component successfully modified.');
+          enqueueSnackbar('Base component successfully modified.', { variant: 'success' });
           modifyBaseComponentState(newComponent);
           if (baseComponentModalProps.open) {
             setBaseComponentModalProps({
@@ -139,7 +125,7 @@ export default function BaseComponentsView() {
         }
       })
       .catch((err) => {
-        handleErrorRequest(err, displayMsg);
+        enqueueSnackbar(err, { variant: 'error' });
       })
       .finally(() => { setOpen(false); });
   };
@@ -153,8 +139,8 @@ export default function BaseComponentsView() {
         setBaseComponents(newBaseComponents);
         setDisplayedComponents(newBaseComponents);
       }
-    } catch (error) {
-      handleErrorRequest(error, displayMsg);
+    } catch (err) {
+      enqueueSnackbar(err, { variant: 'error' });
     } finally {
       setOpen(false);
     }
@@ -165,7 +151,7 @@ export default function BaseComponentsView() {
     saveNewBaseComponentRequest(newComponent)
       .then((data) => {
         if (data.success) {
-          displayMsg('Base component successfully added.');
+          enqueueSnackbar('Base component successfully added.', { variant: 'success' });
           fetchComponentData();
           if (baseComponentModalProps.open) {
             setBaseComponentModalProps({
@@ -178,17 +164,16 @@ export default function BaseComponentsView() {
         }
       })
       .catch((err) => {
-        handleErrorRequest(err, displayMsg);
+        enqueueSnackbar(err, { variant: 'error' });
       })
       .finally(() => { setOpen(false); });
   };
 
   const saveNewBaseProperty = (newProperty) => {
-    setOpen(true);
-    saveNewBasePropertyRequest(newProperty)
+    return saveNewBasePropertyRequest(newProperty)
       .then((data) => {
         if (data.success) {
-          displayMsg('Base property successfully added.');
+          enqueueSnackbar('Base property successfully added.', { variant: 'success' });
           const newBaseComponents = [...baseComponents];
           newBaseComponents.forEach((b) => {
             if (b.id === newProperty.component_base_id) {
@@ -209,9 +194,8 @@ export default function BaseComponentsView() {
         }
       })
       .catch((err) => {
-        handleErrorRequest(err, displayMsg);
-      })
-      .finally(() => { setOpen(false); });
+        enqueueSnackbar(err, { variant: 'error' });
+      });
   };
 
   const modifyPropertyFromState = (property) => {
@@ -237,7 +221,7 @@ export default function BaseComponentsView() {
     saveExistingBasePropertyRequest(newProperty)
       .then((data) => {
         if (data.success) {
-          displayMsg('Base property successfully modified.');
+          enqueueSnackbar('Base property successfully modified.', { variant: 'success' });
           modifyPropertyFromState(newProperty);
           if (basePropertyModalProps.open) {
             setBasePropertyModalProps({
@@ -250,7 +234,7 @@ export default function BaseComponentsView() {
         }
       })
       .catch((err) => {
-        handleErrorRequest(err, displayMsg);
+        enqueueSnackbar(err, { variant: 'error' });
       })
       .finally(() => { setOpen(false); });
   };
@@ -260,7 +244,7 @@ export default function BaseComponentsView() {
     deleteBaseComponentRequest(componentId)
       .then((data) => {
         if (data.success) {
-          displayMsg('Base component successfully deleted.');
+          enqueueSnackbar('Base component successfully deleted.', { variant: 'success' });
           removeBaseComponentFromState(componentId);
           if (baseComponentModalProps.open) {
             setBaseComponentModalProps({
@@ -273,7 +257,7 @@ export default function BaseComponentsView() {
         }
       })
       .catch((err) => {
-        handleErrorRequest(err, displayMsg);
+        enqueueSnackbar(err, { variant: 'error' });
       })
       .finally(() => { setOpen(false); });
   };
@@ -297,7 +281,7 @@ export default function BaseComponentsView() {
     deleteBasePropertyRequest(propertyId)
       .then((data) => {
         if (data.success) {
-          displayMsg('Base property successfully deleted.');
+          enqueueSnackbar('Base property successfully deleted.', { variant: 'success' });
           removePropertyFromState(propertyId, componentId);
           if (basePropertyModalProps.open) {
             setBasePropertyModalProps({
@@ -310,7 +294,7 @@ export default function BaseComponentsView() {
         }
       })
       .catch((err) => {
-        handleErrorRequest(err, displayMsg);
+        enqueueSnackbar(err, { variant: 'error' });
       })
       .finally(() => { setOpen(false); });
   };
@@ -393,7 +377,42 @@ export default function BaseComponentsView() {
     }
   };
 
-  const basePropertyActionModalHandler = (actionType, newBaseProperty) => {
+  const saveProperty = (newProperty) => {
+    return savePropertyRequest(newProperty)
+      .then((data) => {
+        return data.success;
+      })
+      .catch(() => { return false; });
+  };
+
+  const createPropInstances = async (newBaseProperty) => {
+    const baseComponent = (
+      baseComponents.filter((b) => b.id === newBaseProperty.component_base_id)
+    )[0];
+
+    if (baseComponent) {
+      const queries = [];
+      baseComponent.instances.forEach((inst) => {
+        queries.push(saveProperty({
+          component_id: inst.id,
+          key: newBaseProperty.key,
+          value: 'Unknown',
+          category: newBaseProperty.category
+        }));
+      });
+
+      const results = await Promise.all(queries);
+      const countSuccess = results.reduce((acc, comp) => acc + comp, 0);
+      if (countSuccess === baseComponent.instances.length) {
+        enqueueSnackbar('Base property successfully instanciated to related components.', { variant: 'success' });
+      } else {
+        enqueueSnackbar('Warning: base property was not added to all component instances: the property might already exist for them.', { variant: 'warning' });
+      }
+    }
+  };
+
+  const basePropertyActionModalHandler = (actionType, newBaseProperty, isAddPropToInstCheck) => {
+    const queries = [];
     switch (actionType) {
       case 'delete':
         setConfirmModalProps({
@@ -407,7 +426,12 @@ export default function BaseComponentsView() {
         });
         break;
       case 'new':
-        saveNewBaseProperty(newBaseProperty);
+        setOpen(true);
+        queries.push(saveNewBaseProperty(newBaseProperty));
+        if (isAddPropToInstCheck) {
+          queries.push(createPropInstances(newBaseProperty));
+        }
+        Promise.all(queries).then(() => setOpen(false));
         break;
       case 'edit':
         saveExistingBaseProperty(newBaseProperty);
@@ -427,6 +451,7 @@ export default function BaseComponentsView() {
 
   return (
     <Page title="Base components" className={classes.root}>
+      <Button onClick={() => enqueueSnackbar('test')}>Test</Button>
       <Container maxWidth={false}>
         <Box
           mt={3}
@@ -458,10 +483,6 @@ export default function BaseComponentsView() {
             </CardContent>
           </Card>
         </Box>
-        <MessageSnackbar
-          messageSnackbarProps={messageSnackbarProps}
-          setMessageSnackbarProps={setMessageSnackbarProps}
-        />
         <BaseComponentModal
           modalProps={baseComponentModalProps}
           setModalProps={setBaseComponentModalProps}

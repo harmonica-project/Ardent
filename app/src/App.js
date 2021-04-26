@@ -2,6 +2,7 @@ import 'react-perfect-scrollbar/dist/css/styles.css';
 import React, { useState, useEffect } from 'react';
 import { useRoutes } from 'react-router-dom';
 import { ThemeProvider } from '@material-ui/core';
+import { SnackbarProvider } from 'notistack';
 import GlobalStyles from 'src/components/GlobalStyles';
 import 'src/mixins/chartjs';
 import theme from 'src/theme';
@@ -24,7 +25,9 @@ const App = () => {
   return (
     <ThemeProvider theme={theme}>
       <GlobalStyles />
-      {routing}
+      <SnackbarProvider>
+        {routing}
+      </SnackbarProvider>
     </ThemeProvider>
   );
 };

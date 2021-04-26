@@ -7,7 +7,10 @@ import {
   Typography,
   Button,
   Modal,
-  TextField
+  TextField,
+  Checkbox,
+  FormControlLabel,
+  FormControl
 } from '@material-ui/core/';
 import {
   Delete as DeleteIcon,
@@ -59,6 +62,7 @@ export default function BasePropertyModal({
     component_base_id: yup.string()
   });
   const [modalStyle] = useState(getModalStyle);
+  const [checked, setChecked] = React.useState(true);
   const [innerProperty, setInnerProperty] = useState(
     genValuesFromSchema(modalProps.baseProperty, schema)
   );
@@ -94,6 +98,10 @@ export default function BasePropertyModal({
     resetContext();
   };
 
+  const handleCheck = (event) => {
+    setChecked(event.target.checked);
+  };
+
   const handleInputChange = (key, value) => {
     setErrors({ ...errors, [key]: false });
     setHelpers({ ...helpers, [key]: false });
@@ -114,7 +122,7 @@ export default function BasePropertyModal({
   const validateAndSubmit = () => {
     schema.validate(innerProperty, { abortEarly: false })
       .then(() => {
-        actionModalHandler(modalProps.actionType, innerProperty);
+        actionModalHandler(modalProps.actionType, innerProperty, checked);
       })
       .catch((err) => {
         let newErrors = {};
@@ -219,6 +227,23 @@ export default function BasePropertyModal({
           error={errors.key}
           helperText={helpers.key}
         />
+        {modalProps.actionType !== 'view' ? (
+          <FormControl component="fieldset" fullWidth>
+            <FormControlLabel
+              control={
+                (
+                  <Checkbox
+                    checked={checked}
+                    onChange={handleCheck}
+                    name="check-add-property"
+                    color="primary"
+                  />
+                )
+              }
+              label={modalProps.actionType === 'new' ? 'Add this base property to existing component instances' : 'Apply this modification to existing instance properties'}
+            />
+          </FormControl>
+        ) : <span />}
         {modalProps.actionType !== 'view' ? (
           <Button
             color="primary"

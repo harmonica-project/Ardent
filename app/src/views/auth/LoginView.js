@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSnackbar } from 'notistack';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
@@ -13,7 +14,6 @@ import {
 } from '@material-ui/core';
 import Page from 'src/components/Page';
 import authenticationService from 'src/requests/authentication';
-import MessageSnackbar from 'src/components/MessageSnackbar';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 
 const useStyles = makeStyles((theme) => ({
@@ -28,23 +28,8 @@ const useStyles = makeStyles((theme) => ({
 const LoginView = () => {
   const classes = useStyles();
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
   const [open, setOpen] = useState(false);
-
-  const [messageSnackbarProps, setMessageSnackbarProps] = useState({
-    open: false,
-    message: '',
-    duration: 0,
-    severity: 'information'
-  });
-
-  const displayMsg = (message, severity = 'success', duration = 6000) => {
-    setMessageSnackbarProps({
-      open: true,
-      severity,
-      duration,
-      message
-    });
-  };
 
   return (
     <Page
@@ -79,7 +64,7 @@ const LoginView = () => {
               setOpen(true);
               authenticationService.login(username, password)
                 .then(() => navigate('/app/dashboard', { replace: true }))
-                .catch(() => displayMsg('Authentication failed. Check your username and your password, then retry.', 'error'))
+                .catch(() => enqueueSnackbar('Authentication failed. Check your username and your password, then retry.', { variant: 'error' }))
                 .finally(() => setOpen(false));
             }}
           >
@@ -164,10 +149,6 @@ const LoginView = () => {
           </Formik>
         </Container>
       </Box>
-      <MessageSnackbar
-        messageSnackbarProps={messageSnackbarProps}
-        setMessageSnackbarProps={setMessageSnackbarProps}
-      />
       <LoadingOverlay open={open} />
     </Page>
   );
