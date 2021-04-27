@@ -18,8 +18,7 @@ function handleResponse(response) {
       logout();
     }
 
-    const error = (response.data && response.data.errorMsg) || response.statusText;
-    return Promise.reject(error);
+    return response;
   }
 
   return response.data;

@@ -102,7 +102,6 @@ export default function ArchitectureModal({
   };
 
   const validateAndSubmit = () => {
-    console.log(innerArchitecture);
     schema.validate(innerArchitecture, { abortEarly: false })
       .then(() => {
         actionModalHandler(modalProps.actionType, innerArchitecture);

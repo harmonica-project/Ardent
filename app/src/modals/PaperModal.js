@@ -143,7 +143,6 @@ export default function PaperModal({
         actionModalHandler(modalProps.actionType, innerPaper);
       })
       .catch((errs) => {
-        console.log(errs);
         const newErrorFields = {};
         const newHelperFields = {};
 

@@ -6,7 +6,10 @@ import {
   Typography,
   Button,
   Modal,
-  TextField
+  TextField,
+  FormControl,
+  FormControlLabel,
+  Checkbox
 } from '@material-ui/core/';
 import * as yup from 'yup';
 import {
@@ -60,6 +63,7 @@ export default function ComponentModal({
     component_base_id: yup.string()
   });
   const [modalStyle] = useState(getModalStyle);
+  const [checked, setChecked] = React.useState(true);
   const [innerComponent, setInnerComponent] = useState(
     genValuesFromSchema(modalProps.component, schema)
   );
@@ -73,6 +77,10 @@ export default function ComponentModal({
   const resetContext = () => {
     setHelperText('');
     setIsBaseInputInvalid(false);
+  };
+
+  const handleCheck = (event) => {
+    setChecked(event.target.checked);
   };
 
   const handleClose = () => {
@@ -133,10 +141,19 @@ export default function ComponentModal({
     }
   };
 
+  const isPossibleToAddBaseProperties = () => {
+    if (modalProps.actionType === 'view') return false;
+    if (modalProps.initialComponent === innerComponent.name) return false;
+    if (!innerComponent.component_base_id || innerComponent.component_base_id === '') return false;
+    return true;
+  };
+
   const validateAndSubmit = () => {
     schema.validate(innerComponent, { abortEarly: false })
       .then(() => {
-        actionModalHandler(modalProps.actionType, innerComponent);
+        actionModalHandler(
+          modalProps.actionType, innerComponent, checked && isPossibleToAddBaseProperties()
+        );
       })
       .catch(() => {
         setIsBaseInputInvalid(true);
@@ -230,6 +247,23 @@ export default function ComponentModal({
           multiline
           rows={4}
         />
+        {isPossibleToAddBaseProperties() ? (
+          <FormControl component="fieldset" fullWidth>
+            <FormControlLabel
+              control={
+                (
+                  <Checkbox
+                    checked={checked}
+                    onChange={handleCheck}
+                    name="check-add-property"
+                    color="primary"
+                  />
+                )
+              }
+              label="Add base component properties to created instance"
+            />
+          </FormControl>
+        ) : <span />}
         {modalProps.actionType !== 'view' ? (
           <Button
             color="primary"
@@ -270,6 +304,7 @@ ComponentModal.propTypes = {
       architecture_id: PropTypes.string,
       component_base_id: PropTypes.string
     }),
+    initialComponent: PropTypes.string,
     actionType: PropTypes.string.isRequired
   }).isRequired,
   setModalProps: PropTypes.func.isRequired,

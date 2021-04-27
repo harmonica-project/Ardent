@@ -26,6 +26,10 @@ import {
   saveNewBaseComponent as saveNewBaseComponentRequest,
   getBaseComponents as getBaseComponentsRequest
 } from 'src/requests/components';
+import {
+  saveProperty as savePropertyRequest,
+  getBaseComponentProperties as getBaseComponentPropertiesRequest,
+} from 'src/requests/properties';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 import ComponentModal from 'src/modals/ComponentModal';
@@ -75,6 +79,7 @@ const ArchitectureView = () => {
     component: {
       architecture_id: id
     },
+    initialComponent: '',
     actionType: ''
   });
 
@@ -273,6 +278,7 @@ const ArchitectureView = () => {
       case 'view':
         setComponentModalProps({
           component,
+          initialComponent: component.name,
           open: true,
           actionType
         });
@@ -292,7 +298,55 @@ const ArchitectureView = () => {
     }
   };
 
-  const saveNewComponent = async (component) => {
+  const messageResultTransferProps = (expectedLength, actualLength) => {
+    if (expectedLength === 0) {
+      enqueueSnackbar(`
+      No new properties have been transferred from base component, as the base component does not have base properties.
+    `, { variant: 'info' });
+    } else if (actualLength === expectedLength) {
+      enqueueSnackbar(`
+          ${actualLength || 'No new'} properties have been transferred from base component.
+          ${actualLength ? 'Do not forget to fill their values!' : ''}
+          `, { variant: 'success' });
+    } else {
+      enqueueSnackbar(`
+          ${actualLength || 'No new'} properties have been transferred from base component, but ${expectedLength} were expected.
+          Properties that were not added might already be present in the component instance.
+        `, { variant: 'info' });
+    }
+  };
+
+  const transferBasePropsToInstance = async (newComponent) => {
+    const queries = [];
+    let newProperties = [];
+    const propRes = await getBaseComponentPropertiesRequest(newComponent.component_base_id);
+    if (propRes.success) {
+      propRes.result.forEach((prop) => {
+        const newProperty = {
+          key: prop.key,
+          value: 'Undefined',
+          component_id: newComponent.id,
+          category: prop.category
+        };
+
+        newProperties.push(newProperty);
+        queries.push(savePropertyRequest(newProperty));
+      });
+      const results = await Promise.all(queries);
+      results.forEach((res, i) => {
+        if (res && res.success) {
+          newProperties[i].id = res.propertyId;
+        }
+      });
+      newProperties = newProperties.filter((prop) => prop.id);
+
+      messageResultTransferProps(queries.length, newProperties.length);
+    } else {
+      enqueueSnackbar('Error while retrieving base properties.', { variant: 'error' });
+    }
+  };
+
+  const saveNewComponent = async (component, doAddBaseProps) => {
     setOpen(true);
     try {
       if (!component.component_base_id || component.component_base_id === '') {
@@ -311,10 +365,16 @@ const ArchitectureView = () => {
 
       const data = await saveNewComponentInstanceRequest(component);
       if (data.success) {
+        enqueueSnackbar('Component instance successfully added.', { variant: 'success' });
         const newComponent = {
           ...component,
           id: data.componentId
         };
+
+        if (doAddBaseProps) {
+          await transferBasePropsToInstance(newComponent);
+        }
+
         setArchitecture({
           ...architecture,
           components: [...architecture.components, newComponent]
@@ -322,9 +382,9 @@ const ArchitectureView = () => {
         setComponentModalProps({
           ...componentModalProps,
           component: { architecture_id: id },
+          initialComponent: '',
           open: false,
         });
-        enqueueSnackbar('Component instance successfully added.', { variant: 'success' });
       }
     } catch (error) {
       enqueueSnackbar(error, { variant: 'error' });
@@ -346,7 +406,7 @@ const ArchitectureView = () => {
     });
   };
 
-  const saveExistingComponent = async (component) => {
+  const saveExistingComponent = async (component, doAddBaseProps) => {
     setOpen(true);
     try {
       if (!component.component_base_id || component.component_base_id === '') {
@@ -365,13 +425,18 @@ const ArchitectureView = () => {
 
       const data = await saveExistingComponentInstanceRequest(component);
       if (data.success) {
+        enqueueSnackbar('Component instance successfully modified.', { variant: 'success' });
+        if (doAddBaseProps) {
+          await transferBasePropsToInstance(component);
+        }
+
         modifyComponentInState(component);
         setComponentModalProps({
           ...componentModalProps,
+          initialComponent: '',
           component: { architecture_id: id },
           open: false,
         });
-        enqueueSnackbar('Component instance successfully modified.', { variant: 'success' });
       }
     } catch (error) {
       enqueueSnackbar(error, { variant: 'error' });
@@ -380,14 +445,14 @@ const ArchitectureView = () => {
     }
   };
 
-  const componentActionModalHandler = (actionType, component) => {
+  const componentActionModalHandler = (actionType, component, doAddBaseProps) => {
     switch (actionType) {
       case 'new':
-        saveNewComponent(component);
+        saveNewComponent(component, doAddBaseProps);
         break;
 
       case 'edit':
-        saveExistingComponent(component);
+        saveExistingComponent(component, doAddBaseProps);
         break;
 
       case 'delete':

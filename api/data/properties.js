@@ -27,6 +27,22 @@ module.exports = {
             return err;
         }
     },
+    getBaseComponentProperties: async componentId => {
+        try {
+            return await client.query("SELECT * from properties_base WHERE component_base_id = $1", [componentId]);
+        }
+        catch(err) {
+            return err;
+        }
+    },
+    getInstancePropertiesFromComponent: async componentId => {
+        try {
+            return await client.query("SELECT * from properties_instances WHERE component_instance_id = $1", [componentId]);
+        }
+        catch(err) {
+            return err;
+        }
+    },
     deleteProperty: async propertyId => {
         try {
             await client.query("DELETE FROM properties_instances WHERE id = $1", [propertyId]);

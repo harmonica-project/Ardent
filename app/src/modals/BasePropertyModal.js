@@ -122,7 +122,9 @@ export default function BasePropertyModal({
   const validateAndSubmit = () => {
     schema.validate(innerProperty, { abortEarly: false })
       .then(() => {
-        actionModalHandler(modalProps.actionType, innerProperty, checked);
+        actionModalHandler(
+          modalProps.actionType, innerProperty, modalProps.initialProperty, checked
+        );
       })
       .catch((err) => {
         let newErrors = {};
@@ -281,6 +283,7 @@ BasePropertyModal.propTypes = {
       key: PropTypes.string,
       category: PropTypes.string
     }),
+    initialProperty: PropTypes.string,
     actionType: PropTypes.string.isRequired
   }).isRequired,
   setModalProps: PropTypes.func.isRequired,

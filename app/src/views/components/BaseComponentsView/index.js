@@ -12,10 +12,12 @@ import {
   saveNewBaseComponent as saveNewBaseComponentRequest,
 } from 'src/requests/components';
 import {
+  getInstancePropertiesFromComponent as getInstancePropertiesFromComponentRequest,
   saveProperty as savePropertyRequest,
   saveNewBaseProperty as saveNewBasePropertyRequest,
   saveExistingBaseProperty as saveExistingBasePropertyRequest,
-  deleteBaseProperty as deleteBasePropertyRequest
+  deleteBaseProperty as deleteBasePropertyRequest,
+  modifyProperty as modifyPropertyRequest,
 } from 'src/requests/properties';
 import ConfirmModal from 'src/modals/ConfirmModal';
 import BaseComponentModal from 'src/modals/BaseComponentModal';
@@ -57,6 +59,7 @@ export default function BaseComponentsView() {
   const [basePropertyModalProps, setBasePropertyModalProps] = useState({
     open: false,
     baseProperty: {},
+    initialProperty: {},
     actionType: ''
   });
 
@@ -169,43 +172,11 @@ export default function BaseComponentsView() {
       .finally(() => { setOpen(false); });
   };
 
-  const saveNewBaseProperty = (newProperty) => {
-    return saveNewBasePropertyRequest(newProperty)
-      .then((data) => {
-        if (data.success) {
-          enqueueSnackbar('Base property successfully added.', { variant: 'success' });
-          const newBaseComponents = [...baseComponents];
-          newBaseComponents.forEach((b) => {
-            if (b.id === newProperty.component_base_id) {
-              b.properties.push({
-                ...newProperty,
-                id: data.propertyId
-              });
-            }
-          });
-          if (basePropertyModalProps.open) {
-            setBasePropertyModalProps({
-              ...basePropertyModalProps,
-              open: false,
-              baseProperty: {},
-              actionType: ''
-            });
-          }
-        }
-      })
-      .catch((err) => {
-        enqueueSnackbar(err, { variant: 'error' });
-      });
-  };
-
   const modifyPropertyFromState = (property) => {
-    console.log(property);
     const newBaseComponents = [...baseComponents];
     newBaseComponents.forEach((c) => {
-      console.log(c);
       if (property.component_base_id === c.id) {
         c.properties.forEach((p) => {
-          console.log(p);
           if (p.id === property.id) {
             p.key = property.key;
             p.category = property.category;
@@ -214,29 +185,6 @@ export default function BaseComponentsView() {
       }
     });
     setBaseComponents(newBaseComponents);
-  };
-
-  const saveExistingBaseProperty = (newProperty) => {
-    setOpen(true);
-    saveExistingBasePropertyRequest(newProperty)
-      .then((data) => {
-        if (data.success) {
-          enqueueSnackbar('Base property successfully modified.', { variant: 'success' });
-          modifyPropertyFromState(newProperty);
-          if (basePropertyModalProps.open) {
-            setBasePropertyModalProps({
-              ...basePropertyModalProps,
-              open: false,
-              baseProperty: {},
-              actionType: ''
-            });
-          }
-        }
-      })
-      .catch((err) => {
-        enqueueSnackbar(err, { variant: 'error' });
-      })
-      .finally(() => { setOpen(false); });
   };
 
   const deleteBaseComponent = (componentId) => {
@@ -288,6 +236,7 @@ export default function BaseComponentsView() {
               ...basePropertyModalProps,
               open: false,
               baseProperty: {},
+              initialProperty: {},
               actionType: ''
             });
           }
@@ -348,7 +297,8 @@ export default function BaseComponentsView() {
         setBasePropertyModalProps({
           open: true,
           actionType,
-          baseProperty
+          baseProperty,
+          initialProperty: baseProperty
         });
         break;
       default:
@@ -411,8 +361,96 @@ export default function BaseComponentsView() {
     }
   };
 
-  const basePropertyActionModalHandler = (actionType, newBaseProperty, isAddPropToInstCheck) => {
-    const queries = [];
+  const saveNewBaseProperty = async (newBaseProperty, isAddPropToInstCheck) => {
+    setOpen(true);
+    return saveNewBasePropertyRequest(newBaseProperty)
+      .then(async (data) => {
+        if (data.success) {
+          enqueueSnackbar('Base property successfully added.', { variant: 'success' });
+
+          if (isAddPropToInstCheck) {
+            await createPropInstances(newBaseProperty);
+          }
+
+          const newBaseComponents = [...baseComponents];
+          newBaseComponents.forEach((b) => {
+            if (b.id === newBaseProperty.component_base_id) {
+              b.properties.push({
+                ...newBaseProperty,
+                id: data.propertyId
+              });
+            }
+          });
+          if (basePropertyModalProps.open) {
+            setBasePropertyModalProps({
+              ...basePropertyModalProps,
+              open: false,
+              baseProperty: {},
+              initialProperty: {},
+              actionType: ''
+            });
+          }
+        }
+      })
+      .catch((err) => {
+        enqueueSnackbar(err.toString(), { variant: 'error' });
+      })
+      .finally(() => setOpen(false));
+  };
+
+  const modifyPropInstances = async (initialProperty, newBaseProperty) => {
+    const baseComponent = (
+      baseComponents.filter((b) => b.id === newBaseProperty.component_base_id)
+    )[0];
+    baseComponent.instances.forEach((inst) => {
+      getInstancePropertiesFromComponentRequest(inst.id).then((res) => {
+        res.result.forEach((prop) => {
+          if (prop.key === initialProperty.key && prop.category === initialProperty.category) {
+            modifyPropertyRequest({
+              ...prop,
+              key: newBaseProperty.key,
+              category: newBaseProperty.category
+            });
+          }
+        });
+      });
+    });
+  };
+
+  const saveExistingBaseProperty = async (
+    newBaseProperty, initialProperty, isAddPropToInstCheck
+  ) => {
+    setOpen(true);
+    saveExistingBasePropertyRequest(newBaseProperty)
+      .then(async (data) => {
+        if (data.success) {
+          enqueueSnackbar('Base property successfully modified.', { variant: 'success' });
+
+          if (isAddPropToInstCheck) {
+            await modifyPropInstances(initialProperty, newBaseProperty);
+          }
+
+          modifyPropertyFromState(newBaseProperty);
+          if (basePropertyModalProps.open) {
+            setBasePropertyModalProps({
+              ...basePropertyModalProps,
+              open: false,
+              baseProperty: {},
+              initialProperty: {},
+              actionType: ''
+            });
+          }
+        }
+      })
+      .catch((err) => {
+        enqueueSnackbar(err, { variant: 'error' });
+      })
+      .finally(() => { setOpen(false); });
+  };
+
+  const basePropertyActionModalHandler = (
+    actionType, newBaseProperty, initialProperty, isAddPropToInstCheck
+  ) => {
     switch (actionType) {
       case 'delete':
         setConfirmModalProps({
@@ -426,15 +464,10 @@ export default function BaseComponentsView() {
         });
         break;
       case 'new':
-        setOpen(true);
-        queries.push(saveNewBaseProperty(newBaseProperty));
-        if (isAddPropToInstCheck) {
-          queries.push(createPropInstances(newBaseProperty));
-        }
-        Promise.all(queries).then(() => setOpen(false));
+        saveNewBaseProperty(newBaseProperty, isAddPropToInstCheck);
         break;
       case 'edit':
-        saveExistingBaseProperty(newBaseProperty);
+        saveExistingBaseProperty(newBaseProperty, initialProperty, isAddPropToInstCheck);
         break;
       default:
         console.error('No action defined for this handler.');
@@ -451,7 +484,6 @@ export default function BaseComponentsView() {
 
   return (
     <Page title="Base components" className={classes.root}>
-      <Button onClick={() => enqueueSnackbar('test')}>Test</Button>
       <Container maxWidth={false}>
         <Box
           mt={3}

@@ -22,7 +22,8 @@ import {
 import {
   saveProperty as savePropertyRequest,
   deleteProperty as deletePropertyRequest,
-  modifyProperty as modifyPropertyRequest
+  modifyProperty as modifyPropertyRequest,
+  getBaseComponentProperties as getBaseComponentPropertiesRequest,
 } from 'src/requests/properties';
 import {
   saveConnection as saveConnectionRequest,
@@ -77,7 +78,8 @@ export default function InstanceComponentView() {
   const [componentModalProps, setComponentModalProps] = useState({
     open: false,
     component: {},
-    actionType: ''
+    actionType: '',
+    initialComponent: ''
   });
 
   const [propertyModalProps, setPropertyModalProps] = useState({
@@ -93,7 +95,57 @@ export default function InstanceComponentView() {
     actionType: ''
   });
 
-  const saveExistingComponent = async (newComponent) => {
+  const messageResultTransferProps = (expectedLength, actualLength) => {
+    if (expectedLength === 0) {
+      enqueueSnackbar(`
+      No new properties have been transferred from base component, as the base component does not have base properties.
+    `, { variant: 'info' });
+    } else if (actualLength === expectedLength) {
+      enqueueSnackbar(`
+          ${actualLength || 'No new'} properties have been transferred from base component.
+          ${actualLength ? 'Do not forget to fill their values!' : ''}
+          `, { variant: 'success' });
+    } else {
+      enqueueSnackbar(`
+          ${actualLength || 'No new'} properties have been transferred from base component, but ${expectedLength} were expected.
+          Properties that were not added might already be present in the component instance.
+        `, { variant: 'info' });
+    }
+  };
+
+  const transferBasePropsToInstance = async (newComponent) => {
+    const queries = [];
+    let newProperties = [];
+    const propRes = await getBaseComponentPropertiesRequest(newComponent.component_base_id);
+    if (propRes.success) {
+      propRes.result.forEach((prop) => {
+        const newProperty = {
+          key: prop.key,
+          value: 'Undefined',
+          component_id: newComponent.id,
+          category: prop.category
+        };
+
+        newProperties.push(newProperty);
+        queries.push(savePropertyRequest(newProperty));
+      });
+      const results = await Promise.all(queries);
+      results.forEach((res, i) => {
+        if (res && res.success) {
+          newProperties[i].id = res.propertyId;
+        }
+      });
+      newProperties = newProperties.filter((prop) => prop.id);
+
+      messageResultTransferProps(queries.length, newProperties.length);
+    } else {
+      enqueueSnackbar('Error while retrieving base properties.', { variant: 'error' });
+    }
+
+    return newProperties;
+  };
+
+  const saveExistingComponent = async (newComponent, doAddBaseProps) => {
     setOpen(true);
     try {
       if (!newComponent.component_base_id || newComponent.component_base_id === '') {
@@ -116,13 +168,21 @@ export default function InstanceComponentView() {
 
       const data = await saveExistingComponentInstanceRequest(newComponent);
       if (data.success) {
+        enqueueSnackbar('Component instance successfully modified', { variant: 'success' });
+        let newProperties = [];
+
+        if (doAddBaseProps) {
+          newProperties = await transferBasePropsToInstance(newComponent);
+        }
+
+        newComponent.properties = [...newComponent.properties, ...newProperties];
         setComponent(newComponent);
         setComponentModalProps({
           ...componentModalProps,
           component: newComponent,
           open: false,
+          initialComponent: component.name
         });
-        enqueueSnackbar('Component instance successfully modified', { variant: 'success' });
       }
     } catch (error) {
       enqueueSnackbar(error, 'error');
@@ -422,10 +482,10 @@ export default function InstanceComponentView() {
     }
   };
 
-  const componentActionModalHandler = (actionType, newComponent) => {
+  const componentActionModalHandler = (actionType, newComponent, doAddBaseProps) => {
     switch (actionType) {
       case 'edit':
-        saveExistingComponent(newComponent);
+        saveExistingComponent(newComponent, doAddBaseProps);
         break;
 
       case 'delete':
@@ -441,7 +501,8 @@ export default function InstanceComponentView() {
     setComponentModalProps({
       ...componentModalProps,
       open: true,
-      actionType: 'edit'
+      actionType: 'edit',
+      initialComponent: component.name
     });
   };
 
@@ -522,6 +583,7 @@ export default function InstanceComponentView() {
         setArchitectureComponents(archRes.result.components);
         setComponentModalProps({
           ...componentModalProps,
+          initialComponent: compRes.result.name,
           component: compRes.result
         });
         setConnectionModalProps({

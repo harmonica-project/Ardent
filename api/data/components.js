@@ -122,7 +122,6 @@ module.exports = {
     },
     storeComponentInstance: async component => {
         const newComponentId = uuidv4();
-        console.log(component, newComponentId);
         try {
             await client.query("INSERT INTO components_instances (id, name, architecture_id, reader_description, author_description, component_base_id) VALUES ($1, $2, $3, $4, $5, $6)", [newComponentId, component.name, component.architecture_id, component.reader_description, component.author_description, component.component_base_id])
             return {success: true, componentId: newComponentId};
