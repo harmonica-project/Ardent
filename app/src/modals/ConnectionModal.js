@@ -11,7 +11,12 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  FormHelperText
+  FormHelperText,
+  TextField,
+  FormLabel,
+  RadioGroup,
+  Radio,
+  FormControlLabel
 } from '@material-ui/core/';
 import {
   Delete as DeleteIcon,
@@ -49,10 +54,15 @@ const useStyles = makeStyles((theme) => ({
     flexWrap: 'wrap',
     marginTop: theme.spacing(2),
   },
+  middleForm: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    marginTop: theme.spacing(2)
+  },
   bottomForm: {
     display: 'flex',
     flexWrap: 'wrap',
-    marginTop: theme.spacing(2),
+    marginTop: theme.spacing(3),
     marginBottom: theme.spacing(3)
   },
   headerButton: {
@@ -70,6 +80,10 @@ export default function ConnectionModal({
       .required('Selecting a first component is required'),
     second_component: yup.string()
       .required('Selecting a second component is required'),
+    datatype: yup.string(),
+    name: yup.string(),
+    direction: yup.string()
+      .required('Selecting a direction is required.')
   });
   const [modalStyle] = useState(getModalStyle);
   const [innerConnection, setInnerConnection] = useState(
@@ -87,11 +101,13 @@ export default function ConnectionModal({
   const resetContext = () => {
     setErrors({
       first_component: false,
-      second_component: false
+      second_component: false,
+      direction: false
     });
     setHelpers({
       first_component: '',
-      second_component: ''
+      second_component: '',
+      direction: false
     });
   };
 
@@ -206,13 +222,49 @@ export default function ConnectionModal({
     );
   };
 
+  const cIdToName = (id) => {
+    const foundComponent = (architectureComponents.filter((ac) => ac.id === id))[0];
+    if (foundComponent) return foundComponent.name;
+    return id;
+  };
+
   const body = (
     <Box style={modalStyle} className={classes.body}>
       <Typography variant="h2" component="h2" gutterBottom>
         {getModalHeader()}
       </Typography>
       <form noValidate className={classes.form}>
-        <FormControl className={classes.upperForm} fullWidth error={errors.first_component}>
+        <TextField
+          id="name-field"
+          label="Connection name"
+          placeholder="Enter a connection name (Unnamed as default)"
+          fullWidth
+          margin="normal"
+          disabled={modalProps.actionType === 'view'}
+          onChange={(e) => handleInputChange('name', e.target.value)}
+          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.connection.name}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          rows={4}
+          className={classes.upperForm}
+        />
+        <TextField
+          id="data-field"
+          label="Data type"
+          placeholder="Enter the type of data exchanged by components (Any as default)"
+          fullWidth
+          margin="normal"
+          disabled={modalProps.actionType === 'view'}
+          onChange={(e) => handleInputChange('datatype', e.target.value)}
+          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.connection.datatype}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          rows={4}
+          className={classes.middleForm}
+        />
+        <FormControl fullWidth error={errors.first_component} className={classes.middleForm}>
           <InputLabel id="first-component-label">First component</InputLabel>
           <Select
             labelId="first-component-select"
@@ -235,7 +287,7 @@ export default function ConnectionModal({
           </Select>
           <FormHelperText>{helpers.first_component}</FormHelperText>
         </FormControl>
-        <FormControl className={classes.bottomForm} fullWidth error={errors.second_component}>
+        <FormControl className={classes.middleForm} fullWidth error={errors.second_component}>
           <InputLabel id="second-component-label">Second component</InputLabel>
           <Select
             labelId="second-component-select"
@@ -256,6 +308,33 @@ export default function ConnectionModal({
             }
           </Select>
           <FormHelperText>{helpers.second_component}</FormHelperText>
+        </FormControl>
+        <FormControl component="fieldset" style={{ width: '100%' }} className={classes.bottomForm} error={errors.direction}>
+          <FormLabel component="legend">Direction</FormLabel>
+          <RadioGroup row aria-label="position" name="position" defaultValue={modalProps.connection.direction ? modalProps.connection.direction : 'bidirectional'}>
+            <FormControlLabel
+              value="bidirectional"
+              control={<Radio color="primary" />}
+              label="Bidirectional"
+            />
+            <FormControlLabel
+              value="first-to-second"
+              control={<Radio color="primary" />}
+              label={`
+                ${innerConnection.first_component ? cIdToName(innerConnection.first_component) : 'First component'} to
+                ${innerConnection.second_component ? cIdToName(innerConnection.second_component) : 'second component'}
+              `}
+            />
+            <FormControlLabel
+              value="second-to-first"
+              control={<Radio color="primary" />}
+              label={`
+                ${innerConnection.second_component ? cIdToName(innerConnection.second_component) : 'Second component'} to
+                ${innerConnection.first_component ? cIdToName(innerConnection.first_component) : 'first component'}
+              `}
+            />
+          </RadioGroup>
+          <FormHelperText>{helpers.direction}</FormHelperText>
         </FormControl>
         {modalProps.actionType !== 'view' ? (
           <Button
@@ -293,6 +372,9 @@ ConnectionModal.propTypes = {
       id: PropTypes.string,
       first_component: PropTypes.string,
       second_component: PropTypes.string,
+      name: PropTypes.string,
+      datatype: PropTypes.string,
+      direction: PropTypes.string
     }),
     actionType: PropTypes.string.isRequired,
     currentComponentId: PropTypes.string

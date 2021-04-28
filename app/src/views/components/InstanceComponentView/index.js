@@ -90,7 +90,7 @@ export default function InstanceComponentView() {
 
   const [connectionModalProps, setConnectionModalProps] = useState({
     open: false,
-    connection: {},
+    connection: { direction: 'bidirectional' },
     currentComponentId: '',
     actionType: ''
   });
@@ -323,7 +323,7 @@ export default function InstanceComponentView() {
           modifyConnectionFromState(newConnection);
           setConnectionModalProps({
             ...connectionModalProps,
-            connection: {},
+            connection: { direction: 'bidirectional' },
             open: false,
           });
         }
@@ -359,7 +359,7 @@ export default function InstanceComponentView() {
           removeConnectionFromState(connectionId);
           setConnectionModalProps({
             ...connectionModalProps,
-            connection: {},
+            connection: { direction: 'bidirectional' },
             open: false,
           });
         }
@@ -454,7 +454,7 @@ export default function InstanceComponentView() {
           });
           setConnectionModalProps({
             ...connectionModalProps,
-            connection: {},
+            connection: { direction: 'bidirectional' },
             open: false,
           });
         }
@@ -631,7 +631,7 @@ export default function InstanceComponentView() {
       ...connectionModalProps,
       open: true,
       actionType: 'new',
-      connection: { first_component: component.id }
+      connection: { first_component: component.id, direction: 'bidirectional' }
     });
   };
 
