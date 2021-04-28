@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import genValuesFromSchema from 'src/utils/genValuesFromSchema';
 import * as yup from 'yup';
 import {
   Box,
@@ -57,35 +56,21 @@ export default function InstancePropertyModal({
       .required('Property key is required'),
     value: yup.string()
       .max(30, 'Property value is too long.')
-      .required('Property value is required'),
+      .default('Undefined'),
     category: yup.string()
   });
   const [modalStyle] = useState(getModalStyle);
-  const [innerProperty, setInnerProperty] = useState(
-    genValuesFromSchema(modalProps.property, schema)
-  );
-  const [errors, setErrors] = useState({
-    key: false,
-    value: false
-  });
-  const [helpers, setHelpers] = useState({
-    key: '',
-    value: ''
-  });
+  const [innerProperty, setInnerProperty] = useState(modalProps.property);
+  const [error, setError] = useState(false);
+  const [helper, setHelper] = useState('');
 
   useEffect(() => {
-    setInnerProperty(genValuesFromSchema(modalProps.property, schema));
+    setInnerProperty(modalProps.property);
   }, [modalProps.property]);
 
   const resetContext = () => {
-    setErrors({
-      key: false,
-      value: false
-    });
-    setHelpers({
-      key: '',
-      value: ''
-    });
+    setError(false);
+    setHelper('');
   };
 
   const handleClose = () => {
@@ -97,8 +82,10 @@ export default function InstancePropertyModal({
   };
 
   const handleInputChange = (key, value) => {
-    setErrors({ ...errors, [key]: false });
-    setHelpers({ ...helpers, [key]: false });
+    if (key === 'key') {
+      setError(false);
+      setHelper('');
+    }
 
     if (key === 'category') {
       setInnerProperty({
@@ -114,19 +101,14 @@ export default function InstancePropertyModal({
   };
 
   const validateAndSubmit = () => {
-    schema.validate(innerProperty, { abortEarly: false })
+    const castedData = schema.cast(innerProperty);
+    schema.validate(castedData, { abortEarly: false })
       .then(() => {
-        actionModalHandler(modalProps.actionType, innerProperty);
+        actionModalHandler(modalProps.actionType, castedData);
       })
-      .catch((err) => {
-        let newErrors = {};
-        let newHelpers = {};
-        err.inner.forEach((field) => {
-          newErrors = { ...newErrors, [field.path]: true };
-          newHelpers = { ...newHelpers, [field.path]: field.message };
-        });
-        setErrors({ ...errors, ...newErrors });
-        setHelpers({ ...helpers, ...newHelpers });
+      .catch(() => {
+        setError(true);
+        setHelper('Property key is required');
       });
   };
 
@@ -195,7 +177,7 @@ export default function InstancePropertyModal({
       <form noValidate className={classes.form}>
         <TextField
           id="category-field"
-          label="Category"
+          label="Category (Other by default)"
           placeholder="Enter a category name"
           fullWidth
           margin="normal"
@@ -218,12 +200,12 @@ export default function InstancePropertyModal({
           InputLabelProps={{
             shrink: true,
           }}
-          error={errors.key}
-          helperText={helpers.key}
+          error={error}
+          helperText={helper}
         />
         <TextField
           id="value-field"
-          label="Value"
+          label="Value (Undefined by default)"
           placeholder="Enter a property value"
           fullWidth
           margin="normal"
@@ -234,8 +216,6 @@ export default function InstancePropertyModal({
             shrink: true,
           }}
           multiline
-          error={errors.value}
-          helperText={helpers.value}
           rows={4}
         />
         {modalProps.actionType !== 'view' ? (

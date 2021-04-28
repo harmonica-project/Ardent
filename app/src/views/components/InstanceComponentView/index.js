@@ -91,7 +91,7 @@ export default function InstanceComponentView() {
   const [connectionModalProps, setConnectionModalProps] = useState({
     open: false,
     connection: { direction: 'bidirectional' },
-    currentComponentId: '',
+    component: {},
     actionType: ''
   });
 
@@ -395,6 +395,7 @@ export default function InstanceComponentView() {
   };
 
   const connectionActionHandler = (actionType, connection) => {
+    console.log(connection);
     switch (actionType) {
       case 'edit':
       case 'view':
@@ -588,7 +589,7 @@ export default function InstanceComponentView() {
         });
         setConnectionModalProps({
           ...connectionModalProps,
-          currentComponentId: compRes.result.id
+          component: compRes.result
         });
         setComponent(compRes.result);
       }
@@ -642,7 +643,7 @@ export default function InstanceComponentView() {
           <Grid item xs={12}>
             <ComponentHeader />
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12}>
             <Box mb={3}>
               <Button
                 color="primary"
@@ -682,7 +683,7 @@ export default function InstanceComponentView() {
                 </Card>
               )}
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={12}>
             <Box mb={3}>
               <Button
                 color="primary"

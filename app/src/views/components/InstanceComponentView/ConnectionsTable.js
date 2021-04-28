@@ -110,11 +110,30 @@ function Row({
     return componentId;
   };
 
+  const parseDirection = (direction) => {
+    switch (direction) {
+      case 'first-to-second':
+        return 'First to second';
+
+      case 'second-to-first':
+        return 'Second to first';
+
+      case 'bidirectional':
+        return 'Bidirectional';
+
+      default:
+        return 'Unknown';
+    }
+  };
+
   return (
     <>
       <TableRow className={classes.root} key={row.id}>
+        <TableCell align="center">{row.name}</TableCell>
         <TableCell align="center">{formatComponentId(row.first_component)}</TableCell>
         <TableCell align="center">{formatComponentId(row.second_component)}</TableCell>
+        <TableCell align="center">{row.datatype}</TableCell>
+        <TableCell align="center">{parseDirection(row.direction)}</TableCell>
         <TableCell align="center"><TableActionCell item={row} actionHandler={connectionActionHandler} /></TableCell>
       </TableRow>
     </>
@@ -124,8 +143,11 @@ function Row({
 Row.propTypes = {
   row: PropTypes.shape({
     id: PropTypes.string,
+    name: PropTypes.string,
     first_component: PropTypes.string,
     second_component: PropTypes.string,
+    datatype: PropTypes.string,
+    direction: PropTypes.string
   }),
   connectionActionHandler: PropTypes.func,
   architectureComponents: PropTypes.array
@@ -139,8 +161,11 @@ export default function ConnectionsTable({
       <Table aria-label="collapsible table" stickyHeader>
         <TableHead>
           <TableRow>
+            <TableCell align="center">Connection name</TableCell>
             <TableCell align="center">First component</TableCell>
             <TableCell align="center">Second component</TableCell>
+            <TableCell align="center">Data type</TableCell>
+            <TableCell align="center">Direction</TableCell>
             <TableCell align="center">Actions</TableCell>
           </TableRow>
         </TableHead>

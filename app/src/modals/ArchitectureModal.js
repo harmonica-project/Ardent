@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import genValuesFromSchema from 'src/utils/genValuesFromSchema';
 import * as yup from 'yup';
 import {
   Box,
@@ -54,20 +53,18 @@ export default function ArchitectureModal({
   const schema = yup.object().shape({
     name: yup.string()
       .max(30, 'Architecture name is too long.')
-      .required('Architecture name is required'),
-    author_description: yup.string(),
+      .default('Unnamed'),
+    author_description: yup.string()
+      .default('No description provided.'),
     reader_description: yup.string()
+      .default('No description provided.'),
   });
 
   const [modalStyle] = useState(getModalStyle);
-  const [innerArchitecture, setInnerArchitecture] = useState(
-    genValuesFromSchema(modalProps.architecture, schema)
-  );
-  const [error, setError] = useState(false);
-  const [helper, setHelper] = useState('');
+  const [innerArchitecture, setInnerArchitecture] = useState(modalProps.architecture);
 
   useEffect(() => {
-    setInnerArchitecture(genValuesFromSchema(modalProps.architecture, schema));
+    setInnerArchitecture(modalProps.architecture);
   }, [modalProps.architecture]);
 
   const handleClose = () => {
@@ -75,8 +72,6 @@ export default function ArchitectureModal({
       ...modalProps,
       open: false
     });
-    setHelper('');
-    setError(false);
   };
 
   const handleInputChange = (key, value) => {
@@ -102,14 +97,8 @@ export default function ArchitectureModal({
   };
 
   const validateAndSubmit = () => {
-    schema.validate(innerArchitecture, { abortEarly: false })
-      .then(() => {
-        actionModalHandler(modalProps.actionType, innerArchitecture);
-      })
-      .catch(() => {
-        setError(true);
-        setHelper('Architecture name is missing or too long (30 car. max).');
-      });
+    const castedData = schema.cast(innerArchitecture);
+    actionModalHandler(modalProps.actionType, castedData);
   };
 
   const getModalHeader = () => {
@@ -172,8 +161,6 @@ export default function ArchitectureModal({
           InputLabelProps={{
             shrink: true,
           }}
-          error={error}
-          helperText={helper}
         />
         <TextField
           id="reader-description-field"

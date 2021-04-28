@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import genValuesFromSchema from 'src/utils/genValuesFromSchema';
 import * as yup from 'yup';
 import {
   Box,
@@ -80,15 +79,15 @@ export default function ConnectionModal({
       .required('Selecting a first component is required'),
     second_component: yup.string()
       .required('Selecting a second component is required'),
-    datatype: yup.string(),
-    name: yup.string(),
+    datatype: yup.string()
+      .default('Any'),
+    name: yup.string()
+      .default('Unnamed'),
     direction: yup.string()
       .required('Selecting a direction is required.')
   });
   const [modalStyle] = useState(getModalStyle);
-  const [innerConnection, setInnerConnection] = useState(
-    genValuesFromSchema(modalProps.connection, schema)
-  );
+  const [innerConnection, setInnerConnection] = useState(modalProps.connection);
   const [errors, setErrors] = useState({
     first_component: false,
     second_component: false
@@ -112,7 +111,7 @@ export default function ConnectionModal({
   };
 
   useEffect(() => {
-    setInnerConnection(genValuesFromSchema(modalProps.connection, schema));
+    setInnerConnection(modalProps.connection);
   }, [modalProps.connection]);
 
   const handleClose = () => {
@@ -131,17 +130,23 @@ export default function ConnectionModal({
       ...innerConnection,
       [key]: value
     });
+
+    console.log({
+      ...innerConnection,
+      [key]: value
+    });
   };
 
   const validateAndSubmit = () => {
+    console.log(modalProps);
     const checkPres = (first, second) => {
-      return (first === modalProps.currentComponentId || second === modalProps.currentComponentId);
+      return (first === modalProps.component.id || second === modalProps.component.id);
     };
-
-    schema.validate(innerConnection, { abortEarly: false })
+    const castedData = schema.cast(innerConnection);
+    schema.validate(castedData, { abortEarly: false })
       .then(() => {
         if (checkPres(innerConnection.first_component, innerConnection.second_component)) {
-          actionModalHandler(modalProps.actionType, innerConnection);
+          actionModalHandler(modalProps.actionType, castedData);
         } else {
           setErrors({
             first_component: true,
@@ -274,7 +279,7 @@ export default function ConnectionModal({
             margin="normal"
             label="First component"
             disabled={modalProps.actionType === 'view'}
-            defaultValue={modalProps.actionType === 'new' ? modalProps.currentComponentId : modalProps.connection.first_component}
+            defaultValue={modalProps.actionType === 'new' ? modalProps.component.id : modalProps.connection.first_component}
           >
             <MenuItem value="">
               <em>Select a first component</em>
@@ -311,7 +316,13 @@ export default function ConnectionModal({
         </FormControl>
         <FormControl component="fieldset" style={{ width: '100%' }} className={classes.bottomForm} error={errors.direction}>
           <FormLabel component="legend">Direction</FormLabel>
-          <RadioGroup row aria-label="position" name="position" defaultValue={modalProps.connection.direction ? modalProps.connection.direction : 'bidirectional'}>
+          <RadioGroup
+            row
+            aria-label="position"
+            name="position"
+            defaultValue={modalProps.connection.direction ? modalProps.connection.direction : 'bidirectional'}
+            onChange={(e) => { handleInputChange('direction', e.target.value); }}
+          >
             <FormControlLabel
               value="bidirectional"
               control={<Radio color="primary" />}
@@ -374,10 +385,10 @@ ConnectionModal.propTypes = {
       second_component: PropTypes.string,
       name: PropTypes.string,
       datatype: PropTypes.string,
-      direction: PropTypes.string
+      direction: PropTypes.string,
     }),
     actionType: PropTypes.string.isRequired,
-    currentComponentId: PropTypes.string
+    component: PropTypes.object,
   }).isRequired,
   architectureComponents: PropTypes.array,
   setModalProps: PropTypes.func.isRequired,

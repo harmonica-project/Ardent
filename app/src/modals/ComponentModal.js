@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import genValuesFromSchema from 'src/utils/genValuesFromSchema';
 import {
   Box,
   Typography,
@@ -58,20 +57,21 @@ export default function ComponentModal({
     name: yup.string()
       .max(30, 'Component name is too long.')
       .required('Base component name is required'),
-    author_description: yup.string(),
-    reader_description: yup.string(),
+    author_description: yup.string()
+      .default('No description provided.'),
+    reader_description: yup.string()
+      .default('No description provided.'),
     component_base_id: yup.string()
+      .required('A reference to base component is required.')
   });
   const [modalStyle] = useState(getModalStyle);
   const [checked, setChecked] = React.useState(true);
-  const [innerComponent, setInnerComponent] = useState(
-    genValuesFromSchema(modalProps.component, schema)
-  );
+  const [innerComponent, setInnerComponent] = useState(modalProps.component);
   const [helperText, setHelperText] = useState('');
   const [isBaseInputInvalid, setIsBaseInputInvalid] = useState(false);
 
   useEffect(() => {
-    setInnerComponent(genValuesFromSchema(modalProps.component, schema));
+    setInnerComponent(modalProps.component);
   }, [modalProps.component]);
 
   const resetContext = () => {
@@ -149,10 +149,11 @@ export default function ComponentModal({
   };
 
   const validateAndSubmit = () => {
-    schema.validate(innerComponent, { abortEarly: false })
+    const castedData = schema.cast(innerComponent);
+    schema.validate(castedData, { abortEarly: false })
       .then(() => {
         actionModalHandler(
-          modalProps.actionType, innerComponent, checked && isPossibleToAddBaseProperties()
+          modalProps.actionType, castedData, checked && isPossibleToAddBaseProperties()
         );
       })
       .catch(() => {
