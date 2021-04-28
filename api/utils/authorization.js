@@ -5,20 +5,23 @@ var { SIGN_KEY } = require('../config');
 module.exports = {
     authorizedOnly: (req, res, next) => {
         const authHeader = req.headers['authorization'];
-        try {
-            const token = authHeader && authHeader.split(' ')[1];
-            const verifiedToken = nJwt.verify(token, SIGN_KEY);
-            db.getUser(verifiedToken.body.sub).then((parsedResult) => {
-                if(parsedResult.success && parsedResult.result.username) {
-                    next();
-                }
-                else res.status(401).send({success: false, errorMsg: 'User does not exists yet token is valid.'});
-            })
+        if (authHeader) {
+            try {
+                const token = authHeader.split(' ')[1];
+                const verifiedToken = nJwt.verify(token, SIGN_KEY);
+                db.getUser(verifiedToken.body.sub).then((parsedResult) => {
+                    if(parsedResult.success && parsedResult.result.username) {
+                        next();
+                    }
+                    else res.status(401).send({success: false, errorMsg: 'User does not exists yet token is valid.'});
+                })
+            }
+            catch (error) {
+                console.log(error);
+                res.status(401).send({success: false, errorMsg: error});
+            }
         }
-        catch (error) {
-            console.log(error);
-            res.status(401).send({success: false, errorMsg: error});
-        }
+        else res.status(401).send({success: false, errorMsg: 'No token provided.'});
     },
     verifyClaimIdentity: async (username, req) => {
         try {

@@ -43,7 +43,7 @@ Then, once your account is created, alter the _users_ table to promote your acco
 ```bash
 
 npm install
-
+npm install -g nodemon
 npm start
 
 ```

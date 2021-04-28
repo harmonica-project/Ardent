@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import genValuesFromSchema from 'src/utils/genValuesFromSchema';
 import * as yup from 'yup';
 import {
   Box,
   Typography,
   Button,
   Modal,
-  TextField
+  TextField,
+  Checkbox,
+  FormControlLabel,
+  FormControl
 } from '@material-ui/core/';
 import {
   Delete as DeleteIcon,
@@ -45,7 +47,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function InstancePropertiesModal({
+export default function BasePropertyModal({
   modalProps, setModalProps, actionModalHandler, doNotShowSwitch
 }) {
   const classes = useStyles();
@@ -55,37 +57,24 @@ export default function InstancePropertiesModal({
     key: yup.string()
       .max(30, 'Property key is too long.')
       .required('Property key is required'),
-    value: yup.string()
-      .max(30, 'Property value is too long.')
-      .required('Property value is required'),
     category: yup.string()
+      .default('Other'),
+    component_base_id: yup.string()
+      .required()
   });
   const [modalStyle] = useState(getModalStyle);
-  const [innerProperty, setInnerProperty] = useState(
-    genValuesFromSchema(modalProps.property, schema)
-  );
-  const [errors, setErrors] = useState({
-    key: false,
-    value: false
-  });
-  const [helpers, setHelpers] = useState({
-    key: '',
-    value: ''
-  });
+  const [checked, setChecked] = React.useState(true);
+  const [innerProperty, setInnerProperty] = useState(modalProps.baseProperty);
+  const [error, setError] = useState(false);
+  const [helper, setHelper] = useState('');
 
   useEffect(() => {
-    setInnerProperty(genValuesFromSchema(modalProps.property, schema));
-  }, [modalProps.property]);
+    setInnerProperty(modalProps.baseProperty);
+  }, [modalProps.baseProperty]);
 
   const resetContext = () => {
-    setErrors({
-      key: false,
-      value: false
-    });
-    setHelpers({
-      key: '',
-      value: ''
-    });
+    setError(false);
+    setHelper('');
   };
 
   const handleClose = () => {
@@ -96,9 +85,15 @@ export default function InstancePropertiesModal({
     resetContext();
   };
 
+  const handleCheck = (event) => {
+    setChecked(event.target.checked);
+  };
+
   const handleInputChange = (key, value) => {
-    setErrors({ ...errors, [key]: false });
-    setHelpers({ ...helpers, [key]: false });
+    if (key === 'key') {
+      setError(false);
+      setHelper('');
+    }
 
     if (key === 'category') {
       setInnerProperty({
@@ -114,19 +109,16 @@ export default function InstancePropertiesModal({
   };
 
   const validateAndSubmit = () => {
-    schema.validate(innerProperty, { abortEarly: false })
+    const castedData = schema.cast(innerProperty);
+    schema.validate(castedData, { abortEarly: false })
       .then(() => {
-        actionModalHandler(modalProps.actionType, innerProperty);
+        actionModalHandler(
+          modalProps.actionType, castedData, modalProps.initialProperty, checked
+        );
       })
-      .catch((err) => {
-        let newErrors = {};
-        let newHelpers = {};
-        err.inner.forEach((field) => {
-          newErrors = { ...newErrors, [field.path]: true };
-          newHelpers = { ...newHelpers, [field.path]: field.message };
-        });
-        setErrors({ ...errors, ...newErrors });
-        setHelpers({ ...helpers, ...newHelpers });
+      .catch(() => {
+        setError(true);
+        setHelper('Property key is required.');
       });
   };
 
@@ -149,7 +141,7 @@ export default function InstancePropertiesModal({
     if (modalProps.actionType === 'new') {
       return (
         <Typography variant="h2" component="h3" gutterBottom>
-          {`${modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)} property instance`}
+          {`${modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)} base property`}
         </Typography>
       );
     }
@@ -158,7 +150,7 @@ export default function InstancePropertiesModal({
       <Box display="flex" className={classes.boxMargin}>
         <Box width="100%">
           <Typography variant="h2" gutterBottom>
-            {`${modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)} property instance`}
+            {`${modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)} base property`}
           </Typography>
         </Box>
         <Box flexShrink={0} className={classes.boxMargin}>
@@ -167,7 +159,7 @@ export default function InstancePropertiesModal({
             style={{ backgroundColor: '#f50057', color: 'white' }}
             className={classes.headerButton}
             startIcon={<DeleteIcon />}
-            onClick={() => actionModalHandler('delete')}
+            onClick={() => actionModalHandler('delete', innerProperty)}
           >
             Delete
           </Button>
@@ -195,13 +187,13 @@ export default function InstancePropertiesModal({
       <form noValidate className={classes.form}>
         <TextField
           id="category-field"
-          label="Category"
+          label="Category (Other as default)"
           placeholder="Enter a category name"
           fullWidth
           margin="normal"
           disabled={modalProps.actionType === 'view'}
           onChange={(e) => handleInputChange('category', e.target.value)}
-          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.property.category}
+          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.baseProperty.category}
           InputLabelProps={{
             shrink: true,
           }}
@@ -214,30 +206,30 @@ export default function InstancePropertiesModal({
           margin="normal"
           disabled={modalProps.actionType === 'view'}
           onChange={(e) => handleInputChange('key', e.target.value)}
-          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.property.key}
+          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.baseProperty.key}
           InputLabelProps={{
             shrink: true,
           }}
-          error={errors.key}
-          helperText={helpers.key}
+          error={error}
+          helperText={helper}
         />
-        <TextField
-          id="value-field"
-          label="Value"
-          placeholder="Enter a property value"
-          fullWidth
-          margin="normal"
-          disabled={modalProps.actionType === 'view'}
-          onChange={(e) => handleInputChange('value', e.target.value)}
-          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.property.value}
-          InputLabelProps={{
-            shrink: true,
-          }}
-          multiline
-          error={errors.value}
-          helperText={helpers.value}
-          rows={4}
-        />
+        {modalProps.actionType !== 'view' ? (
+          <FormControl component="fieldset" fullWidth>
+            <FormControlLabel
+              control={
+                (
+                  <Checkbox
+                    checked={checked}
+                    onChange={handleCheck}
+                    name="check-add-property"
+                    color="primary"
+                  />
+                )
+              }
+              label={modalProps.actionType === 'new' ? 'Add this base property to existing component instances' : 'Apply this modification to existing instance properties'}
+            />
+          </FormControl>
+        ) : <span />}
         {modalProps.actionType !== 'view' ? (
           <Button
             color="primary"
@@ -267,15 +259,15 @@ export default function InstancePropertiesModal({
   );
 }
 
-InstancePropertiesModal.propTypes = {
+BasePropertyModal.propTypes = {
   modalProps: PropTypes.shape({
     open: PropTypes.bool.isRequired,
-    property: PropTypes.shape({
+    baseProperty: PropTypes.shape({
       id: PropTypes.string,
       key: PropTypes.string,
-      value: PropTypes.string,
       category: PropTypes.string
     }),
+    initialProperty: PropTypes.string,
     actionType: PropTypes.string.isRequired
   }).isRequired,
   setModalProps: PropTypes.func.isRequired,

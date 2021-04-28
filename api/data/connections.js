@@ -26,7 +26,10 @@ module.exports = {
         try {
             const foundConnections = await client.query("SELECT * FROM connections WHERE (first_component = $1 AND second_component = $2) OR (first_component = $2 AND second_component = $1)", [connection.first_component, connection.second_component]);
             if(foundConnections["rows"].length === 0) {
-                await client.query("INSERT INTO connections VALUES ($1, $2, $3)", [newConnectionId, connection.first_component, connection.second_component])
+                await client.query(`
+                    INSERT INTO connections (id, first_component, second_component, datatype, direction, name) 
+                    VALUES ($1, $2, $3, $4, $5, $6)
+                `, [newConnectionId, connection.first_component, connection.second_component, connection.datatype, connection.direction, connection.name])
                 return {
                     success: true,
                     connectionId: newConnectionId
@@ -35,7 +38,7 @@ module.exports = {
             else {
                 return {
                     success: false,
-                    errorMsg: 'Property already exists for this component.'
+                    errorMsg: 'Connection already exists for this component.'
                 };
             }
         }
@@ -50,11 +53,14 @@ module.exports = {
     modifyConnection: async connection => {
         try {
             await client.query(`
-            UPDATE connections SET (first_component, second_component) =
-            ($1, $2) WHERE id = $3`, 
+            UPDATE connections SET (first_component, second_component, datatype, direction, name) =
+            ($1, $2, $3, $4, $5) WHERE id = $6`, 
             [
                 connection.first_component, 
                 connection.second_component, 
+                connection.datatype,
+                connection.direction,
+                connection.name,
                 connection.id
             ])
             return {success: true};

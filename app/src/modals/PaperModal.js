@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import * as yup from 'yup';
-import genValuesFromSchema from 'src/utils/genValuesFromSchema';
 import {
   FormControl,
   TextField,
@@ -68,15 +67,21 @@ export default function PaperModal({
       .required('You need to specify who is in charge of the paper.'),
     authors: yup.string()
       .required('Author(s) must be specified.'),
-    status: yup.number(),
+    status: yup.number()
+      .required(),
     doi: yup.string(),
-    paper_type: yup.string(),
-    journal: yup.string(),
-    abstract: yup.string(),
+    paper_type: yup.string()
+      .required()
+      .default('other'),
+    journal: yup.string()
+      .default('No journal title provided'),
+    abstract: yup.string()
+      .default('No abstract provided'),
     comments: yup.string()
+      .default('No comments provided')
   });
 
-  const [innerPaper, setInnerPaper] = useState(genValuesFromSchema(modalProps.paper, schema));
+  const [innerPaper, setInnerPaper] = useState(modalProps.paper);
 
   const getEmptyErrors = () => {
     return {
@@ -101,7 +106,7 @@ export default function PaperModal({
   const [helperFields, setHelperFields] = useState(getEmptyHelpers());
 
   useEffect(() => {
-    setInnerPaper(genValuesFromSchema(modalProps.paper, schema));
+    setInnerPaper(modalProps.paper);
   }, [modalProps.paper]);
 
   const handleClose = () => {
@@ -138,12 +143,12 @@ export default function PaperModal({
   };
 
   const validateAndSubmit = () => {
-    schema.validate(innerPaper, { abortEarly: false })
+    const castedData = schema.cast(innerPaper);
+    schema.validate(castedData, { abortEarly: false })
       .then(() => {
-        actionModalHandler(modalProps.actionType, innerPaper);
+        actionModalHandler(modalProps.actionType, castedData);
       })
       .catch((errs) => {
-        console.log(errs);
         const newErrorFields = {};
         const newHelperFields = {};
 

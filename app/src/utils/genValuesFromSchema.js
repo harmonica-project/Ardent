@@ -1,10 +1,9 @@
-export default (item, schema) => {
+export default (item, defaultValues) => {
   Object.keys(item).forEach((key) => {
     if (item[key] === null || item[key] === undefined) {
-      item[key] = '';
+      item[key] = defaultValues[key];
     }
   });
 
-  item = schema.cast(item);
   return item;
 };

@@ -44,41 +44,72 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function ArchitectureModal({
+export default function InstancePropertyModal({
   modalProps, setModalProps, actionModalHandler, doNotShowSwitch
 }) {
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
 
   const schema = yup.object().shape({
-    name: yup.string()
-      .max(30, 'Architecture name is too long.')
-      .default('Unnamed'),
-    author_description: yup.string()
-      .default('No description provided.'),
-    reader_description: yup.string()
-      .default('No description provided.'),
+    key: yup.string()
+      .max(30, 'Property key is too long.')
+      .required('Property key is required'),
+    value: yup.string()
+      .max(30, 'Property value is too long.')
+      .default('Undefined'),
+    category: yup.string()
   });
-
   const [modalStyle] = useState(getModalStyle);
-  const [innerArchitecture, setInnerArchitecture] = useState(modalProps.architecture);
+  const [innerProperty, setInnerProperty] = useState(modalProps.property);
+  const [error, setError] = useState(false);
+  const [helper, setHelper] = useState('');
 
   useEffect(() => {
-    setInnerArchitecture(modalProps.architecture);
-  }, [modalProps.architecture]);
+    setInnerProperty(modalProps.property);
+  }, [modalProps.property]);
+
+  const resetContext = () => {
+    setError(false);
+    setHelper('');
+  };
 
   const handleClose = () => {
     setModalProps({
       ...modalProps,
       open: false
     });
+    resetContext();
   };
 
   const handleInputChange = (key, value) => {
-    setInnerArchitecture({
-      ...innerArchitecture,
-      [key]: value
-    });
+    if (key === 'key') {
+      setError(false);
+      setHelper('');
+    }
+
+    if (key === 'category') {
+      setInnerProperty({
+        ...innerProperty,
+        category: (value.length ? (value.charAt(0).toUpperCase() + value.slice(1)) : value)
+      });
+    } else {
+      setInnerProperty({
+        ...innerProperty,
+        [key]: value
+      });
+    }
+  };
+
+  const validateAndSubmit = () => {
+    const castedData = schema.cast(innerProperty);
+    schema.validate(castedData, { abortEarly: false })
+      .then(() => {
+        actionModalHandler(modalProps.actionType, castedData);
+      })
+      .catch(() => {
+        setError(true);
+        setHelper('Property key is required');
+      });
   };
 
   const handleSwitchClick = () => {
@@ -96,16 +127,11 @@ export default function ArchitectureModal({
     }
   };
 
-  const validateAndSubmit = () => {
-    const castedData = schema.cast(innerArchitecture);
-    actionModalHandler(modalProps.actionType, castedData);
-  };
-
   const getModalHeader = () => {
     if (modalProps.actionType === 'new') {
       return (
         <Typography variant="h2" component="h3" gutterBottom>
-          {`${modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)} architecture`}
+          {`${modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)} property instance`}
         </Typography>
       );
     }
@@ -114,7 +140,7 @@ export default function ArchitectureModal({
       <Box display="flex" className={classes.boxMargin}>
         <Box width="100%">
           <Typography variant="h2" gutterBottom>
-            {`${modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)} architecture`}
+            {`${modalProps.actionType.charAt(0).toUpperCase() + modalProps.actionType.slice(1)} property instance`}
           </Typography>
         </Box>
         <Box flexShrink={0} className={classes.boxMargin}>
@@ -150,42 +176,42 @@ export default function ArchitectureModal({
       </Typography>
       <form noValidate className={classes.form}>
         <TextField
-          id="name-field"
-          label="Name"
-          placeholder="Enter architecture name"
+          id="category-field"
+          label="Category (Other by default)"
+          placeholder="Enter a category name"
           fullWidth
           margin="normal"
           disabled={modalProps.actionType === 'view'}
-          onChange={(e) => handleInputChange('name', e.target.value)}
-          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.architecture.name}
+          onChange={(e) => handleInputChange('category', e.target.value)}
+          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.property.category}
           InputLabelProps={{
             shrink: true,
           }}
         />
         <TextField
-          id="reader-description-field"
-          label="Reader description"
-          placeholder="Enter architecture description from reader standpoint"
+          id="key-field"
+          label="Key"
+          placeholder="Enter a property key"
           fullWidth
           margin="normal"
           disabled={modalProps.actionType === 'view'}
-          onChange={(e) => handleInputChange('reader_description', e.target.value)}
-          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.architecture.reader_description}
+          onChange={(e) => handleInputChange('key', e.target.value)}
+          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.property.key}
           InputLabelProps={{
             shrink: true,
           }}
-          multiline
-          rows={4}
+          error={error}
+          helperText={helper}
         />
         <TextField
-          id="author-description-field"
-          label="Author description"
-          placeholder="Enter architecture description from author standpoint"
+          id="value-field"
+          label="Value (Undefined by default)"
+          placeholder="Enter a property value"
           fullWidth
           margin="normal"
           disabled={modalProps.actionType === 'view'}
-          onChange={(e) => handleInputChange('author_description', e.target.value)}
-          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.architecture.author_description}
+          onChange={(e) => handleInputChange('value', e.target.value)}
+          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.property.value}
           InputLabelProps={{
             shrink: true,
           }}
@@ -213,7 +239,7 @@ export default function ArchitectureModal({
         open={modalProps.open}
         onClose={handleClose}
         aria-labelledby="title"
-        aria-describedby="architecture-modal"
+        aria-describedby="property-modal"
       >
         {body}
       </Modal>
@@ -221,15 +247,14 @@ export default function ArchitectureModal({
   );
 }
 
-ArchitectureModal.propTypes = {
+InstancePropertyModal.propTypes = {
   modalProps: PropTypes.shape({
     open: PropTypes.bool.isRequired,
-    architecture: PropTypes.shape({
+    property: PropTypes.shape({
       id: PropTypes.string,
-      name: PropTypes.string,
-      reader_description: PropTypes.string,
-      author_description: PropTypes.string,
-      paper_id: PropTypes.string
+      key: PropTypes.string,
+      value: PropTypes.string,
+      category: PropTypes.string
     }),
     actionType: PropTypes.string.isRequired
   }).isRequired,

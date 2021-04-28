@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useSnackbar } from 'notistack';
 import {
   Container,
   Grid,
   makeStyles
 } from '@material-ui/core';
-import MessageSnackbar from 'src/components/MessageSnackbar';
 import LoadingOverlay from 'src/components/LoadingOverlay';
-import handleErrorRequest from 'src/utils/handleErrorRequest';
 import Page from 'src/components/Page';
 import { getArchitectures as getArchitecturesRequest } from 'src/requests/architectures';
 import { getBaseComponents as getBaseComponentsRequest } from 'src/requests/components';
@@ -29,26 +28,11 @@ const useStyles = makeStyles((theme) => ({
 
 const Dashboard = () => {
   const classes = useStyles();
+  const { enqueueSnackbar } = useSnackbar();
   const [papers, setPapers] = useState([]);
   const [architectures, setArchitectures] = useState([]);
   const [components, setComponents] = useState([]);
   const [open, setOpen] = useState(false);
-
-  const [messageSnackbarProps, setMessageSnackbarProps] = useState({
-    open: false,
-    message: '',
-    duration: 0,
-    severity: 'information'
-  });
-
-  const displayMsg = (message, severity = 'success', duration = 6000) => {
-    setMessageSnackbarProps({
-      open: true,
-      severity,
-      duration,
-      message
-    });
-  };
 
   const getArchitectures = async () => {
     try {
@@ -57,7 +41,7 @@ const Dashboard = () => {
         setArchitectures(data.result);
       }
     } catch (error) {
-      handleErrorRequest(error, displayMsg);
+      enqueueSnackbar(error, { variant: 'error' });
     }
   };
 
@@ -68,7 +52,7 @@ const Dashboard = () => {
         setComponents(data.result);
       }
     } catch (error) {
-      handleErrorRequest(error, displayMsg);
+      enqueueSnackbar(error, { variant: 'error' });
     }
   };
 
@@ -79,7 +63,7 @@ const Dashboard = () => {
         setPapers(data.result);
       }
     } catch (error) {
-      handleErrorRequest(error, displayMsg);
+      enqueueSnackbar(error, { variant: 'error' });
     }
   };
 
@@ -157,10 +141,6 @@ const Dashboard = () => {
           </Grid>
         </Grid>
       </Container>
-      <MessageSnackbar
-        messageSnackbarProps={messageSnackbarProps}
-        setMessageSnackbarProps={setMessageSnackbarProps}
-      />
       <LoadingOverlay open={open} />
     </Page>
   );

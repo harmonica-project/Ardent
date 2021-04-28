@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import genValuesFromSchema from 'src/utils/genValuesFromSchema';
 import {
   Box,
   Typography,
   Button,
   Modal,
-  TextField
+  TextField,
+  FormControl,
+  FormControlLabel,
+  Checkbox
 } from '@material-ui/core/';
 import * as yup from 'yup';
 import {
@@ -55,24 +57,30 @@ export default function ComponentModal({
     name: yup.string()
       .max(30, 'Component name is too long.')
       .required('Base component name is required'),
-    author_description: yup.string(),
-    reader_description: yup.string(),
+    author_description: yup.string()
+      .default('No description provided.'),
+    reader_description: yup.string()
+      .default('No description provided.'),
     component_base_id: yup.string()
+      .required('A reference to base component is required.')
   });
   const [modalStyle] = useState(getModalStyle);
-  const [innerComponent, setInnerComponent] = useState(
-    genValuesFromSchema(modalProps.component, schema)
-  );
+  const [checked, setChecked] = React.useState(true);
+  const [innerComponent, setInnerComponent] = useState(modalProps.component);
   const [helperText, setHelperText] = useState('');
   const [isBaseInputInvalid, setIsBaseInputInvalid] = useState(false);
 
   useEffect(() => {
-    setInnerComponent(genValuesFromSchema(modalProps.component, schema));
+    setInnerComponent(modalProps.component);
   }, [modalProps.component]);
 
   const resetContext = () => {
     setHelperText('');
     setIsBaseInputInvalid(false);
+  };
+
+  const handleCheck = (event) => {
+    setChecked(event.target.checked);
   };
 
   const handleClose = () => {
@@ -133,10 +141,20 @@ export default function ComponentModal({
     }
   };
 
+  const isPossibleToAddBaseProperties = () => {
+    if (modalProps.actionType === 'view') return false;
+    if (modalProps.initialComponent === innerComponent.name) return false;
+    if (!innerComponent.component_base_id || innerComponent.component_base_id === '') return false;
+    return true;
+  };
+
   const validateAndSubmit = () => {
-    schema.validate(innerComponent, { abortEarly: false })
+    const castedData = schema.cast(innerComponent);
+    schema.validate(castedData, { abortEarly: false })
       .then(() => {
-        actionModalHandler(modalProps.actionType, innerComponent);
+        actionModalHandler(
+          modalProps.actionType, castedData, checked && isPossibleToAddBaseProperties()
+        );
       })
       .catch(() => {
         setIsBaseInputInvalid(true);
@@ -230,6 +248,23 @@ export default function ComponentModal({
           multiline
           rows={4}
         />
+        {isPossibleToAddBaseProperties() ? (
+          <FormControl component="fieldset" fullWidth>
+            <FormControlLabel
+              control={
+                (
+                  <Checkbox
+                    checked={checked}
+                    onChange={handleCheck}
+                    name="check-add-property"
+                    color="primary"
+                  />
+                )
+              }
+              label="Add base component properties to created instance"
+            />
+          </FormControl>
+        ) : <span />}
         {modalProps.actionType !== 'view' ? (
           <Button
             color="primary"
@@ -270,6 +305,7 @@ ComponentModal.propTypes = {
       architecture_id: PropTypes.string,
       component_base_id: PropTypes.string
     }),
+    initialComponent: PropTypes.string,
     actionType: PropTypes.string.isRequired
   }).isRequired,
   setModalProps: PropTypes.func.isRequired,

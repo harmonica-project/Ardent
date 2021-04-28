@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import genValuesFromSchema from 'src/utils/genValuesFromSchema';
 import * as yup from 'yup';
 import {
   Box,
@@ -56,17 +55,16 @@ export default function BaseComponentModal({
       .max(30, 'Component name is too long.')
       .required('Base component name is required'),
     base_description: yup.string()
+      .default('No description provided')
   });
 
   const [modalStyle] = useState(getModalStyle);
-  const [innerBaseComponent, setInnerBaseComponent] = useState(
-    genValuesFromSchema(modalProps.baseComponent, schema)
-  );
+  const [innerBaseComponent, setInnerBaseComponent] = useState(modalProps.baseComponent);
   const [nameError, setNameError] = useState(false);
   const [nameHelper, setNameHelper] = useState('');
 
   useEffect(() => {
-    setInnerBaseComponent(genValuesFromSchema(modalProps.baseComponent, schema));
+    setInnerBaseComponent(modalProps.baseComponent);
   }, [modalProps.baseComponent]);
 
   const resetContext = () => {
@@ -95,9 +93,10 @@ export default function BaseComponentModal({
   };
 
   const validateAndSubmit = () => {
-    schema.validate(innerBaseComponent, { abortEarly: false })
+    const castedData = schema.cast(innerBaseComponent);
+    schema.validate(castedData, { abortEarly: false })
       .then(() => {
-        actionModalHandler(modalProps.actionType, innerBaseComponent);
+        actionModalHandler(modalProps.actionType, castedData);
       })
       .catch(() => {
         setNameError(true);

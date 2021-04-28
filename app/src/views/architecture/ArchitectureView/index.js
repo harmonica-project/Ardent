@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSnackbar } from 'notistack';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   makeStyles,
@@ -25,8 +26,10 @@ import {
   saveNewBaseComponent as saveNewBaseComponentRequest,
   getBaseComponents as getBaseComponentsRequest
 } from 'src/requests/components';
-import MessageSnackbar from 'src/components/MessageSnackbar';
-import handleErrorRequest from 'src/utils/handleErrorRequest';
+import {
+  saveProperty as savePropertyRequest,
+  getBaseComponentProperties as getBaseComponentPropertiesRequest,
+} from 'src/requests/properties';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 import ComponentModal from 'src/modals/ComponentModal';
@@ -54,6 +57,7 @@ const ArchitectureView = () => {
   const classes = useStyles();
   const { id } = useParams();
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
 
   const [architecture, setArchitecture] = useState({ components: [] });
   const [baseComponents, setBaseComponents] = useState([]);
@@ -75,24 +79,9 @@ const ArchitectureView = () => {
     component: {
       architecture_id: id
     },
+    initialComponent: '',
     actionType: ''
   });
-
-  const [messageSnackbarProps, setMessageSnackbarProps] = useState({
-    open: false,
-    message: '',
-    duration: 0,
-    severity: 'information'
-  });
-
-  const displayMsg = (message, severity = 'success', duration = 6000) => {
-    setMessageSnackbarProps({
-      open: true,
-      severity,
-      duration,
-      message
-    });
-  };
 
   const getArchitecture = async () => {
     try {
@@ -105,7 +94,7 @@ const ArchitectureView = () => {
         });
       }
     } catch (error) {
-      handleErrorRequest(error, displayMsg);
+      enqueueSnackbar(error, { variant: 'error' });
     }
   };
 
@@ -116,7 +105,7 @@ const ArchitectureView = () => {
         setBaseComponents(data.result);
       }
     } catch (error) {
-      handleErrorRequest(error, displayMsg);
+      enqueueSnackbar(error, { variant: 'error' });
     }
   };
 
@@ -139,10 +128,10 @@ const ArchitectureView = () => {
             actionType: ''
           });
           setArchitecture(newArchitecture);
-          displayMsg('Architecture successfully modified.');
+          enqueueSnackbar('Architecture successfully modified.', { variant: 'success' });
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg))
+      .catch((error) => enqueueSnackbar(error, { variant: 'error' }))
       .finally(() => setOpen(false));
   };
 
@@ -151,11 +140,11 @@ const ArchitectureView = () => {
     deleteArchitectureRequest(architectureId)
       .then((data) => {
         if (data.success) {
-          displayMsg('Architecture successfully deleted.');
+          enqueueSnackbar('Architecture successfully deleted.', { variant: 'success' });
           navigate('/app/papers');
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg))
+      .catch((error) => enqueueSnackbar(error, { variant: 'error' }))
       .finally(() => setOpen(false));
   };
 
@@ -182,10 +171,10 @@ const ArchitectureView = () => {
       .then((data) => {
         if (data.success) {
           removeComponentFromState(componentId);
-          displayMsg('Component successfully deleted.');
+          enqueueSnackbar('Component successfully deleted.', { variant: 'success' });
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg))
+      .catch((error) => enqueueSnackbar(error, { variant: 'error' }))
       .finally(() => setOpen(false));
   };
 
@@ -289,6 +278,7 @@ const ArchitectureView = () => {
       case 'view':
         setComponentModalProps({
           component,
+          initialComponent: component.name,
           open: true,
           actionType
         });
@@ -308,7 +298,55 @@ const ArchitectureView = () => {
     }
   };
 
-  const saveNewComponent = async (component) => {
+  const messageResultTransferProps = (expectedLength, actualLength) => {
+    if (expectedLength === 0) {
+      enqueueSnackbar(`
+      No new properties have been transferred from base component, as the base component does not have base properties.
+    `, { variant: 'info' });
+    } else if (actualLength === expectedLength) {
+      enqueueSnackbar(`
+          ${actualLength || 'No new'} properties have been transferred from base component.
+          ${actualLength ? 'Do not forget to fill their values!' : ''}
+          `, { variant: 'success' });
+    } else {
+      enqueueSnackbar(`
+          ${actualLength || 'No new'} properties have been transferred from base component, but ${expectedLength} were expected.
+          Properties that were not added might already be present in the component instance.
+        `, { variant: 'info' });
+    }
+  };
+
+  const transferBasePropsToInstance = async (newComponent) => {
+    const queries = [];
+    let newProperties = [];
+    const propRes = await getBaseComponentPropertiesRequest(newComponent.component_base_id);
+    if (propRes.success) {
+      propRes.result.forEach((prop) => {
+        const newProperty = {
+          key: prop.key,
+          value: 'Undefined',
+          component_id: newComponent.id,
+          category: prop.category
+        };
+
+        newProperties.push(newProperty);
+        queries.push(savePropertyRequest(newProperty));
+      });
+      const results = await Promise.all(queries);
+      results.forEach((res, i) => {
+        if (res && res.success) {
+          newProperties[i].id = res.propertyId;
+        }
+      });
+      newProperties = newProperties.filter((prop) => prop.id);
+
+      messageResultTransferProps(queries.length, newProperties.length);
+    } else {
+      enqueueSnackbar('Error while retrieving base properties.', { variant: 'error' });
+    }
+  };
+
+  const saveNewComponent = async (component, doAddBaseProps) => {
     setOpen(true);
     try {
       if (!component.component_base_id || component.component_base_id === '') {
@@ -327,10 +365,16 @@ const ArchitectureView = () => {
 
       const data = await saveNewComponentInstanceRequest(component);
       if (data.success) {
+        enqueueSnackbar('Component instance successfully added.', { variant: 'success' });
         const newComponent = {
           ...component,
           id: data.componentId
         };
+
+        if (doAddBaseProps) {
+          await transferBasePropsToInstance(newComponent);
+        }
+
         setArchitecture({
           ...architecture,
           components: [...architecture.components, newComponent]
@@ -338,12 +382,12 @@ const ArchitectureView = () => {
         setComponentModalProps({
           ...componentModalProps,
           component: { architecture_id: id },
+          initialComponent: '',
           open: false,
         });
-        displayMsg('Component instance successfully added.');
       }
     } catch (error) {
-      handleErrorRequest(error, displayMsg);
+      enqueueSnackbar(error, { variant: 'error' });
     } finally {
       setOpen(false);
     }
@@ -362,7 +406,7 @@ const ArchitectureView = () => {
     });
   };
 
-  const saveExistingComponent = async (component) => {
+  const saveExistingComponent = async (component, doAddBaseProps) => {
     setOpen(true);
     try {
       if (!component.component_base_id || component.component_base_id === '') {
@@ -381,29 +425,34 @@ const ArchitectureView = () => {
 
       const data = await saveExistingComponentInstanceRequest(component);
       if (data.success) {
+        enqueueSnackbar('Component instance successfully modified.', { variant: 'success' });
+        if (doAddBaseProps) {
+          await transferBasePropsToInstance(component);
+        }
+
         modifyComponentInState(component);
         setComponentModalProps({
           ...componentModalProps,
+          initialComponent: '',
           component: { architecture_id: id },
           open: false,
         });
-        displayMsg('Component instance successfully modified.');
       }
     } catch (error) {
-      handleErrorRequest(error, displayMsg);
+      enqueueSnackbar(error, { variant: 'error' });
     } finally {
       setOpen(false);
     }
   };
 
-  const componentActionModalHandler = (actionType, component) => {
+  const componentActionModalHandler = (actionType, component, doAddBaseProps) => {
     switch (actionType) {
       case 'new':
-        saveNewComponent(component);
+        saveNewComponent(component, doAddBaseProps);
         break;
 
       case 'edit':
-        saveExistingComponent(component);
+        saveExistingComponent(component, doAddBaseProps);
         break;
 
       case 'delete':
@@ -475,10 +524,6 @@ const ArchitectureView = () => {
             )
         }
       </Container>
-      <MessageSnackbar
-        messageSnackbarProps={messageSnackbarProps}
-        setMessageSnackbarProps={setMessageSnackbarProps}
-      />
       <ArchitectureModal
         modalProps={architectureModalProps}
         setModalProps={setArchitectureModalProps}

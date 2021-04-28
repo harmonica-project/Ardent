@@ -4,12 +4,14 @@ import { makeStyles } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
+import Grid from '@material-ui/core/Grid';
 import TableContainer from '@material-ui/core/TableContainer';
 import Typography from '@material-ui/core/Typography';
 import Collapse from '@material-ui/core/Collapse';
 import IconButton from '@material-ui/core/IconButton';
 import Box from '@material-ui/core/Box';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
+import AddCircleIcon from '@material-ui/icons/AddCircle';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import TableHead from '@material-ui/core/TableHead';
 import TablePagination from '@material-ui/core/TablePagination';
@@ -19,7 +21,8 @@ import Paper from '@material-ui/core/Paper';
 import { NavLink } from 'react-router-dom';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
-import TableActionCell from '../../../components/TableActionCell';
+import reduceLongText from 'src/utils/reduceLongText';
+import TableActionCell from 'src/components/TableActionCell';
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -138,7 +141,8 @@ function Row({
   isItemSelected,
   row,
   handleClick,
-  componentActionHandler
+  componentActionHandler,
+  propertyActionHandler
 }) {
   const [open, setOpen] = React.useState(false);
   const disableDelete = (() => {
@@ -154,14 +158,22 @@ function Row({
     );
   };
 
+  const displayNoProperties = () => {
+    return (
+      <Typography variant="h6" color="textSecondary" gutterBottom component="div">
+        No properties yet.
+      </Typography>
+    );
+  };
+
   const displayInstancesTable = () => {
     return (
       <Table size="small" aria-label="architectures">
         <TableHead>
           <TableRow>
-            <TableCell>Paper name</TableCell>
-            <TableCell>Architecture name</TableCell>
-            <TableCell>Component instance</TableCell>
+            <TableCell>Paper</TableCell>
+            <TableCell>Architecture</TableCell>
+            <TableCell>Component</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -171,7 +183,7 @@ function Row({
                 style={{ cursor: 'pointer' }}
               >
                 <NavLink to="/app/papers">
-                  { instance.paper_name }
+                  { reduceLongText(instance.paper_name, 30) }
                 </NavLink>
               </TableCell>
               <TableCell
@@ -184,9 +196,41 @@ function Row({
               <TableCell
                 style={{ cursor: 'pointer' }}
               >
-                <NavLink to={`/app/component/${instance.instance_component_id}`}>
-                  Go to component
+                <NavLink to={`/app/component/${instance.id}`}>
+                  View
                 </NavLink>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    );
+  };
+
+  const displayPropertiesTable = () => {
+    return (
+      <Table size="small" aria-label="architectures">
+        <TableHead>
+          <TableRow>
+            <TableCell>Key</TableCell>
+            <TableCell>Category</TableCell>
+            <TableCell align="center">Actions</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {row.properties.map((property) => (
+            <TableRow key={property.id}>
+              <TableCell>
+                {property.key}
+              </TableCell>
+              <TableCell>
+                {property.category}
+              </TableCell>
+              <TableCell align="center">
+                <TableActionCell
+                  actionHandler={propertyActionHandler}
+                  item={{ ...property, component_base_id: row.id }}
+                />
               </TableCell>
             </TableRow>
           ))}
@@ -231,16 +275,44 @@ function Row({
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={11}>
           <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box style={{ padding: 20 }}>
-              <Paper style={{ padding: 20 }}>
-                <Box width="100%">
-                  <Typography variant="h6" color="textSecondary" gutterBottom component="div">
-                    INSTANCES FOR THIS BASE COMPONENT
-                  </Typography>
+            <Grid container>
+              <Grid item>
+                <Box style={{ padding: 20 }}>
+                  <Paper style={{ padding: 20 }}>
+                    <Box display="flex">
+                      <Box width="100%" style={{ marginBottom: '10px' }}>
+                        <Typography variant="h6" color="textSecondary" component="div">
+                          BASE PROPERTIES
+                        </Typography>
+                      </Box>
+                      <Box flexShrink={0} ml={3}>
+                        <IconButton
+                          style={{ color: '#263238', padding: 0 }}
+                          aria-label="add property"
+                          component="div"
+                          onClick={() => propertyActionHandler('new', { component_base_id: row.id })}
+                        >
+                          <AddCircleIcon />
+                        </IconButton>
+                      </Box>
+                    </Box>
+                    { row.properties.length ? displayPropertiesTable() : displayNoProperties() }
+                  </Paper>
                 </Box>
-                { row.instances.length ? displayInstancesTable() : displayNoInstances() }
-              </Paper>
-            </Box>
+              </Grid>
+              <Grid item>
+                <Box style={{ padding: 20 }}>
+                  <Paper style={{ padding: 20 }}>
+                    <Box width="100%" style={{ marginBottom: '10px' }}>
+                      <Typography variant="h6" color="textSecondary" component="div">
+                        INSTANCES FOR THIS BASE COMPONENT
+                      </Typography>
+                    </Box>
+                    { row.instances.length ? displayInstancesTable() : displayNoInstances() }
+                  </Paper>
+                </Box>
+              </Grid>
+            </Grid>
           </Collapse>
         </TableCell>
       </TableRow>
@@ -252,10 +324,13 @@ Row.propTypes = {
   isItemSelected: PropTypes.bool,
   row: PropTypes.array,
   handleClick: PropTypes.func,
-  componentActionHandler: PropTypes.func
+  componentActionHandler: PropTypes.func,
+  propertyActionHandler: PropTypes.func
 };
 
-export default function BaseComponentsTable({ rows, componentActionHandler }) {
+export default function BaseComponentsTable({
+  rows, componentActionHandler, propertyActionHandler
+}) {
   const classes = useStyles();
   const [order, setOrder] = React.useState('desc');
   const [orderBy, setOrderBy] = React.useState('occurences');
@@ -335,6 +410,7 @@ export default function BaseComponentsTable({ rows, componentActionHandler }) {
                       row={row}
                       handleClick={handleClick}
                       componentActionHandler={componentActionHandler}
+                      propertyActionHandler={propertyActionHandler}
                     />
                   );
                 })}
@@ -366,5 +442,6 @@ export default function BaseComponentsTable({ rows, componentActionHandler }) {
 
 BaseComponentsTable.propTypes = {
   rows: PropTypes.array,
-  componentActionHandler: PropTypes.func
+  componentActionHandler: PropTypes.func,
+  propertyActionHandler: PropTypes.func
 };

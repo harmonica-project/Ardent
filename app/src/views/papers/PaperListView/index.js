@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSnackbar } from 'notistack';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -25,8 +26,6 @@ import { getUsers as getUsersRequest } from 'src/requests/users';
 import authenticationService from 'src/requests/authentication';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 import Page from 'src/components/Page';
-import MessageSnackbar from 'src/components/MessageSnackbar';
-import handleErrorRequest from 'src/utils/handleErrorRequest';
 import PaperModal from 'src/modals/PaperModal';
 import ArchitectureModal from 'src/modals/ArchitectureModal';
 import CloneModal from 'src/modals/CloneModal';
@@ -50,6 +49,7 @@ const useStyles = makeStyles((theme) => ({
 const PapersListView = () => {
   const navigate = useNavigate();
   const classes = useStyles();
+  const { enqueueSnackbar } = useSnackbar();
   const [papers, setPapers] = useState([]);
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState([]);
@@ -85,22 +85,6 @@ const PapersListView = () => {
     papers: [],
     actionType: ''
   });
-
-  const [messageSnackbarProps, setMessageSnackbarProps] = useState({
-    open: false,
-    message: '',
-    duration: 0,
-    severity: 'information'
-  });
-
-  const displayMsg = (message, severity = 'success', duration = 6000) => {
-    setMessageSnackbarProps({
-      open: true,
-      severity,
-      duration,
-      message
-    });
-  };
 
   const removePaperFromState = (paperId) => {
     let i;
@@ -194,10 +178,10 @@ const PapersListView = () => {
               actionType: ''
             });
           }
-          displayMsg('Paper successfully deleted.');
+          enqueueSnackbar('Paper successfully deleted.', { variant: 'success' });
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg))
+      .catch((error) => enqueueSnackbar(error, 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -214,10 +198,10 @@ const PapersListView = () => {
               actionType: ''
             });
           }
-          displayMsg('Architecture successfully deleted.');
+          enqueueSnackbar('Architecture successfully deleted.', { variant: 'success' });
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg))
+      .catch((error) => enqueueSnackbar(error, 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -243,7 +227,7 @@ const PapersListView = () => {
             paper: {},
             actionType: ''
           });
-          displayMsg('Paper successfully added.');
+          enqueueSnackbar('Paper successfully added.', { variant: 'success' });
         } else {
           return {
             ...newPaper,
@@ -254,7 +238,7 @@ const PapersListView = () => {
         }
       }
     } catch (error) {
-      if (handleAdditionHere) handleErrorRequest(error, displayMsg);
+      if (handleAdditionHere) enqueueSnackbar(error, 'error');
     }
 
     setOpen(false);
@@ -272,10 +256,10 @@ const PapersListView = () => {
             architecture: {},
             actionType: ''
           });
-          displayMsg('Architecture successfully added.');
+          enqueueSnackbar('Architecture successfully added.', { variant: 'success' });
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg))
+      .catch((error) => enqueueSnackbar(error, 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -291,10 +275,10 @@ const PapersListView = () => {
             paper: {},
             actionType: ''
           });
-          displayMsg('Paper successfully modified.');
+          enqueueSnackbar('Paper successfully modified.', { variant: 'success' });
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg))
+      .catch((error) => enqueueSnackbar(error, 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -309,10 +293,10 @@ const PapersListView = () => {
             architecture: {},
             actionType: ''
           });
-          displayMsg('Architecture successfully modified.');
+          enqueueSnackbar('Architecture successfully modified.', { variant: 'success' });
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg))
+      .catch((error) => enqueueSnackbar(error, 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -489,7 +473,7 @@ const PapersListView = () => {
         setPapers(data.result);
       }
     } catch (error) {
-      handleErrorRequest(error, displayMsg);
+      enqueueSnackbar(error, 'error');
     }
   };
 
@@ -510,14 +494,20 @@ const PapersListView = () => {
     setBibtexModalOpen(false);
     if (!paperDiff) {
       if (results.length) {
-        displayMsg(`${results.length} paper${results.length > 1 ? 's' : ''} successfully added from the BibTeX file.`, 'success', 6000);
+        enqueueSnackbar(`${results.length} paper${results.length > 1 ? 's' : ''} successfully added from the BibTeX file.`, { variant: 'success' });
       } else {
-        displayMsg('No paper were found in the BibTeX file or found papers already exist.', 'info', 6000);
+        enqueueSnackbar('No paper were found in the BibTeX file or found papers already exist.', { variant: 'info' });
       }
     } else if (results.length) {
-      displayMsg(`${results.length} paper${results.length > 1 ? 's' : ''} were successfully added from the BibTeX file, but ${paperDiff} paper${paperDiff > 1 ? 's' : ''} were not added due to an unknown problem.`, 'warning', 6000);
+      enqueueSnackbar(
+        `${results.length} paper${results.length > 1 ? 's' : ''} were successfully added from the BibTeX file, but ${paperDiff} paper${paperDiff > 1 ? 's' : ''} were not added due to an unknown problem.`,
+        { variant: 'warning' }
+      );
     } else {
-      displayMsg(`No paper were added, but ${paperDiff} paper${paperDiff > 1 ? 's' : ''} were not added due to an unknown problem.`, 'error', 6000);
+      enqueueSnackbar(
+        `No paper were added, but ${paperDiff} paper${paperDiff > 1 ? 's' : ''} were not added due to an unknown problem.`,
+        { variant: 'error' }
+      );
     }
   };
 
@@ -537,7 +527,7 @@ const PapersListView = () => {
         }
       }
     } catch (error) {
-      handleErrorRequest(error, displayMsg);
+      enqueueSnackbar(error, 'error');
     }
   };
 
@@ -553,10 +543,10 @@ const PapersListView = () => {
             actionType: ''
           });
           addArchitectureToState({ ...architecture, id: data.architectureId, paper_id: paper.id });
-          displayMsg('Architecture successfully added.');
+          enqueueSnackbar('Architecture successfully added.', { variant: 'success' });
         }
       })
-      .catch((error) => handleErrorRequest(error, displayMsg))
+      .catch((error) => enqueueSnackbar(error, 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -661,10 +651,6 @@ const PapersListView = () => {
         <ConfirmModal
           modalProps={confirmModalProps}
           setModalProps={setConfirmModalProps}
-        />
-        <MessageSnackbar
-          messageSnackbarProps={messageSnackbarProps}
-          setMessageSnackbarProps={setMessageSnackbarProps}
         />
         <CloneModal
           modalProps={cloneModalProps}

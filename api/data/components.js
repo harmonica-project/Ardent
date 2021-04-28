@@ -16,7 +16,7 @@ module.exports = {
     },
     getFullComponents: async () => {
         try {
-            return await client.query(
+            /*return await client.query(
                 "SELECT " +
                 "p.name as paper_name, " +
                 "a.name as architecture_name, " +
@@ -33,9 +33,30 @@ module.exports = {
                 "INNER JOIN architectures AS a ON c.architecture_id = a.id " +
                 "INNER JOIN papers AS p ON a.paper_id = p.id " +
                 "FULL JOIN components_base AS b ON c.component_base_id = b.id "
-            );
+            );*/
+            const baseComponents = (await client.query("SELECT * FROM components_base"))["rows"];
+
+            if (baseComponents) {
+                for (let i = 0; i < baseComponents.length; i++) {
+                    const instanceComponents = (await client.query(`
+                        SELECT c.*, a.name as architecture_name, p.name as paper_name FROM components_instances as c
+                        JOIN architectures as a on c.architecture_id = a.id
+                        JOIN papers as p on a.paper_id = p.id
+                        WHERE component_base_id = $1`, 
+                    [baseComponents[i].id]))["rows"];
+                    const baseProperties = (await client.query("SELECT * FROM properties_base WHERE component_base_id = $1", [baseComponents[i].id]))["rows"];
+
+                    baseComponents[i]["instances"] = instanceComponents;
+                    baseComponents[i]["properties"] = baseProperties;
+                }
+
+                return { success: true, result: baseComponents };
+            } else {
+                return { success: false };
+            }
         }
         catch(err) {
+            console.log(err);
             return err;
         }
     },
@@ -101,7 +122,6 @@ module.exports = {
     },
     storeComponentInstance: async component => {
         const newComponentId = uuidv4();
-        console.log(component, newComponentId);
         try {
             await client.query("INSERT INTO components_instances (id, name, architecture_id, reader_description, author_description, component_base_id) VALUES ($1, $2, $3, $4, $5, $6)", [newComponentId, component.name, component.architecture_id, component.reader_description, component.author_description, component.component_base_id])
             return {success: true, componentId: newComponentId};

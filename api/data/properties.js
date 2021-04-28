@@ -27,9 +27,40 @@ module.exports = {
             return err;
         }
     },
+    getBaseComponentProperties: async componentId => {
+        try {
+            return await client.query("SELECT * from properties_base WHERE component_base_id = $1", [componentId]);
+        }
+        catch(err) {
+            return err;
+        }
+    },
+    getInstancePropertiesFromComponent: async componentId => {
+        try {
+            return await client.query("SELECT * from properties_instances WHERE component_instance_id = $1", [componentId]);
+        }
+        catch(err) {
+            return err;
+        }
+    },
     deleteProperty: async propertyId => {
         try {
             await client.query("DELETE FROM properties_instances WHERE id = $1", [propertyId]);
+            
+            return {
+                success: true
+            }
+        }
+        catch(err) {
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
+    deleteBaseProperty: async propertyId => {
+        try {
+            await client.query("DELETE FROM properties_base WHERE id = $1", [propertyId]);
             
             return {
                 success: true
@@ -71,6 +102,35 @@ module.exports = {
             };
         }
     },
+    storeBaseProperty: async property => {
+        try {
+            const propertyId = uuidv4();
+            const foundProperties = await client.query("SELECT * FROM properties_base WHERE key = $1 AND component_base_id = $2", [property.key, property.component_base_id]);
+            if(foundProperties["rows"].length === 0) {
+                await client.query(
+                    `INSERT INTO properties_base(id, key, component_base_id, category) 
+                    VALUES ($1, $2, $3, $4)`, [propertyId, property.key, property.component_base_id, property.category]
+                )
+                return {
+                    success: true,
+                    propertyId
+                }
+            }
+            else {
+                return {
+                    success: false,
+                    errorMsg: 'Property already exists for this component.'
+                };
+            }
+        }
+        catch(err) {
+            console.log('error: ' + err)
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
     modifyProperty: async property => {
         try {
             await client.query(`
@@ -80,6 +140,26 @@ module.exports = {
                 property.key, 
                 property.value, 
                 property.category,
+                property.id
+            ])
+            return {success: true};
+        }
+        catch(err) {
+            console.log('error: ' + err)
+            return {
+                success: false,
+                errorMsg: 'Failed connexion to DB: ' + err
+            };
+        }
+    },
+    modifyBaseProperty: async property => {
+        try {
+            await client.query(`
+            UPDATE properties_base SET (key, category) =
+            ($1, $2) WHERE id = $3`, 
+            [
+                property.key, 
+                property.category, 
                 property.id
             ])
             return {success: true};
