@@ -197,7 +197,7 @@ export default function PaperModal({
             color="primary"
             variant="contained"
             hidden={modalProps.actionType === 'new'}
-            startIcon={modalProps.actionType === 'edit' ? <EditIcon /> : <VisibilityIcon />}
+            startIcon={modalProps.actionType === 'edit' ? <VisibilityIcon /> : <EditIcon />}
             className={classes.headerButton}
             onClick={() => handleSwitchClick()}
           >

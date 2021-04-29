@@ -99,18 +99,20 @@ export default function BibtexModal({
         if (author.literal) {
           authorField += author.literal[0].text;
           if (i < authorObject.length - 1) authorField += ' and ';
-        }
-        if (author.useprefix) {
-          authorField += `${author.prefix[0].text} ${author.family[0].text}`;
+        } else if (author.useprefix) {
+          if (author.family.length) {
+            authorField += `${author.prefix[0].text} ${author.family[0].text}`;
+          } else {
+            authorField += `${author.prefix[0].text} ${author.given[0].text}`;
+          }
           if (i < authorObject.length - 1) authorField += ' and ';
-        }
-        if (author.family && author.given) {
+        } else if (author.family && author.given) {
           authorField += `${author.family[0].text}, ${author.given[0].text}`;
           if (i < authorObject.length - 1) authorField += ' and ';
         }
       });
     } catch (err) {
-      console.error('Author name parsing failed.', err);
+      throw ('Author name parsing failed: ', err);
     }
     return authorField;
   };
@@ -130,6 +132,7 @@ export default function BibtexModal({
         paper_type: paper.bib_type
       };
     } catch (err) {
+      console.error(err);
       return {
         paper: newPaper,
         found: false,
@@ -143,6 +146,7 @@ export default function BibtexModal({
       }
       setProgress({ ...progress, counter: progress.counter + 1 });
     } catch (err) {
+      console.error(err);
       error = true;
     }
 
@@ -165,7 +169,7 @@ export default function BibtexModal({
       const nbPapers = Object.keys(newPapers.entries).length;
       if (nbPapers) {
         setProgress({ open: true, counter: 0, max: nbPapers });
-        for (let i = 1; i < nbPapers; i++) {
+        for (let i = 1; i < nbPapers + 1; i++) {
           parsedPapers.push(processPaper(newPapers.entries[i]));
         }
         parsedPapers = await Promise.all(parsedPapers);
