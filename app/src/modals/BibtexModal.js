@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-// import * as yup from 'yup';
+import { useSnackbar } from 'notistack';
 import {
   Box,
   Typography,
@@ -60,6 +60,7 @@ export default function BibtexModal({
   open, setOpen, saveHandler
 }) {
   const classes = useStyles();
+  const { enqueueSnackbar } = useSnackbar();
   // getModalStyle is not a pure function, we roll the style only on the first render
   const [modalStyle] = useState(getModalStyle);
   const [filename, setFilename] = useState('No file provided.');
@@ -160,22 +161,31 @@ export default function BibtexModal({
   const handleInputSubmission = async (e) => {
     const newFilename = e.target.value.split('\\').pop();
     let parsedPapers = [];
-    const file = e.target.files.item(0);
-    if (file) {
-      setFilename(newFilename);
-      const bib = await file.text();
-      const parser = new BibLatexParser(bib, { processUnexpected: true, processUnknown: true });
-      const newPapers = parser.parse();
-      const nbPapers = Object.keys(newPapers.entries).length;
-      if (nbPapers) {
-        setProgress({ open: true, counter: 0, max: nbPapers });
-        for (let i = 1; i < nbPapers + 1; i++) {
-          parsedPapers.push(processPaper(newPapers.entries[i]));
+
+    try {
+      const file = e.target.files.item(0);
+      if (file) {
+        setFilename(newFilename);
+        const bib = await file.text();
+        const parser = new BibLatexParser(bib, { processUnexpected: true, processUnknown: true });
+        const newPapers = parser.parse();
+        const nbPapers = Object.keys(newPapers.entries).length;
+        if (nbPapers) {
+          setProgress({ open: true, counter: 0, max: nbPapers });
+          for (let i = 1; i < nbPapers + 1; i++) {
+            parsedPapers.push(processPaper(newPapers.entries[i]));
+          }
+          parsedPapers = await Promise.all(parsedPapers);
+          setProgress({ ...progress, open: false });
+          setPapers(parsedPapers);
+        } else {
+          enqueueSnackbar('No entries were found inside provided file.', { variant: 'info' });
+          handleClose();
         }
-        parsedPapers = await Promise.all(parsedPapers);
-        setProgress({ ...progress, open: false });
-        setPapers(parsedPapers);
       }
+    } catch {
+      enqueueSnackbar('No entries were found inside provided file, or provided file is not a BibTeX standard file.', { variant: 'info' });
+      handleClose();
     }
   };
 
