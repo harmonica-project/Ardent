@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import nullToValue from 'src/utils/nullToValue';
 import * as yup from 'yup';
 import {
   FormControl,
@@ -72,13 +73,17 @@ export default function PaperModal({
     doi: yup.string(),
     paper_type: yup.string()
       .required()
-      .default('other'),
+      .default('other')
+      .transform((directionValue) => nullToValue(directionValue, 'other')),
     journal: yup.string()
-      .default('No journal title provided'),
+      .default('No journal title provided')
+      .transform((directionValue) => nullToValue(directionValue, 'No journal title provided')),
     abstract: yup.string()
-      .default('No abstract provided'),
+      .default('No abstract provided')
+      .transform((directionValue) => nullToValue(directionValue, 'No abstract provided')),
     comments: yup.string()
       .default('No comments provided')
+      .transform((directionValue) => nullToValue(directionValue, 'No comments provided')),
   });
 
   const [innerPaper, setInnerPaper] = useState(modalProps.paper);

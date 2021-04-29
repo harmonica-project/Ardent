@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import nullToValue from 'src/utils/nullToValue';
 import * as yup from 'yup';
 import {
   Box,
@@ -58,7 +59,8 @@ export default function BasePropertyModal({
       .max(30, 'Property key is too long.')
       .required('Property key is required'),
     category: yup.string()
-      .default('Other'),
+      .default('Other')
+      .transform((directionValue) => nullToValue(directionValue, 'Other')),
     component_base_id: yup.string()
       .required()
   });

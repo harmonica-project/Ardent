@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import nullToValue from 'src/utils/nullToValue';
 import * as yup from 'yup';
 import {
   Box,
@@ -74,15 +75,18 @@ export default function ConnectionModal({
 }) {
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
+
   const schema = yup.object().shape({
     first_component: yup.string()
       .required('Selecting a first component is required'),
     second_component: yup.string()
       .required('Selecting a second component is required'),
     datatype: yup.string()
-      .default('Any'),
+      .default('Any')
+      .transform((directionValue) => nullToValue(directionValue, 'Any')),
     name: yup.string()
-      .default('Unnamed'),
+      .default('Unnamed')
+      .transform((directionValue) => nullToValue(directionValue, 'Unnamed')),
     direction: yup.string()
       .required('Selecting a direction is required.')
   });
@@ -130,15 +134,9 @@ export default function ConnectionModal({
       ...innerConnection,
       [key]: value
     });
-
-    console.log({
-      ...innerConnection,
-      [key]: value
-    });
   };
 
   const validateAndSubmit = () => {
-    console.log(modalProps);
     const checkPres = (first, second) => {
       return (first === modalProps.component.id || second === modalProps.component.id);
     };

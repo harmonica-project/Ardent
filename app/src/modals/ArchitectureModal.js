@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import nullToValue from 'src/utils/nullToValue';
 import * as yup from 'yup';
 import {
   Box,
@@ -53,11 +54,14 @@ export default function ArchitectureModal({
   const schema = yup.object().shape({
     name: yup.string()
       .max(30, 'Architecture name is too long.')
-      .default('Unnamed'),
+      .default('Unnamed')
+      .transform((directionValue) => nullToValue(directionValue, 'Unnamed')),
     author_description: yup.string()
-      .default('No description provided.'),
+      .default('No description provided.')
+      .transform((directionValue) => nullToValue(directionValue, 'No description provided.')),
     reader_description: yup.string()
-      .default('No description provided.'),
+      .default('No description provided.')
+      .transform((directionValue) => nullToValue(directionValue, 'No description provided.')),
   });
 
   const [modalStyle] = useState(getModalStyle);

@@ -395,7 +395,6 @@ export default function InstanceComponentView() {
   };
 
   const connectionActionHandler = (actionType, connection) => {
-    console.log(connection);
     switch (actionType) {
       case 'edit':
       case 'view':

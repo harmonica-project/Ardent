@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import nullToValue from 'src/utils/nullToValue';
 import * as yup from 'yup';
 import {
   Box,
@@ -56,7 +57,8 @@ export default function InstancePropertyModal({
       .required('Property key is required'),
     value: yup.string()
       .max(30, 'Property value is too long.')
-      .default('Undefined'),
+      .default('Undefined')
+      .transform((directionValue) => nullToValue(directionValue, 'Undefined')),
     category: yup.string()
   });
   const [modalStyle] = useState(getModalStyle);
