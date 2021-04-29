@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import nullToValue from 'src/utils/nullToValue';
 import * as yup from 'yup';
 import {
   Box,
@@ -55,7 +56,8 @@ export default function BaseComponentModal({
       .max(30, 'Component name is too long.')
       .required('Base component name is required'),
     base_description: yup.string()
-      .default('No description provided')
+      .default('No description provided.')
+      .transform((directionValue) => nullToValue(directionValue, 'No description provided.')),
   });
 
   const [modalStyle] = useState(getModalStyle);

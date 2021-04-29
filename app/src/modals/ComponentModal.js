@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import nullToValue from 'src/utils/nullToValue';
 import {
   Box,
   Typography,
@@ -58,9 +59,11 @@ export default function ComponentModal({
       .max(30, 'Component name is too long.')
       .required('Base component name is required'),
     author_description: yup.string()
-      .default('No description provided.'),
+      .default('No description provided.')
+      .transform((directionValue) => nullToValue(directionValue, 'No description provided.')),
     reader_description: yup.string()
-      .default('No description provided.'),
+      .default('No description provided.')
+      .transform((directionValue) => nullToValue(directionValue, 'No description provided.')),
     component_base_id: yup.string()
       .required('A reference to base component is required.')
   });

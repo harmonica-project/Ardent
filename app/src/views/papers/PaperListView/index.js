@@ -68,7 +68,7 @@ const PapersListView = () => {
   });
   const [paperModalProps, setPaperModalProps] = useState({
     open: false,
-    paper: {},
+    paper: { status: 0 },
     users: [],
     actionType: ''
   });
@@ -174,7 +174,7 @@ const PapersListView = () => {
             setPaperModalProps({
               ...paperModalProps,
               open: false,
-              paper: {},
+              paper: { status: 0 },
               actionType: ''
             });
           }
@@ -224,7 +224,7 @@ const PapersListView = () => {
           setPaperModalProps({
             ...paperModalProps,
             open: false,
-            paper: {},
+            paper: { status: 0 },
             actionType: ''
           });
           enqueueSnackbar('Paper successfully added.', { variant: 'success' });
@@ -272,7 +272,7 @@ const PapersListView = () => {
           setPaperModalProps({
             ...paperModalProps,
             open: false,
-            paper: {},
+            paper: { status: 0 },
             actionType: ''
           });
           enqueueSnackbar('Paper successfully modified.', { variant: 'success' });
@@ -322,7 +322,7 @@ const PapersListView = () => {
           ...paperModalProps,
           open: true,
           actionType,
-          paper: { added_by: currentUser.username }
+          paper: { added_by: currentUser.username, status: 0 }
         });
         break;
       case 'edit':
