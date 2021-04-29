@@ -60,7 +60,7 @@ export default function PaperModal({
 
   const schema = yup.object().shape({
     name: yup.string()
-      .max(100, 'Paper name is too long.')
+      .max(200, 'Paper name is too long.')
       .required('Paper name is required'),
     added_by: yup.string()
       .required('You need to specify who is creating the paper.'),
