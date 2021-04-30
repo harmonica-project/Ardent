@@ -86,6 +86,7 @@ export default function ConnectionModal({
       .transform((directionValue) => nullToValue(directionValue, 'Any')),
     name: yup.string()
       .default('Unnamed')
+      .max(100, 'Connection name is too long.')
       .transform((directionValue) => nullToValue(directionValue, 'Unnamed')),
     direction: yup.string()
       .required('Selecting a direction is required.')

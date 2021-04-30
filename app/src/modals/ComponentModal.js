@@ -56,7 +56,7 @@ export default function ComponentModal({
   // getModalStyle is not a pure function, we roll the style only on the first render
   const schema = yup.object().shape({
     name: yup.string()
-      .max(30, 'Component name is too long.')
+      .max(100, 'Component name is too long.')
       .required('Base component name is required'),
     author_description: yup.string()
       .default('No description provided.')

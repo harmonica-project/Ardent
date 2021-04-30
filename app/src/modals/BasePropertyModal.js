@@ -56,7 +56,7 @@ export default function BasePropertyModal({
 
   const schema = yup.object().shape({
     key: yup.string()
-      .max(30, 'Property key is too long.')
+      .max(100, 'Property key is too long.')
       .required('Property key is required'),
     category: yup.string()
       .default('Other')

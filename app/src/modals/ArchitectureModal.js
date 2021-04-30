@@ -53,7 +53,7 @@ export default function ArchitectureModal({
 
   const schema = yup.object().shape({
     name: yup.string()
-      .max(30, 'Architecture name is too long.')
+      .max(100, 'Architecture name is too long.')
       .default('Unnamed')
       .transform((directionValue) => nullToValue(directionValue, 'Unnamed')),
     author_description: yup.string()
