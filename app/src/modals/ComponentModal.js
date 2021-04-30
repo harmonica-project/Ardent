@@ -65,7 +65,6 @@ export default function ComponentModal({
       .default('No description provided.')
       .transform((directionValue) => nullToValue(directionValue, 'No description provided.')),
     component_base_id: yup.string()
-      .required('A reference to base component is required.')
   });
   const [modalStyle] = useState(getModalStyle);
   const [checked, setChecked] = React.useState(true);
