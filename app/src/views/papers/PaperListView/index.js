@@ -54,6 +54,7 @@ const PapersListView = () => {
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState([]);
   const [displayedPapers, setDisplayedPapers] = useState([]);
+  const [stateSelect, setStateSelect] = useState(-1);
   const [titleFilter, setTitleFilter] = useState({
     name: '',
     id: ''
@@ -301,18 +302,15 @@ const PapersListView = () => {
   };
 
   const fillDisplayedPapers = () => {
-    if (!titleFilter.name.length) setDisplayedPapers(papers);
-    else {
-      const newDisplayedPapers = [];
+    const filterPapers = (paper) => {
+      console.log(paper.name, paper.status, titleFilter.name, stateSelect);
+      if (!paper.name.includes(titleFilter.name) && titleFilter.name.length) return false;
+      if (paper.status !== stateSelect && stateSelect !== -1) return false;
+      return true;
+    };
 
-      papers.forEach((paper) => {
-        if (paper.name.includes(titleFilter.name)) {
-          newDisplayedPapers.push(paper);
-        }
-      });
-
-      setDisplayedPapers(newDisplayedPapers);
-    }
+    const newDisplayedPapers = papers.filter(filterPapers);
+    setDisplayedPapers(newDisplayedPapers);
   };
 
   const paperActionHandler = (actionType, paper) => {
@@ -560,7 +558,7 @@ const PapersListView = () => {
 
   useEffect(() => {
     fillDisplayedPapers();
-  }, [titleFilter, papers]);
+  }, [titleFilter, papers, stateSelect]);
 
   return (
     <Page
@@ -574,6 +572,8 @@ const PapersListView = () => {
             <Box>
               <Toolbar
                 setTitleFilter={setTitleFilter}
+                stateSelect={stateSelect}
+                setStateSelect={setStateSelect}
                 actionHandler={toolbarActionHandler}
                 papers={papers}
               />
