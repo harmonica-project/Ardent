@@ -9,6 +9,8 @@ export function saveQuestion(connection) {
     .catch((error) => auth.handleResponse(error.response));
 }
 
-export function dummy() {
-  return 'Hello world';
+export function getQuestions() {
+  return axios.get(`${API_URL}/questions`, auth.getAuthHeaders())
+    .then((data) => auth.handleResponse(data))
+    .catch((error) => auth.handleResponse(error.response));
 }

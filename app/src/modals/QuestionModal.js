@@ -11,7 +11,7 @@ import {
   TextField
 } from '@material-ui/core/';
 import {
-  Save as SaveIcon
+  Send as SendIcon
 } from '@material-ui/icons/';
 import PropTypes from 'prop-types';
 import authenticationService from 'src/requests/authentication';
@@ -160,7 +160,7 @@ export default function QuestionModal({
         <Button
           color="primary"
           variant="contained"
-          startIcon={<SaveIcon />}
+          startIcon={<SendIcon />}
           className={classes.headerButton}
           onClick={validateAndSubmit}
         >
