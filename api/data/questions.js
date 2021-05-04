@@ -25,5 +25,13 @@ module.exports = {
                 errorMsg: 'Failed connexion to DB: ' + err
             };
         }
-    }
+    },
+    getQuestions: async () => {
+        try {
+            return await client.query("SELECT * FROM questions");
+        }
+        catch(err) {
+            return err;
+        }
+    },
 }

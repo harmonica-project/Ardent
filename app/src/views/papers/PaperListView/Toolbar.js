@@ -56,7 +56,15 @@ const Toolbar = ({
               Add BibTeX
             </Button>
             <Button
+              className={classes.buttonMargin}
+              variant="outlined"
+              onClick={() => actionHandler('question')}
+            >
+              Ask question
+            </Button>
+            <Button
               onClick={() => actionHandler('parsifal')}
+              style={{ display: 'none' }}
             >
               Import papers from Parsif.al
             </Button>

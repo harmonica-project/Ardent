@@ -23,6 +23,7 @@ import {
   getPapers as getPapersRequest,
 } from 'src/requests/papers';
 import { getUsers as getUsersRequest } from 'src/requests/users';
+import { saveQuestion as saveQuestionRequest } from 'src/requests/questions';
 import authenticationService from 'src/requests/authentication';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 import Page from 'src/components/Page';
@@ -31,6 +32,7 @@ import ArchitectureModal from 'src/modals/ArchitectureModal';
 import CloneModal from 'src/modals/CloneModal';
 import BibtexModal from 'src/modals/BibtexModal';
 import ConfirmModal from 'src/modals/ConfirmModal';
+import QuestionModal from 'src/modals/QuestionModal';
 import Results from './Results';
 import Toolbar from './Toolbar';
 
@@ -62,6 +64,9 @@ const PapersListView = () => {
   const [open, setOpen] = useState(false);
 
   const [bibtexModalOpen, setBibtexModalOpen] = useState(false);
+  const [questionModalProps, setQuestionModalProps] = useState({
+    open: false
+  });
   const [confirmModalProps, setConfirmModalProps] = useState({
     open: false,
     actionModalHandler: null,
@@ -358,6 +363,13 @@ const PapersListView = () => {
         setBibtexModalOpen(true);
         break;
 
+      case 'question':
+        setQuestionModalProps({
+          ...questionModalProps,
+          open: true
+        });
+        break;
+
       case 'parsifal':
         console.log('Parsif.al import not implemented yet.');
         break;
@@ -528,6 +540,24 @@ const PapersListView = () => {
     }
   };
 
+  const postQuestion = (question) => {
+    saveQuestionRequest(question)
+      .then((data) => {
+        if (data.success) {
+          enqueueSnackbar('Question successfully post. You can find it in the Questions section.', { variant: 'success' });
+          setQuestionModalProps({
+            ...questionModalProps,
+            open: false
+          });
+        } else {
+          enqueueSnackbar('Failed to post a question. Verify that you are still connected by refreshing the page.', { variant: 'error' });
+        }
+      })
+      .catch(() => {
+        enqueueSnackbar('Failed to post a question. Verify that you are still connected by refreshing the page.', { variant: 'error' });
+      });
+  };
+
   const handleClone = async ({ architecture, paper }) => {
     setOpen(true);
     cloneArchitectureRequest(architecture.id, paper.id)
@@ -655,6 +685,11 @@ const PapersListView = () => {
           modalProps={cloneModalProps}
           setModalProps={setCloneModalProps}
           actionModalHandler={handleClone}
+        />
+        <QuestionModal
+          modalProps={questionModalProps}
+          setModalProps={setQuestionModalProps}
+          actionModalHandler={postQuestion}
         />
         <LoadingOverlay open={open} />
       </Container>
