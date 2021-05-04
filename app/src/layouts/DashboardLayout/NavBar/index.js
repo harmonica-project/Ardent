@@ -17,7 +17,8 @@ import {
   Settings as SettingsIcon,
   Paperclip as PaperclipIcon,
   Cpu as CpuIcon,
-  LogOut as LogOutIcon
+  LogOut as LogOutIcon,
+  HelpCircle as HelpCircleIcon
 } from 'react-feather';
 import {
   AccountTree as AccountTreeIcon,
@@ -92,6 +93,11 @@ const NavBar = ({ onMobileClose, openMobile }) => {
           title: 'Components summary'
         }
       ]
+    },
+    {
+      href: '/app/questions',
+      icon: HelpCircleIcon,
+      title: 'Questions'
     },
     {
       href: '/app/settings',

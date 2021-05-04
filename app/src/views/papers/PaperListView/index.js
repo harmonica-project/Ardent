@@ -303,7 +303,6 @@ const PapersListView = () => {
 
   const fillDisplayedPapers = () => {
     const filterPapers = (paper) => {
-      console.log(paper.name, paper.status, titleFilter.name, stateSelect);
       if (!paper.name.includes(titleFilter.name) && titleFilter.name.length) return false;
       if (paper.status !== stateSelect && stateSelect !== -1) return false;
       return true;

@@ -8,6 +8,7 @@ import LoginView from 'src/views/auth/LoginView';
 import NotFoundView from 'src/views/errors/NotFoundView';
 import AnalyticsView from 'src/views/analytics/AnalyticsView';
 import RegisterView from 'src/views/auth/RegisterView';
+import QuestionsView from 'src/views/questions/QuestionsView';
 import SettingsView from 'src/views/settings/SettingsView';
 import ArchitectureView from 'src/views/architecture/ArchitectureView';
 import InstanceComponentView from 'src/views/components/InstanceComponentView';
@@ -21,6 +22,7 @@ const routes = (isLoggedIn) => [
       { path: 'analytics', element: <AnalyticsView /> },
       { path: 'dashboard', element: <DashboardView /> },
       { path: 'papers', element: <PaperListView /> },
+      { path: 'questions', element: <QuestionsView /> },
       { path: 'components', element: <BaseComponentsView /> },
       { path: 'architecture/:id', element: <ArchitectureView /> },
       { path: 'component/:id', element: <InstanceComponentView /> },
