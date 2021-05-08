@@ -12,6 +12,7 @@ var propertiesRoutes = require('./routes/properties');
 var connectionsRoutes = require('./routes/connections');
 var componentsRoutes = require('./routes/components');
 var questionsRoutes = require('./routes/questions');
+var answersRoutes = require('./routes/answers');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -36,6 +37,7 @@ app.use('/papers', papersRoutes);
 app.use('/properties', propertiesRoutes);
 app.use('/connections', connectionsRoutes);
 app.use('/components', componentsRoutes);
+app.use('/answers', answersRoutes);
 app.use('/questions', questionsRoutes);
 
 var httpServer = http.createServer(app);

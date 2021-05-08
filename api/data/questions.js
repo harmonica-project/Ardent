@@ -28,7 +28,10 @@ module.exports = {
     },
     getQuestions: async () => {
         try {
-            return await client.query("SELECT * FROM questions");
+            return await client.query(`
+                SELECT id, title, content, questions.username, date, first_name, last_name, role FROM questions
+                LEFT JOIN users on questions.username = users.username
+            `);
         }
         catch(err) {
             return err;

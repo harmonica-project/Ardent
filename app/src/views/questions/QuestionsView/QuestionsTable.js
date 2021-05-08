@@ -84,7 +84,6 @@ TablePaginationActions.propTypes = {
 };
 
 export default function QuestionsTable({ questions, setOpenQuestion }) {
-  console.log(questions);
   const classes = useStyles();
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(questions.length > 10 ? 10 : questions.length);
@@ -124,7 +123,7 @@ export default function QuestionsTable({ questions, setOpenQuestion }) {
                 {row.title}
               </TableCell>
               <TableCell>
-                {row.date}
+                {new Date(row.date).toLocaleString()}
               </TableCell>
               <TableCell>
                 <IconButton aria-label="delete">
@@ -146,7 +145,7 @@ export default function QuestionsTable({ questions, setOpenQuestion }) {
           <TableRow>
             <TablePagination
               rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
-              colSpan={3}
+              colSpan={4}
               count={questions.length}
               rowsPerPage={rowsPerPage}
               page={page}
