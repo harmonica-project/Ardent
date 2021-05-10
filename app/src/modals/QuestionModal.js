@@ -1,4 +1,3 @@
-/* eslint-disable */
 import React, { useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import nullToValue from 'src/utils/nullToValue';
@@ -8,7 +7,8 @@ import {
   Typography,
   Button,
   Modal,
-  TextField
+  TextField,
+  Grid
 } from '@material-ui/core/';
 import {
   Send as SendIcon
@@ -46,7 +46,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function QuestionModal({
-  modalProps, setModalProps, actionModalHandler, doNotShowSwitch
+  modalProps, setModalProps, actionModalHandler
 }) {
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
@@ -57,8 +57,10 @@ export default function QuestionModal({
       .required('Title is required'),
     content: yup.string()
       .max(2000, 'Text is too long (2000 char. max).')
-      .required('Text is required'),
-    username: yup.string().required()
+      .required('Text is required')
+      .transform((fieldValue) => nullToValue(fieldValue, '')),
+    username: yup.string().required(),
+    object_id: yup.string()
   });
 
   const defaultErrorFields = {
@@ -95,13 +97,15 @@ export default function QuestionModal({
   };
 
   const validateAndSubmit = () => {
-    console.log(innerQuestion);
-    const castedData = schema.cast(innerQuestion);
-    const username = authenticationService.currentUserValue.user.username;
-    console.log(username);
+    const castedData = schema.cast({
+      ...innerQuestion,
+      object_id: modalProps.context.id,
+      object_type: modalProps.context.type
+    });
+    const { username } = authenticationService.currentUserValue.user;
     schema.validate({ ...castedData, username }, { abortEarly: false })
       .then(() => {
-        actionModalHandler({ ...castedData,username });
+        actionModalHandler({ ...castedData, username });
       })
       .catch((errs) => {
         const newErrorFields = {};
@@ -119,7 +123,6 @@ export default function QuestionModal({
         setErrorFields({ ...errorFields, ...newErrorFields });
         setHelperFields({ ...helperFields, ...newHelperFields });
       });
-    
   };
 
   const body = (
@@ -128,6 +131,50 @@ export default function QuestionModal({
         New question
       </Typography>
       <form noValidate className={classes.form}>
+        <Grid container spacing={1}>
+          <Grid item md={4} xs={12}>
+            <TextField
+              id="type-field"
+              label="Type"
+              placeholder="Unknown"
+              fullWidth
+              margin="normal"
+              value={modalProps.context.type}
+              disabled
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+          </Grid>
+          <Grid item md={4} xs={12}>
+            <TextField
+              id="name-field"
+              label="Name"
+              placeholder="Unknown"
+              fullWidth
+              margin="normal"
+              value={modalProps.context.name}
+              disabled
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+          </Grid>
+          <Grid item md={4} xs={12}>
+            <TextField
+              id="id-field"
+              label="ID"
+              placeholder="Unknown"
+              fullWidth
+              margin="normal"
+              value={modalProps.context.id}
+              disabled
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+          </Grid>
+        </Grid>
         <TextField
           id="title-field"
           label="Title"
@@ -194,12 +241,11 @@ QuestionModal.propTypes = {
     }),
     question: PropTypes.shape({
       id: PropTypes.string,
-      date: PropTypes.date,
+      date: PropTypes.string,
       title: PropTypes.string,
       content: PropTypes.string
     }),
   }).isRequired,
   setModalProps: PropTypes.func.isRequired,
-  actionModalHandler: PropTypes.func.isRequired,
-  doNotShowSwitch: PropTypes.bool
+  actionModalHandler: PropTypes.func.isRequired
 };

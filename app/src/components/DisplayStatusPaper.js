@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Chip } from '@material-ui/core';
 
-const DisplayStatus = ({ status }) => {
+const DisplayStatusPaper = ({ status }) => {
   switch (parseInt(status, 10)) {
     case 0:
       return <Chip color="primary" label="Just added" />;
@@ -21,8 +21,8 @@ const DisplayStatus = ({ status }) => {
   }
 };
 
-DisplayStatus.propTypes = {
+DisplayStatusPaper.propTypes = {
   status: PropTypes.number.isRequired
 };
 
-export default DisplayStatus;
+export default DisplayStatusPaper;

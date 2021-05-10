@@ -1,4 +1,3 @@
-/* eslint-disable */
 import React, { useState, useEffect } from 'react';
 import { useSnackbar } from 'notistack';
 import {
@@ -7,28 +6,38 @@ import {
   makeStyles,
   Input,
   IconButton,
-  InputLabel,
+  Button,
   Card,
   Grid,
   CardContent,
+  CardActions,
   CardHeader,
   Avatar,
   Typography,
-  FormControl
+  FormControl,
+  Divider,
+  FormGroup,
+  FormControlLabel,
+  Switch
 } from '@material-ui/core';
 import {
   Send as SendIcon,
   HighlightOff as HighlightOffIcon
 } from '@material-ui/icons/';
-import { getQuestions as getQuestionsRequest } from 'src/requests/questions';
-import { 
+import {
+  getQuestions as getQuestionsRequest,
+  markAsClosed as markAsClosedRequest
+} from 'src/requests/questions';
+import { NavLink } from 'react-router-dom';
+import {
   getAnswers as getAnswersRequest,
   saveAnswer as saveAnswerRequest,
   deleteAnswer as deleteAnswerRequest
 } from 'src/requests/answers';
 import Page from 'src/components/Page';
-import QuestionsTable from './QuestionsTable';
 import LoadingOverlay from 'src/components/LoadingOverlay';
+import DisplayStatusQuestion from 'src/components/DisplayStatusQuestion';
+import QuestionsTable from './QuestionsTable';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -42,11 +51,17 @@ const useStyles = makeStyles((theme) => ({
 const QuestionsView = () => {
   const classes = useStyles();
   const { enqueueSnackbar } = useSnackbar();
+  const { user } = JSON.parse(localStorage.getItem('currentUser'));
   const [questions, setQuestions] = useState([]);
+  const [displayedQuestions, setDisplayedQuestions] = useState([]);
   const [open, setOpen] = useState(false);
   const [openQuestion, setOpenQuestion] = useState({});
   const [openAnswers, setOpenAnswers] = useState([]);
   const [messageValue, setMessageValue] = useState('');
+  const [tableOptions, setTableOptions] = useState({
+    orderDesc: true,
+    maskClosed: true
+  });
 
   const fetchQuestions = () => {
     setOpen(true);
@@ -76,7 +91,7 @@ const QuestionsView = () => {
   };
 
   const deleteAnswerFromState = (answerId) => {
-    let newAnswers = [...openAnswers];
+    const newAnswers = [...openAnswers];
     for (let i = 0; i < newAnswers.length; i++) {
       if (newAnswers[i].id === answerId) {
         newAnswers.splice(i, 1);
@@ -100,18 +115,96 @@ const QuestionsView = () => {
       .finally(() => { setOpen(false); });
   };
 
+  const formatMessageHeader = (objectType, objectId) => {
+    let url;
+    switch (objectType) {
+      case 'papers':
+      case 'paper':
+        url = '/app/papers';
+        break;
+
+      case 'base_components':
+        url = '/app/components';
+        break;
+
+      case 'architecture':
+      case 'component':
+        if (objectId) url = `/app/${objectType}/${objectId}`;
+        break;
+
+      default:
+        objectType = 'other';
+    }
+
+    if (url) {
+      return (
+        <Typography variant="overline">
+          {`Category: ${objectType}`}
+          <NavLink to={url}>
+            &nbsp;(go to object)
+          </NavLink>
+        </Typography>
+      );
+    }
+    return (
+      <Typography variant="overline">
+        {`Category: ${objectType}`}
+      </Typography>
+    );
+  };
+
+  const modifyQuestionStatusFromState = (questionId, newStatus) => {
+    const newQuestions = [...questions];
+    newQuestions.forEach((q, i) => {
+      if (q.id === questionId) {
+        newQuestions[i].status = newStatus;
+      }
+    });
+    setQuestions(newQuestions);
+  };
+
+  const markAsClosed = () => {
+    setOpen(true);
+    markAsClosedRequest(openQuestion.id)
+      .then((data) => {
+        if (data.success) {
+          enqueueSnackbar('Question successfully marked as closed.', { variant: 'success' });
+          setOpenQuestion({
+            ...openQuestion,
+            status: 2
+          });
+          modifyQuestionStatusFromState(openQuestion.id, 2);
+        }
+      })
+      .catch((error) => enqueueSnackbar(error.toString(), { variant: 'error' }))
+      .finally(() => { setOpen(false); });
+  };
+
   const displayMessage = () => (
     <Card>
       <CardHeader
-        avatar={
+        avatar={(
           <Avatar aria-label="recipe" className={classes.avatar}>
-            {openQuestion.first_name.charAt(0)}
+            {(openQuestion.first_name ? openQuestion.first_name.charAt(0) : 'U')}
           </Avatar>
+        )}
+        title={
+          (
+            (openQuestion.first_name && openQuestion.last_name && openQuestion.role)
+              ? `${openQuestion.first_name} ${openQuestion.last_name}, ${openQuestion.role}`
+              : 'Unknown user'
+          )
         }
-        title={`${openQuestion.first_name} ${openQuestion.last_name}, ${openQuestion.role}`}
         subheader={new Date(openQuestion.date).toLocaleString()}
       />
+      <Divider />
       <CardContent style={{ paddingTop: 0 }}>
+        <Box mt={2}>
+          <DisplayStatusQuestion status={openQuestion.status} />
+        </Box>
+        <Box mb={2}>
+          {formatMessageHeader(openQuestion.object_type, openQuestion.object_id)}
+        </Box>
         <Typography>
           <b>
             {openQuestion.title}
@@ -121,27 +214,43 @@ const QuestionsView = () => {
           {openQuestion.content}
         </Typography>
       </CardContent>
+      <Divider />
+      {
+        openQuestion.username === user.username || user.is_admin
+          ? (
+            <CardActions>
+              <Button
+                size="small"
+                onClick={() => markAsClosed(openQuestion.id)}
+              >
+                Mark question as closed
+              </Button>
+            </CardActions>
+          )
+          : <div />
+      }
     </Card>
-    );
-  
+  );
+
   const isPostUserOrAdmin = (post) => {
-    const user = JSON.parse(localStorage.getItem('currentUser')).user;
     return (user.is_admin || user.username === post.username);
   };
 
   const displayAnswers = () => {
-    return openAnswers.map(answer => (
+    return openAnswers.map((answer) => (
       <Card style={{ marginLeft: '50px', marginTop: '20px' }}>
         <CardHeader
-          avatar={
+          avatar={(
             <Avatar aria-label="recipe" className={classes.avatar}>
               {answer.first_name ? answer.first_name.charAt(0) : 'U'}
             </Avatar>
-          }
+          )}
           action={
-            isPostUserOrAdmin(answer) ? <IconButton aria-label="delete" onClick={() => deleteAnswer(answer.id)}>
-              <HighlightOffIcon />
-            </IconButton> : <div />
+            isPostUserOrAdmin(answer) ? (
+              <IconButton aria-label="delete" onClick={() => deleteAnswer(answer.id)}>
+                <HighlightOffIcon />
+              </IconButton>
+            ) : <div />
           }
           title={answer.first_name ? `${answer.first_name} ${answer.last_name}, ${answer.role}` : 'Unknown user'}
           subheader={new Date(answer.date).toLocaleString()}
@@ -153,16 +262,15 @@ const QuestionsView = () => {
         </CardContent>
       </Card>
     ));
-  }
+  };
 
   const submitAnswer = () => {
     if (messageValue && messageValue !== '') {
-      const user = JSON.parse(localStorage.getItem('currentUser')).user;
       const message = {
         username: user.username,
         content: messageValue,
         question_id: openQuestion.id,
-      }
+      };
       saveAnswerRequest(message).then((data) => {
         if (data.success) {
           setOpenAnswers([
@@ -176,17 +284,46 @@ const QuestionsView = () => {
               role: user.role
             }
           ]);
+          modifyQuestionStatusFromState(openQuestion.id, 1);
           enqueueSnackbar('Answer successfully posted.', { variant: 'success' });
         }
       })
-      .catch((error) => enqueueSnackbar(error.toString(), { variant: 'error' }))
-      .finally(() => { setOpen(false); });
+        .catch((error) => enqueueSnackbar(error.toString(), { variant: 'error' }))
+        .finally(() => { setOpen(false); });
     }
+  };
+
+  const applyFilters = () => {
+    let dpQuestions = [...questions];
+
+    if (tableOptions.maskClosed) {
+      dpQuestions = dpQuestions.filter((q) => parseInt(q.status, 10) !== 2);
+    }
+
+    if (tableOptions.orderDesc) {
+      dpQuestions.sort((a, b) => {
+        if (new Date(a.date) > new Date(b.date)) return -1;
+        if (new Date(a.date) < new Date(b.date)) return 1;
+        return 0;
+      });
+    } else {
+      dpQuestions.sort((a, b) => {
+        if (new Date(a.date) > new Date(b.date)) return 1;
+        if (new Date(a.date) < new Date(b.date)) return -1;
+        return 0;
+      });
+    }
+
+    setDisplayedQuestions(dpQuestions);
   };
 
   useEffect(() => {
     fetchQuestions();
   }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [questions, tableOptions]);
 
   useEffect(() => {
     if (openQuestion.id) {
@@ -201,9 +338,64 @@ const QuestionsView = () => {
       title="Questions"
     >
       <Grid container spacing={2}>
+        <Grid item xs={12} md={12}>
+          <FormGroup row>
+            <FormControlLabel
+              labelPlacement="top"
+              component="legend"
+              label="Order table"
+              control={(
+                <Typography component="div">
+                  <Grid component="label" container alignItems="center" spacing={1}>
+                    <Grid item>Asc</Grid>
+                    <Grid item>
+                      <Switch
+                        checked={tableOptions.orderDesc}
+                        onChange={() => {
+                          setTableOptions({
+                            ...tableOptions,
+                            orderDesc: !tableOptions.orderDesc
+                          });
+                        }}
+                        name="checkedOrder"
+                      />
+                    </Grid>
+                    <Grid item>Desc</Grid>
+                  </Grid>
+                </Typography>
+              )}
+            />
+
+            <FormControlLabel
+              component="legend"
+              label="Mask closed questions"
+              labelPlacement="top"
+              control={(
+                <Typography component="div">
+                  <Grid component="label" container alignItems="center" spacing={1}>
+                    <Grid item>No</Grid>
+                    <Grid item>
+                      <Switch
+                        checked={tableOptions.maskClosed}
+                        onChange={() => {
+                          setTableOptions({
+                            ...tableOptions,
+                            maskClosed: !tableOptions.maskClosed
+                          });
+                        }}
+                        name="checkedOrder"
+                      />
+                    </Grid>
+                    <Grid item>Yes</Grid>
+                  </Grid>
+                </Typography>
+              )}
+            />
+          </FormGroup>
+        </Grid>
         <Grid item xs={12} md={5}>
           <QuestionsTable
-            questions={questions}
+            questions={displayedQuestions}
             setOpenQuestion={setOpenQuestion}
           />
         </Grid>
@@ -211,25 +403,31 @@ const QuestionsView = () => {
           <Box>
             {openQuestion.id ? displayMessage() : <div />}
             {displayAnswers()}
-            <Card style={{ marginTop: '20px', padding: '20px' }}>
+            <Card
+              style={{
+                marginTop: '20px',
+                padding: '20px',
+                display: (parseInt(openQuestion.status, 10) === 2 && 'none')
+              }}
+            >
               <FormControl style={{ width: '100%' }}>
                 <Input
                   id="answer-input"
                   value={messageValue}
                   onChange={(e) => setMessageValue(e.target.value)}
                   placeholder="Type your answer ..."
-                  endAdornment={
+                  endAdornment={(
                     <InputAdornment position="end">
                       <IconButton
                         type="submit"
                         aria-label="send icon"
                       >
-                        <SendIcon 
+                        <SendIcon
                           onClick={submitAnswer}
                         />
                       </IconButton>
                     </InputAdornment>
-                  }
+                  )}
                 />
               </FormControl>
             </Card>

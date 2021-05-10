@@ -60,7 +60,7 @@ const Toolbar = ({
               variant="outlined"
               onClick={() => actionHandler('question')}
             >
-              Ask question
+              Ask question about papers
             </Button>
             <Button
               onClick={() => actionHandler('parsifal')}

@@ -57,7 +57,7 @@ export default function BaseComponentModal({
       .required('Base component name is required'),
     base_description: yup.string()
       .default('No description provided.')
-      .transform((directionValue) => nullToValue(directionValue, 'No description provided.')),
+      .transform((fieldValue) => nullToValue(fieldValue, 'No description provided.')),
   });
 
   const [modalStyle] = useState(getModalStyle);

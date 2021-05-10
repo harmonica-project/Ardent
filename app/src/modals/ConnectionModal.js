@@ -83,11 +83,11 @@ export default function ConnectionModal({
       .required('Selecting a second component is required'),
     datatype: yup.string()
       .default('Any')
-      .transform((directionValue) => nullToValue(directionValue, 'Any')),
+      .transform((fieldValue) => nullToValue(fieldValue, 'Any')),
     name: yup.string()
       .default('Unnamed')
       .max(100, 'Connection name is too long.')
-      .transform((directionValue) => nullToValue(directionValue, 'Unnamed')),
+      .transform((fieldValue) => nullToValue(fieldValue, 'Unnamed')),
     direction: yup.string()
       .required('Selecting a direction is required.')
   });

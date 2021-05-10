@@ -60,10 +60,10 @@ export default function ComponentModal({
       .required('Base component name is required'),
     author_description: yup.string()
       .default('No description provided.')
-      .transform((directionValue) => nullToValue(directionValue, 'No description provided.')),
+      .transform((fieldValue) => nullToValue(fieldValue, 'No description provided.')),
     reader_description: yup.string()
       .default('No description provided.')
-      .transform((directionValue) => nullToValue(directionValue, 'No description provided.')),
+      .transform((fieldValue) => nullToValue(fieldValue, 'No description provided.')),
     component_base_id: yup.string()
   });
   const [modalStyle] = useState(getModalStyle);

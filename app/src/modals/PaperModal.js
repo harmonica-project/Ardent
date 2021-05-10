@@ -74,16 +74,16 @@ export default function PaperModal({
     paper_type: yup.string()
       .required()
       .default('other')
-      .transform((directionValue) => nullToValue(directionValue, 'other')),
+      .transform((fieldValue) => nullToValue(fieldValue, 'other')),
     journal: yup.string()
       .default('No journal title provided')
-      .transform((directionValue) => nullToValue(directionValue, 'No journal title provided')),
+      .transform((fieldValue) => nullToValue(fieldValue, 'No journal title provided')),
     abstract: yup.string()
       .default('No abstract provided')
-      .transform((directionValue) => nullToValue(directionValue, 'No abstract provided')),
+      .transform((fieldValue) => nullToValue(fieldValue, 'No abstract provided')),
     comments: yup.string()
       .default('No comments provided')
-      .transform((directionValue) => nullToValue(directionValue, 'No comments provided')),
+      .transform((fieldValue) => nullToValue(fieldValue, 'No comments provided')),
   });
 
   const [innerPaper, setInnerPaper] = useState(modalProps.paper);

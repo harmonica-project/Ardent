@@ -38,6 +38,18 @@ module.exports = {
             return err;
         }
     },
+    getAnswer: async (answerId) => {
+        try {
+            return await client.query(`
+                SELECT id, question_id, content, answers.username, date, first_name, last_name, role FROM answers
+                LEFT JOIN users on answers.username = users.username
+                WHERE id = $1
+            `, [answerId]);
+        }
+        catch(err) {
+            return err;
+        }
+    },
     deleteAnswer: async (answerId) => {
       console.log(answerId);
       try {

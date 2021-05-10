@@ -25,6 +25,7 @@ import {
   modifyProperty as modifyPropertyRequest,
   getBaseComponentProperties as getBaseComponentPropertiesRequest,
 } from 'src/requests/properties';
+import { saveQuestion as saveQuestionRequest } from 'src/requests/questions';
 import {
   saveConnection as saveConnectionRequest,
   deleteConnection as deleteConnectionRequest,
@@ -32,6 +33,7 @@ import {
 } from 'src/requests/connections';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
 import ComponentModal from 'src/modals/ComponentModal';
+import QuestionModal from 'src/modals/QuestionModal';
 import ConfirmModal from 'src/modals/ConfirmModal';
 import InstancePropertyModal from 'src/modals/InstancePropertyModal';
 import ConnectionModal from 'src/modals/ConnectionModal';
@@ -73,6 +75,11 @@ export default function InstanceComponentView() {
     open: false,
     actionModalHandler: null,
     message: ''
+  });
+
+  const [questionModalProps, setQuestionModalProps] = useState({
+    open: false,
+    context: {}
   });
 
   const [componentModalProps, setComponentModalProps] = useState({
@@ -189,6 +196,25 @@ export default function InstanceComponentView() {
     } finally {
       setOpen(false);
     }
+  };
+
+  const postQuestion = (question) => {
+    saveQuestionRequest(question)
+      .then((data) => {
+        if (data.success) {
+          enqueueSnackbar('Question successfully post. You can find it in the Questions section.', { variant: 'success' });
+          setQuestionModalProps({
+            ...questionModalProps,
+            open: false,
+            context: {}
+          });
+        } else {
+          enqueueSnackbar('Failed to post a question. Verify that you are still connected by refreshing the page.', { variant: 'error' });
+        }
+      })
+      .catch(() => {
+        enqueueSnackbar('Failed to post a question. Verify that you are still connected by refreshing the page.', { variant: 'error' });
+      });
   };
 
   const deleteComponentInstance = async (componentId) => {
@@ -520,6 +546,7 @@ export default function InstanceComponentView() {
           </Button>
           <Button
             variant="contained"
+            className={classes.buttonMargin}
             style={{ backgroundColor: '#f50057', color: 'white' }}
             startIcon={<DeleteIcon />}
             onClick={() => {
@@ -532,6 +559,20 @@ export default function InstanceComponentView() {
             }}
           >
             Delete
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => setQuestionModalProps({
+              ...questionModalProps,
+              open: true,
+              context: {
+                type: 'component',
+                name: component.name,
+                id: component.id
+              }
+            })}
+          >
+            Ask question about component instance
           </Button>
         </Box>
         <Card>
@@ -744,6 +785,11 @@ export default function InstanceComponentView() {
         <ConfirmModal
           modalProps={confirmModalProps}
           setModalProps={setConfirmModalProps}
+        />
+        <QuestionModal
+          modalProps={questionModalProps}
+          setModalProps={setQuestionModalProps}
+          actionModalHandler={postQuestion}
         />
         <LoadingOverlay open={open} />
       </Container>

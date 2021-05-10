@@ -55,13 +55,13 @@ export default function ArchitectureModal({
     name: yup.string()
       .max(100, 'Architecture name is too long.')
       .default('Unnamed')
-      .transform((directionValue) => nullToValue(directionValue, 'Unnamed')),
+      .transform((fieldValue) => nullToValue(fieldValue, 'Unnamed')),
     author_description: yup.string()
       .default('No description provided.')
-      .transform((directionValue) => nullToValue(directionValue, 'No description provided.')),
+      .transform((fieldValue) => nullToValue(fieldValue, 'No description provided.')),
     reader_description: yup.string()
       .default('No description provided.')
-      .transform((directionValue) => nullToValue(directionValue, 'No description provided.')),
+      .transform((fieldValue) => nullToValue(fieldValue, 'No description provided.')),
   });
 
   const [modalStyle] = useState(getModalStyle);

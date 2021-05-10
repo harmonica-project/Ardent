@@ -19,9 +19,11 @@ import {
   deleteBaseProperty as deleteBasePropertyRequest,
   modifyProperty as modifyPropertyRequest,
 } from 'src/requests/properties';
+import { saveQuestion as saveQuestionRequest } from 'src/requests/questions';
 import ConfirmModal from 'src/modals/ConfirmModal';
 import BaseComponentModal from 'src/modals/BaseComponentModal';
 import BasePropertyModal from 'src/modals/BasePropertyModal';
+import QuestionModal from 'src/modals/QuestionModal';
 import BaseComponentInput from './BaseComponentsInput';
 import BaseComponentTable from './BaseComponentsTable';
 
@@ -61,6 +63,11 @@ export default function BaseComponentsView() {
     baseProperty: {},
     initialProperty: {},
     actionType: ''
+  });
+
+  const [questionModalProps, setQuestionModalProps] = useState({
+    open: false,
+    context: {}
   });
 
   const handleAutocompleteChange = (value) => {
@@ -417,6 +424,25 @@ export default function BaseComponentsView() {
     });
   };
 
+  const postQuestion = (question) => {
+    saveQuestionRequest(question)
+      .then((data) => {
+        if (data.success) {
+          enqueueSnackbar('Question successfully post. You can find it in the Questions section.', { variant: 'success' });
+          setQuestionModalProps({
+            ...questionModalProps,
+            open: false,
+            context: {}
+          });
+        } else {
+          enqueueSnackbar('Failed to post a question. Verify that you are still connected by refreshing the page.', { variant: 'error' });
+        }
+      })
+      .catch(() => {
+        enqueueSnackbar('Failed to post a question. Verify that you are still connected by refreshing the page.', { variant: 'error' });
+      });
+  };
+
   const saveExistingBaseProperty = async (
     newBaseProperty, initialProperty, isAddPropToInstCheck
   ) => {
@@ -496,6 +522,16 @@ export default function BaseComponentsView() {
           >
             Add base component
           </Button>
+          <Button
+            variant="outlined"
+            onClick={() => setQuestionModalProps({
+              ...questionModalProps,
+              open: true,
+              context: {}
+            })}
+          >
+            Ask question about base components
+          </Button>
         </Box>
         <Box mt={3}>
           <Card>
@@ -528,6 +564,11 @@ export default function BaseComponentsView() {
         <ConfirmModal
           modalProps={confirmModalProps}
           setModalProps={setConfirmModalProps}
+        />
+        <QuestionModal
+          modalProps={questionModalProps}
+          setModalProps={setQuestionModalProps}
+          actionModalHandler={postQuestion}
         />
         <LoadingOverlay open={open} />
       </Container>

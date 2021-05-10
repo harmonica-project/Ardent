@@ -1,5 +1,4 @@
-/* eslint-disable */
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
@@ -17,6 +16,7 @@ import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
+import DisplayStatusQuestion from 'src/components/DisplayStatusQuestion';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -28,7 +28,9 @@ const useStyles = makeStyles((theme) => ({
 function TablePaginationActions(props) {
   const classes = useStyles();
   const theme = useTheme();
-  const { count, page, rowsPerPage, onChangePage } = props;
+  const {
+    count, page, rowsPerPage, onChangePage
+  } = props;
 
   const handleFirstPageButtonClick = (event) => {
     onChangePage(event, 0);
@@ -85,8 +87,8 @@ TablePaginationActions.propTypes = {
 
 export default function QuestionsTable({ questions, setOpenQuestion }) {
   const classes = useStyles();
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(questions.length > 10 ? 10 : questions.length);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(questions.length > 10 ? 10 : questions.length);
 
   const emptyRows = rowsPerPage - Math.min(rowsPerPage, questions.length - page * rowsPerPage);
 
@@ -105,8 +107,8 @@ export default function QuestionsTable({ questions, setOpenQuestion }) {
         <TableHead>
           <TableRow>
             <TableCell>Username</TableCell>
-            <TableCell>Question</TableCell>
             <TableCell>Date</TableCell>
+            <TableCell>Status</TableCell>
             <TableCell />
           </TableRow>
         </TableHead>
@@ -120,14 +122,14 @@ export default function QuestionsTable({ questions, setOpenQuestion }) {
                 {row.username}
               </TableCell>
               <TableCell>
-                {row.title}
-              </TableCell>
-              <TableCell>
                 {new Date(row.date).toLocaleString()}
+              </TableCell>
+              <TableCell component="th" scope="row">
+                <DisplayStatusQuestion status={row.status} />
               </TableCell>
               <TableCell>
                 <IconButton aria-label="delete">
-                  <OpenInNewIcon 
+                  <OpenInNewIcon
                     onClick={() => setOpenQuestion(row)}
                   />
                 </IconButton>
@@ -163,3 +165,8 @@ export default function QuestionsTable({ questions, setOpenQuestion }) {
     </TableContainer>
   );
 }
+
+QuestionsTable.propTypes = {
+  questions: PropTypes.array.isRequired,
+  setOpenQuestion: PropTypes.func.isRequired
+};

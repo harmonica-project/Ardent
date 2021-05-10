@@ -65,7 +65,8 @@ const PapersListView = () => {
 
   const [bibtexModalOpen, setBibtexModalOpen] = useState(false);
   const [questionModalProps, setQuestionModalProps] = useState({
-    open: false
+    open: false,
+    context: {}
   });
   const [confirmModalProps, setConfirmModalProps] = useState({
     open: false,
@@ -366,7 +367,8 @@ const PapersListView = () => {
       case 'question':
         setQuestionModalProps({
           ...questionModalProps,
-          open: true
+          open: true,
+          context: {}
         });
         break;
 
@@ -401,6 +403,13 @@ const PapersListView = () => {
           open: true,
           architecture,
           papers
+        });
+        break;
+      case 'question':
+        setQuestionModalProps({
+          ...questionModalProps,
+          open: true,
+          context: {}
         });
         break;
       case 'delete':

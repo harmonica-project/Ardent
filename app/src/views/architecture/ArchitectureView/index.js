@@ -71,7 +71,8 @@ const ArchitectureView = () => {
   });
 
   const [questionModalProps, setQuestionModalProps] = useState({
-    open: false
+    open: false,
+    context: {}
   });
 
   const [confirmModalProps, setConfirmModalProps] = useState({
@@ -226,6 +227,7 @@ const ArchitectureView = () => {
           </Button>
           <Button
             variant="contained"
+            className={classes.buttonMargin}
             style={{ backgroundColor: '#f50057', color: 'white' }}
             startIcon={<DeleteIcon />}
             onClick={() => {
@@ -238,6 +240,20 @@ const ArchitectureView = () => {
             }}
           >
             Delete
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => setQuestionModalProps({
+              ...questionModalProps,
+              context: {
+                name: architecture.name,
+                type: 'architecture',
+                id: architecture.id
+              },
+              open: true
+            })}
+          >
+            Ask question about architecture
           </Button>
         </Box>
         <Card>
@@ -406,7 +422,8 @@ const ArchitectureView = () => {
           enqueueSnackbar('Question successfully post. You can find it in the Questions section.', { variant: 'success' });
           setQuestionModalProps({
             ...questionModalProps,
-            open: false
+            open: false,
+            context: {}
           });
         } else {
           enqueueSnackbar('Failed to post a question. Verify that you are still connected by refreshing the page.', { variant: 'error' });
@@ -540,13 +557,6 @@ const ArchitectureView = () => {
                         onClick={() => componentActionHandler('new')}
                       >
                         New&nbsp;component
-                      </Button>
-                      <Button
-                        className={classes.buttonMargin}
-                        variant="outlined"
-                        onClick={() => setQuestionModalProps({ ...questionModalProps, open: true })}
-                      >
-                        Ask question
                       </Button>
                     </Box>
                   </CardContent>

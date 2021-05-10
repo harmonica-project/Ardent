@@ -58,7 +58,7 @@ export default function InstancePropertyModal({
     value: yup.string()
       .max(100, 'Property value is too long.')
       .default('Undefined')
-      .transform((directionValue) => nullToValue(directionValue, 'Undefined')),
+      .transform((fieldValue) => nullToValue(fieldValue, 'Undefined')),
     category: yup.string()
   });
   const [modalStyle] = useState(getModalStyle);
