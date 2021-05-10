@@ -69,9 +69,6 @@ const QuestionsView = () => {
       .then((data) => {
         if (data.success) {
           setQuestions(data.result);
-          if (data.result.length) {
-            setOpenQuestion(data.result[0]);
-          }
         }
       })
       .catch((error) => enqueueSnackbar(error.toString(), { variant: 'error' }))
@@ -216,7 +213,8 @@ const QuestionsView = () => {
       </CardContent>
       <Divider />
       {
-        openQuestion.username === user.username || user.is_admin
+        (openQuestion.username === user.username || user.is_admin)
+        && parseInt(openQuestion.status, 10) !== 2
           ? (
             <CardActions>
               <Button
@@ -314,6 +312,11 @@ const QuestionsView = () => {
       });
     }
 
+    if (dpQuestions.length) {
+      setOpenQuestion(dpQuestions[0]);
+    } else {
+      setOpenQuestion({});
+    }
     setDisplayedQuestions(dpQuestions);
   };
 
@@ -402,12 +405,12 @@ const QuestionsView = () => {
         <Grid item xs={12} md={7}>
           <Box>
             {openQuestion.id ? displayMessage() : <div />}
-            {displayAnswers()}
+            {openQuestion.id ? displayAnswers() : <div />}
             <Card
               style={{
                 marginTop: '20px',
                 padding: '20px',
-                display: (parseInt(openQuestion.status, 10) === 2 && 'none')
+                display: ((parseInt(openQuestion.status, 10) === 2 || !openQuestion.id) && 'none')
               }}
             >
               <FormControl style={{ width: '100%' }}>
