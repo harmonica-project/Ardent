@@ -1,15 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  Box,
-  Container,
-  Grid,
+  Card,
+  Typography,
   makeStyles
 } from '@material-ui/core';
-import { Pagination } from '@material-ui/lab';
 import Page from 'src/components/Page';
-import Toolbar from './Toolbar';
-import ProductCard from './ProductCard';
-import data from './data';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -17,56 +12,23 @@ const useStyles = makeStyles((theme) => ({
     minHeight: '100%',
     paddingBottom: theme.spacing(3),
     paddingTop: theme.spacing(3)
-  },
-  productCard: {
-    height: '100%'
   }
 }));
 
 const AnalyticsView = () => {
   const classes = useStyles();
-  const [products] = useState(data);
 
   return (
     <Page
       className={classes.root}
       title="Analytics"
     >
-      <Container maxWidth={false}>
-        <Toolbar />
-        <Box mt={3}>
-          <Grid
-            container
-            spacing={3}
-          >
-            {products.map((product) => (
-              <Grid
-                item
-                key={product.id}
-                lg={4}
-                md={6}
-                xs={12}
-              >
-                <ProductCard
-                  className={classes.productCard}
-                  product={product}
-                />
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-        <Box
-          mt={3}
-          display="flex"
-          justifyContent="center"
-        >
-          <Pagination
-            color="primary"
-            count={3}
-            size="small"
-          />
-        </Box>
-      </Container>
+      <Card style={{ padding: '20px', margin: '20px', textAlign: 'center' }}>
+        <Typography>
+          This section will be used to analyze collected content.
+          It has not been implemented yet, stay tuned!
+        </Typography>
+      </Card>
     </Page>
   );
 };
