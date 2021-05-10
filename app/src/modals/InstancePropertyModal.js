@@ -53,12 +53,12 @@ export default function InstancePropertyModal({
 
   const schema = yup.object().shape({
     key: yup.string()
-      .max(30, 'Property key is too long.')
+      .max(100, 'Property key is too long.')
       .required('Property key is required'),
     value: yup.string()
-      .max(30, 'Property value is too long.')
+      .max(100, 'Property value is too long.')
       .default('Undefined')
-      .transform((directionValue) => nullToValue(directionValue, 'Undefined')),
+      .transform((fieldValue) => nullToValue(fieldValue, 'Undefined')),
     category: yup.string()
   });
   const [modalStyle] = useState(getModalStyle);

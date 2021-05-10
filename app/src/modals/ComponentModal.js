@@ -56,16 +56,15 @@ export default function ComponentModal({
   // getModalStyle is not a pure function, we roll the style only on the first render
   const schema = yup.object().shape({
     name: yup.string()
-      .max(30, 'Component name is too long.')
+      .max(100, 'Component name is too long.')
       .required('Base component name is required'),
     author_description: yup.string()
       .default('No description provided.')
-      .transform((directionValue) => nullToValue(directionValue, 'No description provided.')),
+      .transform((fieldValue) => nullToValue(fieldValue, 'No description provided.')),
     reader_description: yup.string()
       .default('No description provided.')
-      .transform((directionValue) => nullToValue(directionValue, 'No description provided.')),
+      .transform((fieldValue) => nullToValue(fieldValue, 'No description provided.')),
     component_base_id: yup.string()
-      .required('A reference to base component is required.')
   });
   const [modalStyle] = useState(getModalStyle);
   const [checked, setChecked] = React.useState(true);

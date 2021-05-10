@@ -12,5 +12,11 @@ module.exports = {
               errorMsg: "Failed connexion to DB" + JSON.stringify(res)
           }
       }
+  },
+  intErrResp: () => {
+      return {
+          success: false,
+          errorMsg: "An internal error occured. Please contact the developer in charge of the app and provide him information about this issue."
+      }
   }
 }

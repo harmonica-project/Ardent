@@ -24,7 +24,7 @@ import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import reduceLongText from '../../../utils/reduceLongText';
 import SubToolbar from './SubToolbar';
-import DisplayStatus from '../../../components/DisplayStatus';
+import DisplayStatusPaper from '../../../components/DisplayStatusPaper';
 import TableActionCell from '../../../components/TableActionCell';
 
 const useStyles = makeStyles((theme) => ({
@@ -184,7 +184,7 @@ function Row({
         <TableCell>{row.name}</TableCell>
         <TableCell align="center">{row.authors}</TableCell>
         <TableCell align="center">{usersMapping[row.updated_by]}</TableCell>
-        <TableCell align="center"><DisplayStatus status={row.status} /></TableCell>
+        <TableCell align="center"><DisplayStatusPaper status={row.status} /></TableCell>
         <TableCell align="center"><TableActionCell item={row} actionHandler={paperActionHandler} /></TableCell>
       </TableRow>
       <TableRow>

@@ -11,6 +11,8 @@ var papersRoutes = require('./routes/papers');
 var propertiesRoutes = require('./routes/properties');
 var connectionsRoutes = require('./routes/connections');
 var componentsRoutes = require('./routes/components');
+var questionsRoutes = require('./routes/questions');
+var answersRoutes = require('./routes/answers');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -35,9 +37,11 @@ app.use('/papers', papersRoutes);
 app.use('/properties', propertiesRoutes);
 app.use('/connections', connectionsRoutes);
 app.use('/components', componentsRoutes);
+app.use('/answers', answersRoutes);
+app.use('/questions', questionsRoutes);
 
 var httpServer = http.createServer(app);
-console.log('HTTP serving on port 8080.');
+console.log('HTTP: serving on port 8080.');
 httpServer.listen(8080);
 
 try {
@@ -45,9 +49,8 @@ try {
     var certificate = fs.readFileSync('certs/server.crt', 'utf8');
     var credentials = {key: privateKey, cert: certificate};
     var httpsServer = https.createServer(credentials, app);
-    console.log('HTTPS serving on port 8443.');
+    console.log('HTTPs: serving on port 8443.');
     httpsServer.listen(8443);
-} catch (error) {
-    console.log('Invalid certificates or certificates not found: the server will only serve in HTTP.');
-    console.log(error);
+} catch {
+    console.log('HTTPs: invalid certificates or certificates not found: the server will only serve in HTTP.');
 }

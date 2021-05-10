@@ -53,11 +53,11 @@ export default function BaseComponentModal({
 
   const schema = yup.object().shape({
     name: yup.string()
-      .max(30, 'Component name is too long.')
+      .max(100, 'Component name is too long.')
       .required('Base component name is required'),
     base_description: yup.string()
       .default('No description provided.')
-      .transform((directionValue) => nullToValue(directionValue, 'No description provided.')),
+      .transform((fieldValue) => nullToValue(fieldValue, 'No description provided.')),
   });
 
   const [modalStyle] = useState(getModalStyle);

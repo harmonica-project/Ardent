@@ -11,6 +11,9 @@ const useStyles = makeStyles((theme) => ({
   root: {},
   boxMargin: {
     marginBottom: theme.spacing(2)
+  },
+  buttonMargin: {
+    marginLeft: theme.spacing(1)
   }
 }));
 
@@ -31,6 +34,13 @@ const SubToolbar = ({ architectureActionHandler, paperId }) => {
           onClick={() => architectureActionHandler('new', { paper_id: paperId })}
         >
           Add architecture
+        </Button>
+        <Button
+          className={classes.buttonMargin}
+          variant="outlined"
+          onClick={() => architectureActionHandler('question')}
+        >
+          Ask question about paper
         </Button>
       </Box>
     </Box>

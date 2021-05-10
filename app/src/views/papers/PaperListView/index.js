@@ -23,6 +23,7 @@ import {
   getPapers as getPapersRequest,
 } from 'src/requests/papers';
 import { getUsers as getUsersRequest } from 'src/requests/users';
+import { saveQuestion as saveQuestionRequest } from 'src/requests/questions';
 import authenticationService from 'src/requests/authentication';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 import Page from 'src/components/Page';
@@ -31,6 +32,7 @@ import ArchitectureModal from 'src/modals/ArchitectureModal';
 import CloneModal from 'src/modals/CloneModal';
 import BibtexModal from 'src/modals/BibtexModal';
 import ConfirmModal from 'src/modals/ConfirmModal';
+import QuestionModal from 'src/modals/QuestionModal';
 import Results from './Results';
 import Toolbar from './Toolbar';
 
@@ -54,6 +56,7 @@ const PapersListView = () => {
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState([]);
   const [displayedPapers, setDisplayedPapers] = useState([]);
+  const [stateSelect, setStateSelect] = useState(-1);
   const [titleFilter, setTitleFilter] = useState({
     name: '',
     id: ''
@@ -61,6 +64,10 @@ const PapersListView = () => {
   const [open, setOpen] = useState(false);
 
   const [bibtexModalOpen, setBibtexModalOpen] = useState(false);
+  const [questionModalProps, setQuestionModalProps] = useState({
+    open: false,
+    context: {}
+  });
   const [confirmModalProps, setConfirmModalProps] = useState({
     open: false,
     actionModalHandler: null,
@@ -301,18 +308,14 @@ const PapersListView = () => {
   };
 
   const fillDisplayedPapers = () => {
-    if (!titleFilter.name.length) setDisplayedPapers(papers);
-    else {
-      const newDisplayedPapers = [];
+    const filterPapers = (paper) => {
+      if (!paper.name.includes(titleFilter.name) && titleFilter.name.length) return false;
+      if (paper.status !== stateSelect && stateSelect !== -1) return false;
+      return true;
+    };
 
-      papers.forEach((paper) => {
-        if (paper.name.includes(titleFilter.name)) {
-          newDisplayedPapers.push(paper);
-        }
-      });
-
-      setDisplayedPapers(newDisplayedPapers);
-    }
+    const newDisplayedPapers = papers.filter(filterPapers);
+    setDisplayedPapers(newDisplayedPapers);
   };
 
   const paperActionHandler = (actionType, paper) => {
@@ -361,6 +364,14 @@ const PapersListView = () => {
         setBibtexModalOpen(true);
         break;
 
+      case 'question':
+        setQuestionModalProps({
+          ...questionModalProps,
+          open: true,
+          context: {}
+        });
+        break;
+
       case 'parsifal':
         console.log('Parsif.al import not implemented yet.');
         break;
@@ -392,6 +403,13 @@ const PapersListView = () => {
           open: true,
           architecture,
           papers
+        });
+        break;
+      case 'question':
+        setQuestionModalProps({
+          ...questionModalProps,
+          open: true,
+          context: {}
         });
         break;
       case 'delete':
@@ -531,6 +549,24 @@ const PapersListView = () => {
     }
   };
 
+  const postQuestion = (question) => {
+    saveQuestionRequest(question)
+      .then((data) => {
+        if (data.success) {
+          enqueueSnackbar('Question successfully post. You can find it in the Questions section.', { variant: 'success' });
+          setQuestionModalProps({
+            ...questionModalProps,
+            open: false
+          });
+        } else {
+          enqueueSnackbar('Failed to post a question. Verify that you are still connected by refreshing the page.', { variant: 'error' });
+        }
+      })
+      .catch(() => {
+        enqueueSnackbar('Failed to post a question. Verify that you are still connected by refreshing the page.', { variant: 'error' });
+      });
+  };
+
   const handleClone = async ({ architecture, paper }) => {
     setOpen(true);
     cloneArchitectureRequest(architecture.id, paper.id)
@@ -560,7 +596,7 @@ const PapersListView = () => {
 
   useEffect(() => {
     fillDisplayedPapers();
-  }, [titleFilter, papers]);
+  }, [titleFilter, papers, stateSelect]);
 
   return (
     <Page
@@ -574,6 +610,8 @@ const PapersListView = () => {
             <Box>
               <Toolbar
                 setTitleFilter={setTitleFilter}
+                stateSelect={stateSelect}
+                setStateSelect={setStateSelect}
                 actionHandler={toolbarActionHandler}
                 papers={papers}
               />
@@ -656,6 +694,11 @@ const PapersListView = () => {
           modalProps={cloneModalProps}
           setModalProps={setCloneModalProps}
           actionModalHandler={handleClone}
+        />
+        <QuestionModal
+          modalProps={questionModalProps}
+          setModalProps={setQuestionModalProps}
+          actionModalHandler={postQuestion}
         />
         <LoadingOverlay open={open} />
       </Container>

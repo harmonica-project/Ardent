@@ -60,7 +60,7 @@ export default function PaperModal({
 
   const schema = yup.object().shape({
     name: yup.string()
-      .max(100, 'Paper name is too long.')
+      .max(200, 'Paper name is too long.')
       .required('Paper name is required'),
     added_by: yup.string()
       .required('You need to specify who is creating the paper.'),
@@ -74,16 +74,16 @@ export default function PaperModal({
     paper_type: yup.string()
       .required()
       .default('other')
-      .transform((directionValue) => nullToValue(directionValue, 'other')),
+      .transform((fieldValue) => nullToValue(fieldValue, 'other')),
     journal: yup.string()
       .default('No journal title provided')
-      .transform((directionValue) => nullToValue(directionValue, 'No journal title provided')),
+      .transform((fieldValue) => nullToValue(fieldValue, 'No journal title provided')),
     abstract: yup.string()
       .default('No abstract provided')
-      .transform((directionValue) => nullToValue(directionValue, 'No abstract provided')),
+      .transform((fieldValue) => nullToValue(fieldValue, 'No abstract provided')),
     comments: yup.string()
       .default('No comments provided')
-      .transform((directionValue) => nullToValue(directionValue, 'No comments provided')),
+      .transform((fieldValue) => nullToValue(fieldValue, 'No comments provided')),
   });
 
   const [innerPaper, setInnerPaper] = useState(modalProps.paper);
@@ -197,7 +197,7 @@ export default function PaperModal({
             color="primary"
             variant="contained"
             hidden={modalProps.actionType === 'new'}
-            startIcon={modalProps.actionType === 'edit' ? <EditIcon /> : <VisibilityIcon />}
+            startIcon={modalProps.actionType === 'edit' ? <VisibilityIcon /> : <EditIcon />}
             className={classes.headerButton}
             onClick={() => handleSwitchClick()}
           >
