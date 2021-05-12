@@ -19,6 +19,9 @@ const App = () => {
   let username;
   if (authInfo && authInfo.user) {
     username = authInfo.user.username;
+  } else {
+    const user = authenticationService.currentUserValue;
+    username = (user.user && user.user.username ? user.user.username : null);
   }
   const routing = useRoutes(routes(username));
 
