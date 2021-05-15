@@ -14,7 +14,8 @@ import {
   deleteArchitecture as deleteArchitectureRequest,
   saveNewArchitecture as saveNewArchitectureRequest,
   saveExistingArchitecture as saveExistingArchitectureRequest,
-  cloneArchitecture as cloneArchitectureRequest
+  cloneArchitecture as cloneArchitectureRequest,
+  getArchitectureGraph as getArchitectureGraphRequest
 } from 'src/requests/architectures';
 import {
   saveNewPaper as saveNewPaperRequest,
@@ -26,6 +27,7 @@ import { getUsers as getUsersRequest } from 'src/requests/users';
 import { saveQuestion as saveQuestionRequest } from 'src/requests/questions';
 import authenticationService from 'src/requests/authentication';
 import LoadingOverlay from 'src/components/LoadingOverlay';
+import DotOverlay from 'src/components/DotOverlay';
 import Page from 'src/components/Page';
 import PaperModal from 'src/modals/PaperModal';
 import ArchitectureModal from 'src/modals/ArchitectureModal';
@@ -62,7 +64,10 @@ const PapersListView = () => {
     id: ''
   });
   const [open, setOpen] = useState(false);
-
+  const [dotProps, setDotProps] = useState({
+    open: false,
+    graph: ''
+  });
   const [bibtexModalOpen, setBibtexModalOpen] = useState(false);
   const [questionModalProps, setQuestionModalProps] = useState({
     open: false,
@@ -381,6 +386,22 @@ const PapersListView = () => {
     }
   };
 
+  const getArchitectureGraph = (architecture) => {
+    setOpen(true);
+    getArchitectureGraphRequest(architecture.id)
+      .then((data) => {
+        console.log(data);
+        if (data.success) {
+          setDotProps({
+            open: true,
+            graph: data.result
+          });
+        }
+      })
+      .catch((error) => enqueueSnackbar(error, 'error'))
+      .finally(() => { setOpen(false); });
+  };
+
   const architectureActionHandler = (actionType, architecture) => {
     switch (actionType) {
       case 'new':
@@ -404,6 +425,9 @@ const PapersListView = () => {
           architecture,
           papers
         });
+        break;
+      case 'graph':
+        getArchitectureGraph(architecture);
         break;
       case 'question':
         setQuestionModalProps({
@@ -701,6 +725,11 @@ const PapersListView = () => {
           actionModalHandler={postQuestion}
         />
         <LoadingOverlay open={open} />
+        <DotOverlay
+          open={dotProps.open}
+          graph={dotProps.graph}
+          setOpen={(newOpen) => setDotProps({ ...dotProps, open: newOpen })}
+        />
       </Container>
     </Page>
   );

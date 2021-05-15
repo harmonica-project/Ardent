@@ -1,8 +1,17 @@
 const express = require('express'), router = express.Router();
+var dot = require('graphlib-dot');
+var Graph = require("graphlib").Graph;
 const archDB = require('../data/architectures');
 const compDB = require('../data/components');
 const { authorizedOnly } = require('../utils/authorization');
 const { parseDBResults } = require('../utils/helpers');
+
+function resolveComponentName(id, components) {
+    for (let i = 0; i < components.length; i++) {
+        if (components[i].id === id) return components[i].name;
+    }
+    return id;
+};
 
 router
   .get('/', authorizedOnly, (req, res) => {
@@ -20,18 +29,15 @@ router
     })
   })
   .get('/:id/graph', authorizedOnly, async (req, res) => {
+    let digraph = new Graph();
     let id = req.params.id;
     let archConns = {};
-    let graph = {
-        nodes: [],
-        edges: []
-    };
     if(id) {
         const resArch = await archDB.getArchitecture(id);
         if (!resArch.result) return res.status(500).send({ success: false, errorMsg: "Server error." });
         for (let i = 0; i < resArch.result.components.length; i++) {
             let c = resArch.result.components[i];
-            graph.nodes.push(c.name);
+            digraph.setNode(c.name);
             let fullComp = await compDB.getComponentInstance(c.id);
             if (!fullComp.result) return res.status(500).send({ success: false, errorMsg: "Server error." });
             fullComp.result.connections.forEach(c => { archConns[c.id] = c; });
@@ -39,19 +45,24 @@ router
         
         Object.keys(archConns).forEach(key => {
             if (archConns[key].direction === "bidirectional" || archConns[key].direction === "first-to-second") {
-                graph.edges.push({
-                    source: archConns[key].first_component,
-                    target: archConns[key].second_component
-                });
+                digraph.setEdge(
+                    resolveComponentName(archConns[key].first_component, resArch.result.components),
+                    resolveComponentName(archConns[key].second_component, resArch.result.components),
+                    { label: (archConns[key].name ? archConns[key].name : "Unnamed") }
+                );
             }
             if (archConns[key].direction === "bidirectional" || archConns[key].direction === "second-to-first") {
-                graph.edges.push({
-                    source: archConns[key].first_component,
-                    target: archConns[key].second_component
-                });
+                digraph.setEdge(
+                    resolveComponentName(archConns[key].second_component, resArch.result.components),
+                    resolveComponentName(archConns[key].first_component, resArch.result.components),
+                    { label: (archConns[key].name ? archConns[key].name : "Unnamed") }
+                );
             }
         });
-        res.status(200).send(graph);
+        res.status(200).send({
+            success: true,
+            result: dot.write(digraph)
+        });
 
     }
     else {

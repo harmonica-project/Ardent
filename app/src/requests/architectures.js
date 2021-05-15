@@ -38,3 +38,9 @@ export function deleteArchitecture(architectureId) {
     .then((data) => auth.handleResponse(data))
     .catch((error) => auth.handleResponse(error.response));
 }
+
+export function getArchitectureGraph(architectureId) {
+  return axios.get(`${API_URL}/architectures/${architectureId}/graph`, auth.getAuthHeaders())
+    .then((data) => auth.handleResponse(data))
+    .catch((error) => auth.handleResponse(error.response));
+}
