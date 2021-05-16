@@ -17,20 +17,22 @@ import Page from 'src/components/Page';
 import {
   getArchitecture as getArchitectureRequest,
   deleteArchitecture as deleteArchitectureRequest,
-  saveExistingArchitecture as saveExistingArchitectureRequest
+  saveExistingArchitecture as saveExistingArchitectureRequest,
+  getArchitectureGraph as getArchitectureGraphRequest
 } from 'src/requests/architectures';
 import {
   deleteComponentInstance as deleteComponentInstanceRequest,
   saveNewComponentInstance as saveNewComponentInstanceRequest,
   saveExistingComponentInstance as saveExistingComponentInstanceRequest,
   saveNewBaseComponent as saveNewBaseComponentRequest,
-  getBaseComponents as getBaseComponentsRequest
+  getBaseComponents as getBaseComponentsRequest,
 } from 'src/requests/components';
 import {
   saveProperty as savePropertyRequest,
   getBaseComponentProperties as getBaseComponentPropertiesRequest,
 } from 'src/requests/properties';
 import { saveQuestion as saveQuestionRequest } from 'src/requests/questions';
+import DotOverlay from 'src/components/DotOverlay';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 import ComponentModal from 'src/modals/ComponentModal';
@@ -68,6 +70,11 @@ const ArchitectureView = () => {
     open: false,
     architecture: { components: [] },
     actionType: ''
+  });
+
+  const [dotProps, setDotProps] = useState({
+    open: false,
+    graph: ''
   });
 
   const [questionModalProps, setQuestionModalProps] = useState({
@@ -486,6 +493,21 @@ const ArchitectureView = () => {
     }
   };
 
+  const getArchitectureGraph = () => {
+    setOpen(true);
+    getArchitectureGraphRequest(architecture.id)
+      .then((data) => {
+        if (data.success) {
+          setDotProps({
+            open: true,
+            graph: data.result
+          });
+        }
+      })
+      .catch((error) => enqueueSnackbar(error, 'error'))
+      .finally(() => { setOpen(false); });
+  };
+
   const componentActionModalHandler = (actionType, component, doAddBaseProps) => {
     switch (actionType) {
       case 'new':
@@ -527,6 +549,14 @@ const ArchitectureView = () => {
                     onClick={() => componentActionHandler('new')}
                   >
                     New&nbsp;component
+                  </Button>
+                  <Button
+                    color="primary"
+                    style={{ marginLeft: '10px' }}
+                    variant="contained"
+                    onClick={() => getArchitectureGraph()}
+                  >
+                    Display&nbsp;component&nbsp;graph
                   </Button>
                 </Box>
                 <Box mt={3}>
@@ -585,6 +615,11 @@ const ArchitectureView = () => {
         modalProps={questionModalProps}
         setModalProps={setQuestionModalProps}
         actionModalHandler={postQuestion}
+      />
+      <DotOverlay
+        open={dotProps.open}
+        graph={dotProps.graph}
+        setOpen={(newOpen) => setDotProps({ ...dotProps, open: newOpen })}
       />
       <LoadingOverlay open={open} />
     </Page>

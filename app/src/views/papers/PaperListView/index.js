@@ -390,7 +390,6 @@ const PapersListView = () => {
     setOpen(true);
     getArchitectureGraphRequest(architecture.id)
       .then((data) => {
-        console.log(data);
         if (data.success) {
           setDotProps({
             open: true,

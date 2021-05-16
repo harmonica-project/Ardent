@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
-import Grid from '@material-ui/core/Grid';
+import { Grid } from '@material-ui/core';
 import { Graphviz } from 'graphviz-react';
+import { useSnackbar } from 'notistack';
 
 const useStyles = makeStyles({
   overlay: {
@@ -24,6 +25,20 @@ const useStyles = makeStyles({
 
 export default function LoadingOverlay({ open, graph, setOpen }) {
   const classes = useStyles(open);
+  const { enqueueSnackbar } = useSnackbar();
+
+  const isEmptyGraph = (newGraph) => {
+    const emptyGraph = 'strict digraph {\n}\n';
+    if (!newGraph || !newGraph.length || emptyGraph === newGraph) return true;
+    return false;
+  };
+
+  useEffect(() => {
+    if (isEmptyGraph(graph) && open) {
+      setOpen(false);
+      enqueueSnackbar('This architecture does not contain any component to display yet. Add some components and try again later.', { variant: 'info' });
+    }
+  }, [open, graph]);
 
   return (
     open ? (
