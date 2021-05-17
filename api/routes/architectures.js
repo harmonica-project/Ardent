@@ -8,9 +8,9 @@ const { parseDBResults } = require('../utils/helpers');
 
 function resolveComponentName(id, components) {
     for (let i = 0; i < components.length; i++) {
-        if (components[i].id === id) return components[i].name;
+        if (components[i].id === id) return `${components[i].name} (#${components[i].id.substring(0, 7)})`;
     }
-    return id;
+    return `Unknown name (${components[i].id.substring(0, 7)})`;
 };
 
 router
@@ -37,7 +37,7 @@ router
         if (!resArch.result) return res.status(500).send({ success: false, errorMsg: "Server error." });
         for (let i = 0; i < resArch.result.components.length; i++) {
             let c = resArch.result.components[i];
-            digraph.setNode(c.name);
+            digraph.setNode(`${c.name} (#${c.id.substring(0, 7)})`);
             let fullComp = await compDB.getComponentInstance(c.id);
             if (!fullComp.result) return res.status(500).send({ success: false, errorMsg: "Server error." });
             fullComp.result.connections.forEach(c => { archConns[c.id] = c; });
