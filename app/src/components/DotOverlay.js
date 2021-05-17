@@ -49,10 +49,17 @@ export default function LoadingOverlay({ open, graph, setOpen }) {
         align="center"
         justify="center"
         direction="column"
+        onClick={() => setOpen(false)}
       >
-        <Grid item onClick={() => setOpen(false)}>
-          <Graphviz dot={graph} />
-        </Grid>
+        <Graphviz
+          style={{ textAlign: 'center' }}
+          options={{
+            width: window.innerWidth * 0.9,
+            height: window.innerHeight,
+            fit: true
+          }}
+          dot={graph}
+        />
       </Grid>
     ) : (<div />)
   );
