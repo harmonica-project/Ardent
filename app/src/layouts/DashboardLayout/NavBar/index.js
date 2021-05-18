@@ -57,7 +57,11 @@ const NavBar = ({ onMobileClose, openMobile }) => {
   });
 
   useEffect(() => {
-    authenticationService.currentUser.subscribe((newAuthInfo) => setUser(newAuthInfo.user));
+    authenticationService.currentUser.subscribe((newAuthInfo) => {
+      if (newAuthInfo && newAuthInfo.user) {
+        setUser(newAuthInfo);
+      }
+    });
   }, []);
 
   const handleOpen = () => {
@@ -114,8 +118,8 @@ const NavBar = ({ onMobileClose, openMobile }) => {
   }, [location.pathname]);
 
   useEffect(() => {
-    const newUser = authenticationService.currentUserValue.user;
-    if (newUser) setUser(newUser);
+    const newUser = authenticationService.currentUserValue;
+    if (newUser && newUser.user) setUser(newUser.user);
   }, []);
 
   const content = (
