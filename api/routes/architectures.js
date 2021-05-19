@@ -48,14 +48,14 @@ router
                 digraph.setEdge(
                     resolveComponentName(archConns[key].first_component, resArch.result.components),
                     resolveComponentName(archConns[key].second_component, resArch.result.components),
-                    { label: (archConns[key].name ? archConns[key].name : "Unnamed") }
+                    { label: (archConns[key].datatype ? archConns[key].datatype : "Any") }
                 );
             }
             if (archConns[key].direction === "bidirectional" || archConns[key].direction === "second-to-first") {
                 digraph.setEdge(
                     resolveComponentName(archConns[key].second_component, resArch.result.components),
                     resolveComponentName(archConns[key].first_component, resArch.result.components),
-                    { label: (archConns[key].name ? archConns[key].name : "Unnamed") }
+                    { label: (archConns[key].datatype ? archConns[key].datatype : "Any") }
                 );
             }
         });
