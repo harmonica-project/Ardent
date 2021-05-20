@@ -471,13 +471,19 @@ export default function InstanceComponentView() {
       .then((data) => {
         if (data.success) {
           enqueueSnackbar('Connection successfully added.', { variant: 'success' });
-          setComponent({
-            ...component,
-            connections: [...component.connections, {
-              ...newConnection,
-              id: data.connectionId
-            }]
-          });
+
+          if (component.id === newConnection.first_component
+            || component.id === newConnection.second_component
+          ) {
+            setComponent({
+              ...component,
+              connections: [...component.connections, {
+                ...newConnection,
+                id: data.connectionId
+              }]
+            });
+          }
+
           setConnectionModalProps({
             ...connectionModalProps,
             connection: { direction: 'bidirectional' },
