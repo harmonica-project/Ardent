@@ -139,7 +139,8 @@ const ArchitectureView = () => {
           setArchitectureModalProps({
             ...architectureModalProps,
             open: false,
-            actionType: ''
+            actionType: '',
+            architecture: newArchitecture
           });
           setArchitecture(newArchitecture);
           enqueueSnackbar('Architecture successfully modified.', { variant: 'success' });
