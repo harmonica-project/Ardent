@@ -108,7 +108,7 @@ const ArchitectureView = () => {
         });
       }
     } catch (error) {
-      enqueueSnackbar(error, { variant: 'error' });
+      enqueueSnackbar(error.toString(), { variant: 'error' });
     }
   };
 
@@ -119,7 +119,7 @@ const ArchitectureView = () => {
         setBaseComponents(data.result);
       }
     } catch (error) {
-      enqueueSnackbar(error, { variant: 'error' });
+      enqueueSnackbar(error.toString(), { variant: 'error' });
     }
   };
 
@@ -146,7 +146,7 @@ const ArchitectureView = () => {
           enqueueSnackbar('Architecture successfully modified.', { variant: 'success' });
         }
       })
-      .catch((error) => enqueueSnackbar(error, { variant: 'error' }))
+      .catch((error) => enqueueSnackbar(error.toString(), { variant: 'error' }))
       .finally(() => setOpen(false));
   };
 
@@ -159,7 +159,7 @@ const ArchitectureView = () => {
           navigate('/app/papers');
         }
       })
-      .catch((error) => enqueueSnackbar(error, { variant: 'error' }))
+      .catch((error) => enqueueSnackbar(error.toString(), { variant: 'error' }))
       .finally(() => setOpen(false));
   };
 
@@ -189,7 +189,7 @@ const ArchitectureView = () => {
           enqueueSnackbar('Component successfully deleted.', { variant: 'success' });
         }
       })
-      .catch((error) => enqueueSnackbar(error, { variant: 'error' }))
+      .catch((error) => enqueueSnackbar(error.toString(), { variant: 'error' }))
       .finally(() => setOpen(false));
   };
 
@@ -417,7 +417,7 @@ const ArchitectureView = () => {
         });
       }
     } catch (error) {
-      enqueueSnackbar(error, { variant: 'error' });
+      enqueueSnackbar(error.toString(), { variant: 'error' });
     } finally {
       setOpen(false);
     }
@@ -461,7 +461,7 @@ const ArchitectureView = () => {
       if (!component.component_base_id || component.component_base_id === '') {
         const baseRes = await saveNewBaseComponentRequest(component);
         if (baseRes.success) {
-          component = { ...component, component_base_id: baseRes.data.componentId };
+          component = { ...component, component_base_id: baseRes.componentId };
           setBaseComponents([
             ...baseComponents,
             {
@@ -488,7 +488,7 @@ const ArchitectureView = () => {
         });
       }
     } catch (error) {
-      enqueueSnackbar(error, { variant: 'error' });
+      enqueueSnackbar(error.toString(), { variant: 'error' });
     } finally {
       setOpen(false);
     }

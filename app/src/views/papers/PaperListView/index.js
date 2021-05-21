@@ -193,7 +193,7 @@ const PapersListView = () => {
           enqueueSnackbar('Paper successfully deleted.', { variant: 'success' });
         }
       })
-      .catch((error) => enqueueSnackbar(error, 'error'))
+      .catch((error) => enqueueSnackbar(error.toString(), 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -213,7 +213,7 @@ const PapersListView = () => {
           enqueueSnackbar('Architecture successfully deleted.', { variant: 'success' });
         }
       })
-      .catch((error) => enqueueSnackbar(error, 'error'))
+      .catch((error) => enqueueSnackbar(error.toString(), 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -271,7 +271,7 @@ const PapersListView = () => {
           enqueueSnackbar('Architecture successfully added.', { variant: 'success' });
         }
       })
-      .catch((error) => enqueueSnackbar(error, 'error'))
+      .catch((error) => enqueueSnackbar(error.toString(), 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -290,7 +290,7 @@ const PapersListView = () => {
           enqueueSnackbar('Paper successfully modified.', { variant: 'success' });
         }
       })
-      .catch((error) => enqueueSnackbar(error, 'error'))
+      .catch((error) => enqueueSnackbar(error.toString(), 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -308,7 +308,7 @@ const PapersListView = () => {
           enqueueSnackbar('Architecture successfully modified.', { variant: 'success' });
         }
       })
-      .catch((error) => enqueueSnackbar(error, 'error'))
+      .catch((error) => enqueueSnackbar(error.toString(), 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -397,7 +397,7 @@ const PapersListView = () => {
           });
         }
       })
-      .catch((error) => enqueueSnackbar(error, 'error'))
+      .catch((error) => enqueueSnackbar(error.toString(), 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -605,7 +605,7 @@ const PapersListView = () => {
           enqueueSnackbar('Architecture successfully added.', { variant: 'success' });
         }
       })
-      .catch((error) => enqueueSnackbar(error, 'error'))
+      .catch((error) => enqueueSnackbar(error.toString(), 'error'))
       .finally(() => { setOpen(false); });
   };
 

@@ -43,7 +43,7 @@ const SettingsView = () => {
         enqueueSnackbar('Request failed.', { variant: 'error' });
       }
     } catch (error) {
-      enqueueSnackbar(`Error: ${error}`, { variant: 'error' });
+      enqueueSnackbar(`Error: ${error.toString()}`, { variant: 'error' });
     } finally {
       setOpen(false);
     }
@@ -66,7 +66,7 @@ const SettingsView = () => {
         enqueueSnackbar('Password do not match.', { variant: 'error' });
       }
     } catch (error) {
-      enqueueSnackbar(`Error: ${error}`, { variant: 'error' });
+      enqueueSnackbar(`Error: ${error.toString()}`, { variant: 'error' });
     } finally {
       setOpen(false);
     }
