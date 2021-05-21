@@ -35,7 +35,7 @@ function login(username, password) {
       // store user details and jwt token in local storage to keep user logged
       localStorage.setItem('currentUser', JSON.stringify(user));
       currentUserSubject.next(user);
-      return user;
+      return { success: true };
     })
     .catch((error) => handleResponse(error.response));
 }
