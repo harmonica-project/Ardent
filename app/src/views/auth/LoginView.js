@@ -63,7 +63,13 @@ const LoginView = () => {
             onSubmit={({ username, password }) => {
               setOpen(true);
               authenticationService.login(username, password)
-                .then(() => navigate('/app/dashboard', { replace: true }))
+                .then((data) => {
+                  if (data.success) {
+                    navigate('/app/dashboard', { replace: true });
+                  } else {
+                    enqueueSnackbar('Authentication failed. Check your username and your password, then retry.', { variant: 'error' });
+                  }
+                })
                 .catch(() => enqueueSnackbar('Authentication failed. Check your username and your password, then retry.', { variant: 'error' }))
                 .finally(() => setOpen(false));
             }}
