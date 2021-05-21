@@ -18,7 +18,7 @@ module.exports = {
         try {
             const components = await client.query("SELECT * FROM components_instances WHERE architecture_id = $1", [architectureId]);
             const architecture = await client.query("SELECT * FROM architectures WHERE id = $1", [architectureId]);
-            
+
             return {
                 success: true,
                 result: {

@@ -2,3 +2,4 @@ node_modules
 .eslintcache
 uploads
 api/certs
+.DS_Store

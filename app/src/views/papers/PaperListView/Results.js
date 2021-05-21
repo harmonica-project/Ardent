@@ -20,6 +20,7 @@ import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import FirstPageIcon from '@material-ui/icons/FirstPage';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import { FileCopy as CopyIcon } from '@material-ui/icons';
+import AspectRatioIcon from '@material-ui/icons/AspectRatio';
 import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import reduceLongText from '../../../utils/reduceLongText';
@@ -146,6 +147,12 @@ function Row({
                     <CopyIcon
                       style={{ cursor: 'pointer' }}
                       onClick={() => architectureActionHandler('clone', { ...architectureRow, paper_id: row.id })}
+                    />
+                  </Grid>
+                  <Grid item style={{ marginLeft: '3px' }}>
+                    <AspectRatioIcon
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => architectureActionHandler('graph', { ...architectureRow, paper_id: row.id })}
                     />
                   </Grid>
                 </Grid>

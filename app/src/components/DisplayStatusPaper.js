@@ -14,7 +14,10 @@ const DisplayStatusPaper = ({ status }) => {
       return <Chip style={{ backgroundColor: 'green', color: 'white' }} label="Done" />;
 
     case 3:
-      return <Chip style={{ backgroundColor: '#f50057', color: 'white' }} label="Need help" />;
+      return <Chip style={{ backgroundColor: '#6d27b3', color: 'white' }} label="Need help" />;
+
+    case 4:
+      return <Chip style={{ backgroundColor: 'red', color: 'white' }} label="Rejected" />;
 
     default:
       return <Chip label="Unknown" />;

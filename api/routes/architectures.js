@@ -1,11 +1,21 @@
 const express = require('express'), router = express.Router();
-const db = require('../data/architectures');
+var dot = require('graphlib-dot');
+var Graph = require("graphlib").Graph;
+const archDB = require('../data/architectures');
+const compDB = require('../data/components');
 const { authorizedOnly } = require('../utils/authorization');
 const { parseDBResults } = require('../utils/helpers');
 
+function resolveComponentName(id, components) {
+    for (let i = 0; i < components.length; i++) {
+        if (components[i].id === id) return `${components[i].name} (#${components[i].id.substring(0, 7)})`;
+    }
+    return `Unknown name (${components[i].id.substring(0, 7)})`;
+};
+
 router
   .get('/', authorizedOnly, (req, res) => {
-    db.getArchitectures().then((queryResult) => {
+    archDB.getArchitectures().then((queryResult) => {
         const parsedResult = parseDBResults(queryResult);
         if(parsedResult.success) res.status(200).send(parsedResult);
         else res.status(500).send(parsedResult);
@@ -13,15 +23,59 @@ router
   })
   .get('/:id', authorizedOnly, (req, res) => {
     var id = req.params.id;
-    db.getArchitecture(id).then((parsedResult) => {
+    archDB.getArchitecture(id).then((parsedResult) => {
         if(parsedResult.success) res.status(200).send(parsedResult);
         else res.status(500).send(parsedResult);
     })
   })
+  .get('/:id/graph', authorizedOnly, async (req, res) => {
+    let digraph = new Graph();
+    let id = req.params.id;
+    let archConns = {};
+    if(id) {
+        const resArch = await archDB.getArchitecture(id);
+        if (!resArch.result) return res.status(500).send({ success: false, errorMsg: "Server error." });
+        for (let i = 0; i < resArch.result.components.length; i++) {
+            let c = resArch.result.components[i];
+            digraph.setNode(`${c.name} (#${c.id.substring(0, 7)})`);
+            let fullComp = await compDB.getComponentInstance(c.id);
+            if (!fullComp.result) return res.status(500).send({ success: false, errorMsg: "Server error." });
+            fullComp.result.connections.forEach(c => { archConns[c.id] = c; });
+        }
+        
+        Object.keys(archConns).forEach(key => {
+            if (archConns[key].direction === "bidirectional" || archConns[key].direction === "first-to-second") {
+                digraph.setEdge(
+                    resolveComponentName(archConns[key].first_component, resArch.result.components),
+                    resolveComponentName(archConns[key].second_component, resArch.result.components),
+                    { label: (archConns[key].datatype ? archConns[key].datatype : "Any") }
+                );
+            }
+            if (archConns[key].direction === "bidirectional" || archConns[key].direction === "second-to-first") {
+                digraph.setEdge(
+                    resolveComponentName(archConns[key].second_component, resArch.result.components),
+                    resolveComponentName(archConns[key].first_component, resArch.result.components),
+                    { label: (archConns[key].datatype ? archConns[key].datatype : "Any") }
+                );
+            }
+        });
+        res.status(200).send({
+            success: true,
+            result: dot.write(digraph)
+        });
+
+    }
+    else {
+        res.status(500).send({
+            success: false,
+            errorMsg: "Missing fields."
+        })
+    }
+  })
   .post('/', authorizedOnly, (req, res) => {
     const newArchitecture = req.body;
     if(newArchitecture.name && newArchitecture.paper_id) {
-        db.storeArchitecture(newArchitecture).then((parsedResult) => {
+        archDB.storeArchitecture(newArchitecture).then((parsedResult) => {
             if(parsedResult.success) res.status(200).send(parsedResult);
             else res.status(500).send(parsedResult);
         })
@@ -38,7 +92,7 @@ router
     const paperId = req.body.paperId;
 
     if(architectureId && paperId) {
-        db.cloneArchitecture(architectureId, paperId).then((parsedResult) => {
+        archDB.cloneArchitecture(architectureId, paperId).then((parsedResult) => {
             if(parsedResult.success) res.status(200).send(parsedResult);
             else res.status(500).send(parsedResult);
         })
@@ -51,7 +105,7 @@ router
     }
   })
   .delete('/:id', authorizedOnly, (req, res) => {
-    db.deleteArchitecture(req.params.id).then((parsedResult) => {
+    archDB.deleteArchitecture(req.params.id).then((parsedResult) => {
         if(parsedResult.success) res.status(200).send(parsedResult);
         else res.status(500).send(parsedResult);
     })
@@ -59,7 +113,7 @@ router
   .put('/:id', authorizedOnly, (req, res) => {
     const newArchitecture = req.body;
     if(newArchitecture.name && newArchitecture.id) {
-        db.modifyArchitecture(newArchitecture).then((parsedResult) => {
+        archDB.modifyArchitecture(newArchitecture).then((parsedResult) => {
             if(parsedResult.success) res.status(200).send(parsedResult);
             else res.status(500).send(parsedResult);
         })

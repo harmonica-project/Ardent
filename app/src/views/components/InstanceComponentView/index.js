@@ -153,6 +153,7 @@ export default function InstanceComponentView() {
   };
 
   const saveExistingComponent = async (newComponent, doAddBaseProps) => {
+    console.log(newComponent, doAddBaseProps);
     setOpen(true);
     try {
       if (!newComponent.component_base_id || newComponent.component_base_id === '') {
@@ -192,7 +193,7 @@ export default function InstanceComponentView() {
         });
       }
     } catch (error) {
-      enqueueSnackbar(error, 'error');
+      enqueueSnackbar(error.toString(), 'error');
     } finally {
       setOpen(false);
     }
@@ -226,7 +227,7 @@ export default function InstanceComponentView() {
           navigate(`/app/architecture/${component.architecture_id}`);
         }
       })
-      .catch((error) => enqueueSnackbar(error, 'error'))
+      .catch((error) => enqueueSnackbar(error.toString(), 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -250,7 +251,7 @@ export default function InstanceComponentView() {
           });
         }
       })
-      .catch((error) => enqueueSnackbar(error, 'error'))
+      .catch((error) => enqueueSnackbar(error.toString(), 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -336,7 +337,7 @@ export default function InstanceComponentView() {
           });
         }
       })
-      .catch((error) => enqueueSnackbar(error, 'error'))
+      .catch((error) => enqueueSnackbar(error.toString(), 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -354,7 +355,7 @@ export default function InstanceComponentView() {
           });
         }
       })
-      .catch((error) => enqueueSnackbar(error, 'error'))
+      .catch((error) => enqueueSnackbar(error.toString(), 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -372,7 +373,7 @@ export default function InstanceComponentView() {
           });
         }
       })
-      .catch((error) => enqueueSnackbar(error, 'error'))
+      .catch((error) => enqueueSnackbar(error.toString(), 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -390,7 +391,7 @@ export default function InstanceComponentView() {
           });
         }
       })
-      .catch((error) => enqueueSnackbar(error, 'error'))
+      .catch((error) => enqueueSnackbar(error.toString(), 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -471,13 +472,19 @@ export default function InstanceComponentView() {
       .then((data) => {
         if (data.success) {
           enqueueSnackbar('Connection successfully added.', { variant: 'success' });
-          setComponent({
-            ...component,
-            connections: [...component.connections, {
-              ...newConnection,
-              id: data.connectionId
-            }]
-          });
+
+          if (component.id === newConnection.first_component
+            || component.id === newConnection.second_component
+          ) {
+            setComponent({
+              ...component,
+              connections: [...component.connections, {
+                ...newConnection,
+                id: data.connectionId
+              }]
+            });
+          }
+
           setConnectionModalProps({
             ...connectionModalProps,
             connection: { direction: 'bidirectional' },
@@ -485,7 +492,7 @@ export default function InstanceComponentView() {
           });
         }
       })
-      .catch((error) => enqueueSnackbar(error, 'error'))
+      .catch((error) => enqueueSnackbar(error.toString(), 'error'))
       .finally(() => { setOpen(false); });
   };
 
@@ -634,7 +641,7 @@ export default function InstanceComponentView() {
         setComponent(compRes.result);
       }
     } catch (error) {
-      enqueueSnackbar(error, 'error');
+      enqueueSnackbar(error.toString(), 'error');
     }
   };
 
@@ -645,7 +652,7 @@ export default function InstanceComponentView() {
         setBaseComponents(data.result);
       }
     } catch (error) {
-      enqueueSnackbar(error, 'error');
+      enqueueSnackbar(error.toString(), 'error');
     }
   };
 

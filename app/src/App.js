@@ -16,11 +16,13 @@ const App = () => {
     authenticationService.currentUser.subscribe((newAuthInfo) => setAuthInfo(newAuthInfo));
   }, []);
 
-  let username;
-  if (authInfo && authInfo.user) {
-    username = authInfo.user.username;
+  let user;
+  if (authInfo) {
+    user = authInfo;
+  } else {
+    user = authenticationService.currentUserValue;
   }
-  const routing = useRoutes(routes(username));
+  const routing = useRoutes(routes(user));
 
   return (
     <ThemeProvider theme={theme}>

@@ -307,6 +307,7 @@ export default function PaperModal({
                   <MenuItem value={1}>In progress</MenuItem>
                   <MenuItem value={2}>Done</MenuItem>
                   <MenuItem value={3}>Need help</MenuItem>
+                  <MenuItem value={4}>Rejected</MenuItem>
                 </Select>
               </FormControl>
             </Grid>

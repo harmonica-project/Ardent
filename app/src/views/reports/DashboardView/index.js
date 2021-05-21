@@ -41,7 +41,7 @@ const Dashboard = () => {
         setArchitectures(data.result);
       }
     } catch (error) {
-      enqueueSnackbar(error, { variant: 'error' });
+      enqueueSnackbar(error.toString(), { variant: 'error' });
     }
   };
 
@@ -52,7 +52,7 @@ const Dashboard = () => {
         setComponents(data.result);
       }
     } catch (error) {
-      enqueueSnackbar(error, { variant: 'error' });
+      enqueueSnackbar(error.toString(), { variant: 'error' });
     }
   };
 
@@ -63,7 +63,7 @@ const Dashboard = () => {
         setPapers(data.result);
       }
     } catch (error) {
-      enqueueSnackbar(error, { variant: 'error' });
+      enqueueSnackbar(error.toString(), { variant: 'error' });
     }
   };
 

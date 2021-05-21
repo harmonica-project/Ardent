@@ -138,24 +138,10 @@ export default function ConnectionModal({
   };
 
   const validateAndSubmit = () => {
-    const checkPres = (first, second) => {
-      return (first === modalProps.component.id || second === modalProps.component.id);
-    };
     const castedData = schema.cast(innerConnection);
     schema.validate(castedData, { abortEarly: false })
       .then(() => {
-        if (checkPres(innerConnection.first_component, innerConnection.second_component)) {
-          actionModalHandler(modalProps.actionType, castedData);
-        } else {
-          setErrors({
-            first_component: true,
-            second_component: true
-          });
-          setHelpers({
-            first_component: 'At least one component must be the current instance.',
-            second_component: 'At least one component must be the current instance.'
-          });
-        }
+        actionModalHandler(modalProps.actionType, castedData);
       })
       .catch((err) => {
         let newErrors = {};

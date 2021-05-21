@@ -135,7 +135,7 @@ export default function BaseComponentsView() {
         }
       })
       .catch((err) => {
-        enqueueSnackbar(err, { variant: 'error' });
+        enqueueSnackbar(err.toString(), { variant: 'error' });
       })
       .finally(() => { setOpen(false); });
   };
@@ -150,7 +150,7 @@ export default function BaseComponentsView() {
         setDisplayedComponents(newBaseComponents);
       }
     } catch (err) {
-      enqueueSnackbar(err, { variant: 'error' });
+      enqueueSnackbar(err.toString(), { variant: 'error' });
     } finally {
       setOpen(false);
     }
@@ -174,7 +174,7 @@ export default function BaseComponentsView() {
         }
       })
       .catch((err) => {
-        enqueueSnackbar(err, { variant: 'error' });
+        enqueueSnackbar(err.toString(), { variant: 'error' });
       })
       .finally(() => { setOpen(false); });
   };
@@ -212,7 +212,7 @@ export default function BaseComponentsView() {
         }
       })
       .catch((err) => {
-        enqueueSnackbar(err, { variant: 'error' });
+        enqueueSnackbar(err.toString(), { variant: 'error' });
       })
       .finally(() => { setOpen(false); });
   };
@@ -250,7 +250,7 @@ export default function BaseComponentsView() {
         }
       })
       .catch((err) => {
-        enqueueSnackbar(err, { variant: 'error' });
+        enqueueSnackbar(err.toString(), { variant: 'error' });
       })
       .finally(() => { setOpen(false); });
   };
@@ -469,7 +469,7 @@ export default function BaseComponentsView() {
         }
       })
       .catch((err) => {
-        enqueueSnackbar(err, { variant: 'error' });
+        enqueueSnackbar(err.toString(), { variant: 'error' });
       })
       .finally(() => { setOpen(false); });
   };

@@ -18,7 +18,8 @@ import {
   Cached as CachedIcon,
   Done as DoneIcon,
   HelpOutline as HelpOutlineIcon,
-  Clear as ClearIcon
+  Clear as ClearIcon,
+  BugReport as BugReportIcon,
 } from '@material-ui/icons/';
 
 const useStyles = makeStyles(() => ({
@@ -54,7 +55,8 @@ const PapersStatuses = ({ className, papers }) => {
           '#3f51b5',
           'orange',
           'green',
-          '#f50057',
+          '#6d27b3',
+          'red',
           colors.grey[600],
         ],
         borderWidth: 8,
@@ -62,7 +64,7 @@ const PapersStatuses = ({ className, papers }) => {
         hoverBorderColor: colors.common.white
       }
     ],
-    labels: ['Just added', 'In progress', 'Done', 'Need help', 'Unknown']
+    labels: ['Just added', 'In progress', 'Done', 'Need help', 'Rejected', 'Unknown']
   };
 
   const options = {
@@ -110,12 +112,18 @@ const PapersStatuses = ({ className, papers }) => {
       title: 'Need help',
       value: statusesSums[3],
       icon: HelpOutlineIcon,
-      color: '#f50057'
+      color: '#6d27b3'
+    },
+    {
+      title: 'Rejected',
+      value: statusesSums[4],
+      icon: ClearIcon,
+      color: 'red'
     },
     {
       title: 'Unknown',
       value: statusesSums[4],
-      icon: ClearIcon,
+      icon: BugReportIcon,
       color: colors.grey[600]
     }
   ];
