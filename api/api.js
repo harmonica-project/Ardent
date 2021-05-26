@@ -11,6 +11,7 @@ var papersRoutes = require('./routes/papers');
 var propertiesRoutes = require('./routes/properties');
 var connectionsRoutes = require('./routes/connections');
 var componentsRoutes = require('./routes/components');
+var categoriesRoutes = require('./routes/categories');
 var questionsRoutes = require('./routes/questions');
 var answersRoutes = require('./routes/answers');
 
@@ -36,6 +37,7 @@ app.use('/architectures', architecturesRoutes);
 app.use('/papers', papersRoutes);
 app.use('/properties', propertiesRoutes);
 app.use('/connections', connectionsRoutes);
+app.use('/categories', categoriesRoutes);
 app.use('/components', componentsRoutes);
 app.use('/answers', answersRoutes);
 app.use('/questions', questionsRoutes);

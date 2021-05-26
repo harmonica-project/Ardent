@@ -55,6 +55,9 @@ const headCells = [
     id: 'name', center: true, label: 'Name'
   },
   {
+    id: 'category', center: true, label: 'Category'
+  },
+  {
     id: 'base_description', center: false, label: 'Base description'
   },
   {
@@ -258,6 +261,7 @@ function Row({
         <TableCell component="th" id={row.id} scope="row" align="center">
           {row.name}
         </TableCell>
+        <TableCell align="center">{row.label ? row.label : 'Other'}</TableCell>
         <TableCell align="right">{row.base_description}</TableCell>
         <TableCell align="center">{row.occurences}</TableCell>
         <TableCell align="center">

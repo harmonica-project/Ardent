@@ -53,6 +53,16 @@ const useStyles = makeStyles((theme) => ({
   componentSubtitle: {
     marginBottom: theme.spacing(3),
     color: 'grey'
+  },
+  customChip: {
+    backgroundColor: '#616161',
+    borderRadius: '30px',
+    paddingTop: '5px',
+    paddingBottom: '5px',
+    paddingLeft: '30px',
+    paddingRight: '30px',
+    fontSize: '130%',
+    color: 'white'
   }
 }));
 
@@ -553,6 +563,18 @@ export default function InstanceComponentView() {
     return 'Unknown';
   };
 
+  const getComponentCategory = (bcId) => {
+    if (bcId) {
+      for (let i = 0; i < baseComponents.length; i++) {
+        if (bcId === baseComponents[i].id && baseComponents[i].category_id) {
+          return baseComponents[i].label;
+        }
+      }
+      return 'Other';
+    }
+    return 'Other';
+  };
+
   const ComponentHeader = () => {
     return (
       <div>
@@ -605,6 +627,16 @@ export default function InstanceComponentView() {
                   architectureId={breadcrumb.architecture_id}
                   componentId={breadcrumb.component_id}
                 />
+              </Box>
+              <Box flexShrink={0}>
+                <Typography variant="caption" className={classes.customChip}>
+                  Type:&nbsp;
+                  {getComponentCategory(component.component_base_id)}
+                </Typography>
+              </Box>
+            </Box>
+            <Box display="flex">
+              <Box width="100%">
                 <Typography variant="h1">
                   {component.name}
                 </Typography>

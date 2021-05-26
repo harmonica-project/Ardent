@@ -12,6 +12,9 @@ import {
   saveNewBaseComponent as saveNewBaseComponentRequest,
 } from 'src/requests/components';
 import {
+  getCategories as getCategoriesRequest,
+} from 'src/requests/categories';
+import {
   getInstancePropertiesFromComponent as getInstancePropertiesFromComponentRequest,
   saveProperty as savePropertyRequest,
   saveNewBaseProperty as saveNewBasePropertyRequest,
@@ -45,7 +48,7 @@ export default function BaseComponentsView() {
   const [autocompleteValue, setAutocompleteValue] = useState('');
   const [open, setOpen] = useState(false);
   const [displayedComponents, setDisplayedComponents] = useState([]);
-
+  const [categories, setCategories] = useState([]);
   const [confirmModalProps, setConfirmModalProps] = useState({
     open: false,
     actionModalHandler: null,
@@ -151,8 +154,6 @@ export default function BaseComponentsView() {
       }
     } catch (err) {
       enqueueSnackbar(err.toString(), { variant: 'error' });
-    } finally {
-      setOpen(false);
     }
   };
 
@@ -500,8 +501,23 @@ export default function BaseComponentsView() {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const data = await getCategoriesRequest();
+      if (data.success) {
+        setCategories(data.result);
+      }
+    } catch (error) {
+      enqueueSnackbar(error.toString(), 'error');
+    }
+  };
+
   useEffect(() => {
-    fetchComponentData();
+    setOpen(true);
+    Promise.all([fetchComponentData(), fetchCategories()])
+      .then(() => {
+        setOpen(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -555,6 +571,7 @@ export default function BaseComponentsView() {
           modalProps={baseComponentModalProps}
           setModalProps={setBaseComponentModalProps}
           actionModalHandler={baseComponentActionModalHandler}
+          categories={categories}
         />
         <BasePropertyModal
           modalProps={basePropertyModalProps}

@@ -7,7 +7,11 @@ import {
   Typography,
   Button,
   Modal,
-  TextField
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@material-ui/core/';
 import {
   Delete as DeleteIcon,
@@ -46,7 +50,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function BaseComponentModal({
-  modalProps, setModalProps, actionModalHandler, doNotShowSwitch
+  modalProps, setModalProps, actionModalHandler, doNotShowSwitch, categories
 }) {
   const classes = useStyles();
   // getModalStyle is not a pure function, we roll the style only on the first render
@@ -169,6 +173,27 @@ export default function BaseComponentModal({
         {getModalHeader()}
       </Typography>
       <form noValidate className={classes.form}>
+        <FormControl className={classes.formControl} style={{ width: '100%' }} margin="normal">
+          <InputLabel shrink id="category-label" disabled={modalProps.actionType === 'view'}>
+            Category
+          </InputLabel>
+          <Select
+            labelId="category-label"
+            id="category-select"
+            displayEmpty
+            defaultValue={
+              modalProps.actionType === 'new' || !modalProps.baseComponent.category_id
+                ? ''
+                : modalProps.baseComponent.category_id
+            }
+            className={classes.selectEmpty}
+          >
+            <MenuItem value="">Other</MenuItem>
+            {categories.map((category) => {
+              return <MenuItem value={category.id}>{category.label}</MenuItem>;
+            })}
+          </Select>
+        </FormControl>
         <TextField
           id="name-field"
           label="Name"
@@ -237,11 +262,14 @@ BaseComponentModal.propTypes = {
       base_description: PropTypes.string,
       occurences: PropTypes.number,
       proportion: PropTypes.string,
-      instances: PropTypes.array
+      instances: PropTypes.array,
+      label: PropTypes.string,
+      category_id: PropTypes.string
     }),
     actionType: PropTypes.string.isRequired
   }).isRequired,
   setModalProps: PropTypes.func.isRequired,
   actionModalHandler: PropTypes.func.isRequired,
-  doNotShowSwitch: PropTypes.bool
+  doNotShowSwitch: PropTypes.bool,
+  categories: PropTypes.array
 };

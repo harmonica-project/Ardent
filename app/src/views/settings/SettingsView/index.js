@@ -12,6 +12,7 @@ import { setUser as setUserRequest, setNewPassword as setNewPasswordRequest } fr
 import Password from './Password';
 import Admin from './Admin';
 import UserInfo from './UserInfo';
+import Study from './Study';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -88,6 +89,9 @@ const SettingsView = () => {
       title="Settings"
     >
       <Container maxWidth="lg">
+        <Box mb={3}>
+          <Study />
+        </Box>
         {user.loaded ? (
           <UserInfo
             user={user}

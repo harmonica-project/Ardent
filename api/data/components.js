@@ -16,7 +16,7 @@ module.exports = {
     },
     getFullComponents: async () => {
         try {
-            const baseComponents = (await client.query("SELECT * FROM components_base"))["rows"];
+            const baseComponents = (await client.query("SELECT c.*, b.label FROM components_base as c LEFT JOIN categories_base as b ON c.category_id = b.id"))["rows"];
 
             if (baseComponents) {
                 for (let i = 0; i < baseComponents.length; i++) {
@@ -44,7 +44,7 @@ module.exports = {
     },
     getBaseComponents: async () => {
         try {
-            return await client.query("SELECT * FROM components_base");
+            return await client.query("SELECT c.*, b.label FROM components_base as c LEFT JOIN categories_base as b ON c.category_id = b.id");
         }
         catch(err) {
             return err;
