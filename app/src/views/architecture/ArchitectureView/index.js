@@ -190,7 +190,15 @@ const ArchitectureView = () => {
         }
       })
       .catch((error) => enqueueSnackbar(error.toString(), { variant: 'error' }))
-      .finally(() => setOpen(false));
+      .finally(() => {
+        setOpen(false);
+        setComponentModalProps({
+          ...componentModalProps,
+          component: { architecture_id: id },
+          initialComponent: '',
+          open: false,
+        });
+      });
   };
 
   const architectureActionModalHandler = (actionType, newArchitecture) => {
@@ -308,7 +316,7 @@ const ArchitectureView = () => {
       case 'view':
         setComponentModalProps({
           component,
-          initialComponent: component.name,
+          initialComponent: component.component_base_id,
           open: true,
           actionType
         });
@@ -380,14 +388,17 @@ const ArchitectureView = () => {
     setOpen(true);
     try {
       if (!component.component_base_id || component.component_base_id === '') {
-        const baseRes = await saveNewBaseComponentRequest(component);
+        const baseRes = await saveNewBaseComponentRequest({
+          name: component.component_base_name,
+          base_description: 'No description yet.'
+        });
         if (baseRes.success) {
           component = { ...component, component_base_id: baseRes.componentId };
           setBaseComponents([
             ...baseComponents,
             {
-              ...component,
-              id: baseRes.componentId
+              name: component.component_base_name,
+              id: baseRes.componentId,
             }
           ]);
         }
@@ -412,7 +423,7 @@ const ArchitectureView = () => {
         setComponentModalProps({
           ...componentModalProps,
           component: { architecture_id: id },
-          initialComponent: '',
+          initialComponent: component.component_base_id,
           open: false,
         });
       }
@@ -459,13 +470,16 @@ const ArchitectureView = () => {
     setOpen(true);
     try {
       if (!component.component_base_id || component.component_base_id === '') {
-        const baseRes = await saveNewBaseComponentRequest(component);
+        const baseRes = await saveNewBaseComponentRequest({
+          name: component.component_base_name,
+          base_description: 'No description yet.'
+        });
         if (baseRes.success) {
           component = { ...component, component_base_id: baseRes.componentId };
           setBaseComponents([
             ...baseComponents,
             {
-              ...component,
+              name: component.component_base_name,
               id: baseRes.componentId
             }
           ]);
@@ -482,7 +496,7 @@ const ArchitectureView = () => {
         modifyComponentInState(component);
         setComponentModalProps({
           ...componentModalProps,
-          initialComponent: '',
+          initialComponent: component.component_base_id,
           component: { architecture_id: id },
           open: false,
         });
@@ -565,6 +579,7 @@ const ArchitectureView = () => {
                     components={architecture.components}
                     componentActionHandler={componentActionHandler}
                     componentClickHandler={componentClickHandler}
+                    baseComponents={baseComponents}
                   />
                 </Box>
               </Box>

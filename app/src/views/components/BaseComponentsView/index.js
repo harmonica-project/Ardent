@@ -506,7 +506,7 @@ export default function BaseComponentsView() {
 
   useEffect(() => {
     filterAutocomplete();
-  }, [baseComponents]);
+  }, [baseComponents, autocompleteValue]);
 
   return (
     <Page title="Base components" className={classes.root}>

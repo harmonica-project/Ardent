@@ -56,29 +56,43 @@ export default function ComponentModal({
   // getModalStyle is not a pure function, we roll the style only on the first render
   const schema = yup.object().shape({
     name: yup.string()
-      .max(100, 'Component name is too long.')
-      .required('Base component name is required'),
+      .max(100, 'Component instance name is too long.')
+      .required('Component instance name is required'),
     author_description: yup.string()
       .default('No description provided.')
       .transform((fieldValue) => nullToValue(fieldValue, 'No description provided.')),
     reader_description: yup.string()
       .default('No description provided.')
       .transform((fieldValue) => nullToValue(fieldValue, 'No description provided.')),
-    component_base_id: yup.string()
+    component_base_id: yup.string(),
+    component_base_name: yup.string()
+      .required('Selecting/adding a base component is required'),
   });
   const [modalStyle] = useState(getModalStyle);
   const [checked, setChecked] = React.useState(true);
   const [innerComponent, setInnerComponent] = useState(modalProps.component);
-  const [helperText, setHelperText] = useState('');
-  const [isBaseInputInvalid, setIsBaseInputInvalid] = useState(false);
+  const [helpers, setHelpers] = useState({
+    component_base_name: '',
+    name: ''
+  });
+  const [errors, setErrors] = useState({
+    component_base_name: false,
+    name: false
+  });
 
   useEffect(() => {
     setInnerComponent(modalProps.component);
   }, [modalProps.component]);
 
   const resetContext = () => {
-    setHelperText('');
-    setIsBaseInputInvalid(false);
+    setHelpers({
+      component_base_name: '',
+      name: ''
+    });
+    setErrors({
+      component_base_name: false,
+      name: false
+    });
   };
 
   const handleCheck = (event) => {
@@ -100,30 +114,42 @@ export default function ComponentModal({
     });
   };
 
-  const handleAutocompleteChange = (name) => {
-    setIsBaseInputInvalid(false);
-
-    let index = -1;
+  const findBaseComponentByKey = (value, key) => {
     for (let i = 0; i < baseComponents.length; i++) {
-      if (baseComponents[i].name.normalize() === name.normalize()) {
-        index = i;
-        break;
+      if (baseComponents[i][key].normalize() === value.normalize()) {
+        return baseComponents[i];
       }
     }
+    return false;
+  };
 
-    if (index === -1) {
-      setHelperText('This component does not exist yet. Saving this will create a new base component.');
+  const handleAutocompleteChange = (name) => {
+    setErrors({
+      ...errors,
+      component_base_name: false
+    });
+
+    const baseComponent = findBaseComponentByKey(name, 'name');
+
+    if (!baseComponent) {
+      setHelpers({
+        ...helpers,
+        component_base_name: 'This component does not exist yet. Saving this will create a new base component.'
+      });
       setInnerComponent({
         ...innerComponent,
-        name,
-        component_base_id: ''
+        component_base_id: '',
+        component_base_name: name
       });
     } else {
-      setHelperText('');
+      setHelpers({
+        ...helpers,
+        component_base_name: ''
+      });
       setInnerComponent({
         ...innerComponent,
-        name,
-        component_base_id: baseComponents[index].id
+        component_base_id: baseComponent.id,
+        component_base_name: name
       });
     }
   };
@@ -145,7 +171,7 @@ export default function ComponentModal({
 
   const isPossibleToAddBaseProperties = () => {
     if (modalProps.actionType === 'view') return false;
-    if (modalProps.initialComponent === innerComponent.name) return false;
+    if (modalProps.initialComponent === innerComponent.component_base_id) return false;
     if (!innerComponent.component_base_id || innerComponent.component_base_id === '') return false;
     return true;
   };
@@ -158,9 +184,17 @@ export default function ComponentModal({
           modalProps.actionType, castedData, checked && isPossibleToAddBaseProperties()
         );
       })
-      .catch(() => {
-        setIsBaseInputInvalid(true);
-        setHelperText('Component name is missing or too long (30 car. max).');
+      .catch((errs) => {
+        const newErrorFields = {};
+        const newHelperFields = {};
+
+        errs.inner.forEach((err) => {
+          newErrorFields[err.path] = true;
+          newHelperFields[err.path] = err.message;
+        });
+
+        setErrors({ ...errors, ...newErrorFields });
+        setHelpers({ ...helpers, ...newHelperFields });
       });
   };
 
@@ -186,7 +220,7 @@ export default function ComponentModal({
             style={{ backgroundColor: '#f50057', color: 'white' }}
             className={classes.headerButton}
             startIcon={<DeleteIcon />}
-            onClick={() => actionModalHandler('delete')}
+            onClick={() => actionModalHandler('delete', innerComponent)}
           >
             Delete
           </Button>
@@ -217,8 +251,23 @@ export default function ComponentModal({
           handleAutocompleteChange={handleAutocompleteChange}
           defaultValue={modalProps.actionType === 'new' ? '' : modalProps.component}
           disabled={modalProps.actionType === 'view'}
-          helperText={helperText}
-          error={isBaseInputInvalid}
+          helperText={helpers.component_base_name}
+          error={errors.component_base_name}
+        />
+        <TextField
+          id="name-field"
+          label="Component instance name"
+          placeholder="Enter component instance name (the same as introduced in the paper)"
+          fullWidth
+          margin="normal"
+          disabled={modalProps.actionType === 'view'}
+          onChange={(e) => handleInputChange('name', e.target.value)}
+          defaultValue={modalProps.actionType === 'new' ? '' : modalProps.component.name}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          helperText={helpers.name}
+          error={errors.name}
         />
         <TextField
           id="author-description-field"

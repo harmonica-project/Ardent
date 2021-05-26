@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, NavLink } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import {
   Container, Box, makeStyles, Button, Typography, Card, CardContent, Grid
@@ -153,13 +153,12 @@ export default function InstanceComponentView() {
   };
 
   const saveExistingComponent = async (newComponent, doAddBaseProps) => {
-    console.log(newComponent, doAddBaseProps);
     setOpen(true);
     try {
       if (!newComponent.component_base_id || newComponent.component_base_id === '') {
         const baseRes = await saveNewBaseComponentRequest({
-          name: newComponent.name,
-          base_description: ''
+          name: component.component_base_name,
+          base_description: 'No description yet.'
         });
         if (baseRes.success) {
           newComponent = { ...newComponent, component_base_id: baseRes.componentId };
@@ -167,8 +166,7 @@ export default function InstanceComponentView() {
             ...baseComponents,
             {
               id: baseRes.componentId,
-              name: newComponent.name,
-              base_description: ''
+              name: component.component_base_name,
             }
           ]);
         }
@@ -189,7 +187,7 @@ export default function InstanceComponentView() {
           ...componentModalProps,
           component: newComponent,
           open: false,
-          initialComponent: component.name
+          initialComponent: component.component_base_id
         });
       }
     } catch (error) {
@@ -535,8 +533,24 @@ export default function InstanceComponentView() {
       ...componentModalProps,
       open: true,
       actionType: 'edit',
-      initialComponent: component.name
+      initialComponent: component.component_base_id
     });
+  };
+
+  const getBaseComponentBlock = (bcId) => {
+    if (bcId) {
+      for (let i = 0; i < baseComponents.length; i++) {
+        if (bcId === baseComponents[i].id) {
+          return (
+            <NavLink to="/app/components">
+              {baseComponents[i].name}
+            </NavLink>
+          );
+        }
+      }
+      return `Unknown (${bcId})`;
+    }
+    return 'Unknown';
   };
 
   const ComponentHeader = () => {
@@ -594,6 +608,11 @@ export default function InstanceComponentView() {
                 <Typography variant="h1">
                   {component.name}
                 </Typography>
+                <Typography variant="h3">
+                  Base component:&nbsp;
+                  {getBaseComponentBlock(component.component_base_id)}
+                </Typography>
+                <br />
                 <Typography variant="subtitle1" className={classes.componentSubtitle}>
                   Component #
                   {component.id}
@@ -617,7 +636,6 @@ export default function InstanceComponentView() {
   const fetchComponentData = async () => {
     try {
       const compRes = await getComponentInstanceRequest(id);
-
       if (!compRes.success) return;
 
       const archRes = await getArchitectureRequest(compRes.result.architecture_id);
@@ -631,7 +649,7 @@ export default function InstanceComponentView() {
         setArchitectureComponents(archRes.result.components);
         setComponentModalProps({
           ...componentModalProps,
-          initialComponent: compRes.result.name,
+          initialComponent: compRes.result.component_base_id,
           component: compRes.result
         });
         setConnectionModalProps({
