@@ -1,5 +1,5 @@
 var pg = require("pg")
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4, validate } = require('uuid');
 const { DB_CONFIG } = require('../config');
 const client = new pg.Client(DB_CONFIG);
 
@@ -145,7 +145,14 @@ module.exports = {
     },
     modifyComponentBase: async component => {
         try {
-            await client.query("UPDATE components_base SET (name, base_description) = ($1, $2) WHERE id = $3", [component.name, component.base_description, component.id])
+            await client.query("UPDATE components_base SET (name, base_description, category_id) = ($1, $2, $3) WHERE id = $4", 
+                [
+                    component.name,
+                    component.base_description,
+                    (validate(component.category_id) ? component.category_id : null),
+                    component.id
+                ]
+            )
             return {success: true};
         }
         catch(err) {

@@ -62,6 +62,8 @@ export default function BaseComponentModal({
     base_description: yup.string()
       .default('No description provided.')
       .transform((fieldValue) => nullToValue(fieldValue, 'No description provided.')),
+    category_id: yup.string()
+      .default(''),
   });
 
   const [modalStyle] = useState(getModalStyle);
@@ -187,6 +189,7 @@ export default function BaseComponentModal({
                 : modalProps.baseComponent.category_id
             }
             className={classes.selectEmpty}
+            onChange={(e) => handleInputChange('category_id', e.target.value)}
           >
             <MenuItem value="">Other</MenuItem>
             {categories.map((category) => {

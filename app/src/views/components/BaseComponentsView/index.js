@@ -120,13 +120,23 @@ export default function BaseComponentsView() {
     return newBaseComponents;
   };
 
+  const getCategoryLabelFromId = (catId) => {
+    for (let i = 0; i < categories.length; i++) {
+      if (categories[i].id === catId) return categories[i].label;
+    }
+    return 'Other';
+  };
+
   const saveExistingBaseComponent = (newComponent) => {
     setOpen(true);
     saveExistingBaseComponentRequest(newComponent)
       .then((data) => {
         if (data.success) {
           enqueueSnackbar('Base component successfully modified.', { variant: 'success' });
-          modifyBaseComponentState(newComponent);
+          modifyBaseComponentState({
+            ...newComponent,
+            label: getCategoryLabelFromId(newComponent.category_id)
+          });
           if (baseComponentModalProps.open) {
             setBaseComponentModalProps({
               ...baseComponentModalProps,
