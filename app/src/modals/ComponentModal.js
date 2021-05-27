@@ -80,8 +80,24 @@ export default function ComponentModal({
     name: false
   });
 
+  const findBaseComponentByKey = (value, key) => {
+    for (let i = 0; i < baseComponents.length; i++) {
+      if (baseComponents[i][key].normalize() === value.normalize()) {
+        return baseComponents[i];
+      }
+    }
+    return false;
+  };
+
   useEffect(() => {
-    setInnerComponent(modalProps.component);
+    setInnerComponent({
+      ...modalProps.component,
+      component_base_name: () => {
+        const bc = findBaseComponentByKey(modalProps.component.component_base_id, 'id');
+        if (bc) return bc.id;
+        return '';
+      }
+    });
   }, [modalProps.component]);
 
   const resetContext = () => {
@@ -117,15 +133,6 @@ export default function ComponentModal({
       setErrors({ ...errors, name: false });
       setHelpers({ ...helpers, name: '' });
     }
-  };
-
-  const findBaseComponentByKey = (value, key) => {
-    for (let i = 0; i < baseComponents.length; i++) {
-      if (baseComponents[i][key].normalize() === value.normalize()) {
-        return baseComponents[i];
-      }
-    }
-    return false;
   };
 
   const handleAutocompleteChange = (name) => {
@@ -182,6 +189,7 @@ export default function ComponentModal({
   };
 
   const validateAndSubmit = () => {
+    console.log(innerComponent);
     const castedData = schema.cast(innerComponent);
     schema.validate(castedData, { abortEarly: false })
       .then(() => {
