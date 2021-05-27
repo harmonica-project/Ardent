@@ -112,6 +112,11 @@ export default function ComponentModal({
       ...innerComponent,
       [key]: value
     });
+
+    if (key === 'name') {
+      setErrors({ ...errors, name: false });
+      setHelpers({ ...helpers, name: '' });
+    }
   };
 
   const findBaseComponentByKey = (value, key) => {
