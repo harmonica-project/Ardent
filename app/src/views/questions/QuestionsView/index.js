@@ -160,9 +160,9 @@ const QuestionsView = () => {
     setQuestions(newQuestions);
   };
 
-  const markAsClosed = () => {
+  const markAsClosed = (questionId) => {
     setOpen(true);
-    markAsClosedRequest(openQuestion.id)
+    markAsClosedRequest(questionId)
       .then((data) => {
         if (data.success) {
           enqueueSnackbar('Question successfully marked as closed.', { variant: 'success' });
@@ -170,7 +170,7 @@ const QuestionsView = () => {
             ...openQuestion,
             status: 2
           });
-          modifyQuestionStatusFromState(openQuestion.id, 2);
+          modifyQuestionStatusFromState(questionId, 2);
         }
       })
       .catch((error) => enqueueSnackbar(error.toString(), { variant: 'error' }))
