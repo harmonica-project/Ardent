@@ -33,7 +33,7 @@ const PapersStatuses = ({ className, papers }) => {
   const theme = useTheme();
 
   const getEmptySum = () => {
-    return [0, 0, 0, 0, 0];
+    return [0, 0, 0, 0, 0, 0];
   };
 
   const [statusesSums, setStatusesSums] = useState(getEmptySum());
@@ -42,7 +42,7 @@ const PapersStatuses = ({ className, papers }) => {
     const newStatusesSums = getEmptySum();
     for (let i = 0; i < papers.length; i++) {
       if (Object.keys(papers[i]).includes('status')) newStatusesSums[parseInt(papers[i].status, 10)] += 1;
-      else newStatusesSums[4] += 1;
+      else newStatusesSums[5] += 1;
     }
     setStatusesSums(newStatusesSums);
   }, [papers]);
@@ -122,7 +122,7 @@ const PapersStatuses = ({ className, papers }) => {
     },
     {
       title: 'Unknown',
-      value: statusesSums[4],
+      value: statusesSums[5],
       icon: BugReportIcon,
       color: colors.grey[600]
     }
