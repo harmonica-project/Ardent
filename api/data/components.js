@@ -1,19 +1,11 @@
 var pg = require("pg")
-const { v4: uuidv4, validate } = require('uuid');
+const { v4: uuidv4 } = require('uuid');
 const { DB_CONFIG } = require('../config');
 const client = new pg.Client(DB_CONFIG);
 
 client.connect();
 
 module.exports = {
-    getComponentsInstances: async () => {
-        try {
-            return await client.query("SELECT * FROM components_instances");
-        }
-        catch(err) {
-            return err;
-        }
-    },
     getFullComponents: async () => {
         try {
             const baseComponents = (await client.query("SELECT c.*, b.label FROM components_base as c LEFT JOIN categories_base as b ON c.category_id = b.id"))["rows"];
@@ -39,14 +31,6 @@ module.exports = {
         }
         catch(err) {
             console.log(err);
-            return err;
-        }
-    },
-    getBaseComponents: async () => {
-        try {
-            return await client.query("SELECT c.*, b.label FROM components_base as c LEFT JOIN categories_base as b ON c.category_id = b.id");
-        }
-        catch(err) {
             return err;
         }
     },
@@ -132,7 +116,7 @@ module.exports = {
     storeComponentBase: async component => {
         const newComponentId = uuidv4();
         try {
-            await client.query("INSERT INTO components_base VALUES ($1, $2, $3)", [newComponentId, component.name, component.base_description])
+            await client.query("INSERT INTO components_base (id, name, base_description, project_url) VALUES ($1, $2, $3, $4)", [newComponentId, component.name, component.base_description, component.project_url])
             return {success: true, componentId: newComponentId};
         }
         catch(err) {

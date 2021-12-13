@@ -32,6 +32,18 @@ module.exports = {
     getUsers: async () => {
         return await client.query("SELECT username, first_name, last_name, role, is_admin FROM users");
     },
+    getUserProjects: async (username) => {
+        try {
+            return await client.query(`
+                SELECT p.name, p.description, p.url, pr.is_admin FROM projects as p
+                LEFT JOIN project_roles as pr on pr.url = p.url
+                WHERE pr.username = $1
+            `, [username]);
+        }
+        catch(err) {
+            return err;
+        }
+    },
     createUser: async user => {
         try {
             const foundUser = await client.query("SELECT * FROM users WHERE username = $1", [user.username]);

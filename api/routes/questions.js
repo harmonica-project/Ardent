@@ -35,13 +35,6 @@ router
       if(parsedResult.success) res.status(200).send(parsedResult);
       else res.status(500).send(intErrResp());
     })
-  })
-  .get('/', authorizedOnly, (req, res) => {
-    db.getQuestions().then((queryResult) => {
-        const parsedResult = parseDBResults(queryResult);
-        if(parsedResult.success) res.status(200).send(parsedResult);
-        else res.status(500).send(intErrResp());
-    })
   });
 
 module.exports = router;

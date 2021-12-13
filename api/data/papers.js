@@ -6,28 +6,6 @@ const client = new pg.Client(DB_CONFIG);
 client.connect();
 
 module.exports = {
-    getPapers: async () => {
-        try {
-            var paperResult = (await client.query('SELECT * from papers'))["rows"];
-
-            for (let i = 0; i < paperResult.length; i++) {
-                var architectureResult = (await client.query('SELECT * from architectures WHERE paper_id = $1', [paperResult[i].id]))["rows"];
-                paperResult[i]["architectures"] = architectureResult;
-            }
-
-            return {
-                success: true,
-                result: paperResult
-            };
-        }
-        catch(err) {
-            console.log('error: ' + err);
-            return {
-                success: false,
-                errorMsg: 'Request failed: ' + err 
-            };
-        }
-    },
     deletePaper: async paperId => {
         try {
             await client.query("DELETE FROM papers WHERE id = $1", [paperId]);
@@ -49,8 +27,8 @@ module.exports = {
             const foundPaper = await client.query("SELECT * FROM papers WHERE name = $1", [paper.name]);
             if(foundPaper["rows"].length === 0) {
                 await client.query(`
-                    INSERT INTO papers(id, name, doi, authors, paper_type, journal, added_by, updated_by, status, abstract, comments) 
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, $9, $10)`, 
+                    INSERT INTO papers(id, name, doi, authors, paper_type, journal, added_by, updated_by, status, abstract, comments, project_url) 
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, $9, $10, $11)`, 
                     [
                         newPaperId, 
                         paper.name, 
@@ -61,7 +39,8 @@ module.exports = {
                         paper.added_by,
                         paper.updated_by,
                         paper.abstract,
-                        paper.comments
+                        paper.comments,
+                        paper.project_url
                     ]
                 );
                 return { success: true, paperId: newPaperId }

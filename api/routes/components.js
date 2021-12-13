@@ -64,20 +64,6 @@ router
         else res.status(500).send(parsedResult);
     })
   })
-  .get('/instances', authorizedOnly, (req, res) => {
-    db.getComponentsInstances().then((queryResult) => {
-        const parsedResult = parseDBResults(queryResult);
-        if(parsedResult.success) res.status(200).send(parsedResult);
-        else res.status(500).send(parsedResult);
-    })
-  })
-  .get('/bases', authorizedOnly, (req, res) => {
-    db.getBaseComponents().then((queryResult) => {
-        const parsedResult = parseDBResults(queryResult);
-        if(parsedResult.success) res.status(200).send(parsedResult);
-        else res.status(500).send(parsedResult);
-    })
-  })
   .get('/instances/:id', authorizedOnly, (req, res) => {
     var id = req.params.id;
     db.getComponentInstance(id).then((parsedResult) => {

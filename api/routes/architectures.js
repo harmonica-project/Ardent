@@ -12,13 +12,6 @@ function resolveComponentName(id, components) {
 };
 
 router
-  .get('/', authorizedOnly, (req, res) => {
-    archDB.getArchitectures().then((queryResult) => {
-        const parsedResult = parseDBResults(queryResult);
-        if(parsedResult.success) res.status(200).send(parsedResult);
-        else res.status(500).send(parsedResult);
-    })
-  })
   .get('/:id', authorizedOnly, (req, res) => {
     var id = req.params.id;
     archDB.getArchitecture(id).then((parsedResult) => {

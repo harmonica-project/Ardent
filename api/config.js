@@ -6,7 +6,7 @@ exports.DB_CONFIG = {
   port: '5432',
   user: 'postgres',
   password: 'root',
-  database: 'slr'
+  database: 'ardent'
 };
 
 //exports.SIGN_KEY = secureRandom(256, {type: 'Buffer'}); // Create a highly random byte array of 256 bytes

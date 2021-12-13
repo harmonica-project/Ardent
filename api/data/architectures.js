@@ -6,14 +6,6 @@ const client = new pg.Client(DB_CONFIG);
 client.connect();
 
 module.exports = {
-    getArchitectures: async () => {
-        try {
-            return await client.query("SELECT * FROM architectures");
-        }
-        catch(err) {
-            return err;
-        }
-    },
     getArchitecture: async architectureId => {
         try {
             const components = await client.query("SELECT * FROM components_instances WHERE architecture_id = $1", [architectureId]);
@@ -97,9 +89,10 @@ module.exports = {
         }
     },
     storeArchitecture: async architecture => {
+        console.log(architecture)
         try {
             const newArchitectureId = uuidv4();
-            await client.query("INSERT INTO architectures (id, name, reader_description, paper_id, author_description) VALUES ($1, $2, $3, $4, $5)", [newArchitectureId, architecture.name, architecture.reader_description, architecture.paper_id, architecture.author_description])
+            await client.query("INSERT INTO architectures (id, name, reader_description, paper_id, author_description, project_url) VALUES ($1, $2, $3, $4, $5, $6)", [newArchitectureId, architecture.name, architecture.reader_description, architecture.paper_id, architecture.author_description, architecture.project_url])
             return {success: true, architectureId: newArchitectureId}
         }
         catch(err) {

@@ -149,6 +149,20 @@ router
                 })
             }
         });
-    });
+    })
+    .get('/:username/projects', authorizedOnly, (req, res) => {
+        verifyClaimIdentity(req.params.username, req).then(isSameUser => {
+            if (isSameUser) {
+                db.getUserProjects(req.params.username).then((queryResult) => {
+                    const parsedResult = parseDBResults(queryResult);
+                    if(parsedResult.success) res.status(200).send(parsedResult);
+                    else res.status(500).send(intErrResp());
+                })
+            }
+            else {
+                res.status(403).send({success: false, errorMsg: "You are not the user concerned by this request."});
+            }
+        });
+      });
 
 module.exports = router;

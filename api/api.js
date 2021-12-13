@@ -13,6 +13,7 @@ var connectionsRoutes = require('./routes/connections');
 var componentsRoutes = require('./routes/components');
 var categoriesRoutes = require('./routes/categories');
 var questionsRoutes = require('./routes/questions');
+var projectsRoutes = require('./routes/projects');
 var answersRoutes = require('./routes/answers');
 
 app.use(bodyParser.json());
@@ -40,6 +41,7 @@ app.use('/connections', connectionsRoutes);
 app.use('/categories', categoriesRoutes);
 app.use('/components', componentsRoutes);
 app.use('/answers', answersRoutes);
+app.use('/projects', projectsRoutes);
 app.use('/questions', questionsRoutes);
 
 var httpServer = http.createServer(app);
