@@ -47,15 +47,22 @@ router
     if (await verifyClaimIdentity(req.body.username, req)) {
       const newProject = req.body;
       if(newProject.name && newProject.url) {
-          db.storeProject(newProject).then((parsedResult) => {
-              if(parsedResult.success) {
-                db.addUserToProject(req.body.username, req.body.url, true).then((parsedResult) => {
-                  if(parsedResult.success) res.status(200).send(parsedResult);
-                  else res.status(500).send(parsedResult);
-                });
-              }
-              else res.status(500).send(parsedResult);
-          })
+          const projectParsedResult = await db.storeProject(newProject);
+          if(projectParsedResult.success) {
+            let error = false;
+
+            for (let i in newProject.users) {
+              let roleParsedResult = await db.addUserToProject(newProject.users[i].username, req.body.url, newProject.users[i].is_admin);
+              if(!roleParsedResult.success) error = true;
+            }
+
+            if(error) res.status(500).send({
+              success: false,
+              errorMsg: 'The project has been created, but some user roles were not created (probably duplicates).'
+            });
+            else res.status(200).send({ success: true });
+          }
+          else res.status(500).send(projectParsedResult);
       }
       else {
           res.status(500).send({

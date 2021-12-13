@@ -54,7 +54,8 @@ const ProjectsView = () => {
     project: {
       url: '',
       name: '',
-      description: ''
+      description: '',
+      users: []
     },
     actionType: ''
   });
@@ -104,7 +105,12 @@ const ProjectsView = () => {
           setProjects([...projects, { ...newProject, is_admin: true }]);
           setProjectModalProps({
             open: false,
-            project: {},
+            project: {
+              url: '',
+              name: '',
+              description: '',
+              users: []
+            },
             actionType: ''
           });
           enqueueSnackbar('Project successfully added.', { variant: 'success' });
@@ -130,6 +136,16 @@ const ProjectsView = () => {
             actionModalHandler: null,
             message: ''
           });
+          if (newProject.url === project.url) {
+            dispatch({ 
+              type: 'change', 
+              payload: {
+                url: '',
+                name: '',
+                description: ''
+              }
+            });
+          }
           enqueueSnackbar('Project successfully deleted.', { variant: 'success' });
         }
       })
@@ -158,7 +174,19 @@ const ProjectsView = () => {
           className={classes.marginButton}
           color="primary"
           variant="contained"
-          onClick={() => setProjectModalProps({...projectModalProps, open: true, actionType: 'new' })}
+          onClick={() => setProjectModalProps({
+            ...projectModalProps,
+            open: true,
+            actionType: 'new',
+            project: {
+              ...projectModalProps.project,
+              users: [{
+                username,
+                is_admin: true,
+                locked: true
+              }]
+            }
+          })}
         >
           New project
         </Button>

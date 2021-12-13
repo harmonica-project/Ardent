@@ -7,7 +7,8 @@ import {
   Typography,
   Button,
   Modal,
-  TextField
+  TextField,
+  Grid
 } from '@material-ui/core/';
 import {
   Delete as DeleteIcon,
@@ -16,6 +17,7 @@ import {
   Save as SaveIcon
 } from '@material-ui/icons/';
 import PropTypes from 'prop-types';
+import ProjectUsersModalList from './ProjectUsersModalList';
 
 function getModalStyle() {
   const top = 50;
@@ -31,7 +33,7 @@ function getModalStyle() {
 const useStyles = makeStyles((theme) => ({
   body: {
     position: 'absolute',
-    width: '60%',
+    width: '90%',
     backgroundColor: theme.palette.background.paper,
     boxShadow: theme.shadows[5],
     padding: theme.spacing(2, 4, 3)
@@ -88,9 +90,40 @@ export default function ProjectModal({
     setHelperFields(defaultHelpersFields);
   };
 
-  const handleInputChange = (key, value) => {
+  const handleInputChange = (key, value, optionalAction) => {
     // eslint-disable-next-line
     const re = new RegExp('^[a-z0-9\-]+$');
+
+    if (key === 'user') {
+      let newUsers = [...innerProject.users];
+      let i = -1;
+
+      switch (optionalAction) {
+        case 'add':
+          i = newUsers.findIndex((user) => user.username === value.username);
+          if (i === -1) newUsers.push(value);
+          break;
+
+        case 'delete':
+          newUsers = newUsers.filter((user) => user.username !== value.username);
+          break;
+
+        case 'modify':
+          i = newUsers.findIndex((user) => user.username === value.username);
+          newUsers[i].is_admin = !newUsers[i].is_admin;
+          break;
+
+        default:
+          console.error('No action provided for this input option.');
+      }
+
+      setInnerProject({
+        ...innerProject,
+        users: newUsers
+      });
+
+      return;
+    }
 
     if ((key === 'url' && (re.test(value) || value === '')) || key !== 'url') {
       setInnerProject({
@@ -182,61 +215,76 @@ export default function ProjectModal({
       <Typography variant="h2" component="h2" gutterBottom>
         {getModalHeader()}
       </Typography>
-      <form noValidate className={classes.form}>
-        <TextField
-          id="url-field"
-          label="URL (only lowercase letters and hyphens)"
-          placeholder="Enter project URL"
-          fullWidth
-          margin="normal"
-          multiline
-          onChange={(e) => handleInputChange('url', e.target.value)}
-          InputLabelProps={{
-            shrink: true,
-          }}
-          value={innerProject.url}
-          error={errorFields.url}
-          helperText={helperFields.url}
-        />
-        <TextField
-          id="name-field"
-          label="Name"
-          placeholder="Enter project name"
-          fullWidth
-          margin="normal"
-          multiline
-          onChange={(e) => handleInputChange('name', e.target.value)}
-          InputLabelProps={{
-            shrink: true,
-          }}
-          error={errorFields.name}
-          helperText={helperFields.name}
-        />
-        <TextField
-          id="description-field"
-          label="Description"
-          placeholder="Enter project description"
-          fullWidth
-          margin="normal"
-          multiline
-          rows={6}
-          onChange={(e) => handleInputChange('description', e.target.value)}
-          InputLabelProps={{
-            shrink: true,
-          }}
-          error={errorFields.description}
-          helperText={helperFields.description}
-        />
-        <Button
-          color="primary"
-          variant="contained"
-          startIcon={<SaveIcon />}
-          className={classes.headerButton}
-          onClick={validateAndSubmit}
-        >
-          Create
-        </Button>
-      </form>
+      <br />
+      <Grid container spacing={4}>
+        <Grid item md={5} xs={12}>
+          <Typography variant="h5">
+            Project information
+          </Typography>
+          <form noValidate className={classes.form}>
+            <TextField
+              id="url-field"
+              label="URL (only lowercase letters and hyphens)"
+              placeholder="Enter project URL"
+              fullWidth
+              margin="normal"
+              multiline
+              onChange={(e) => handleInputChange('url', e.target.value)}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              value={innerProject.url}
+              error={errorFields.url}
+              helperText={helperFields.url}
+            />
+            <TextField
+              id="name-field"
+              label="Name"
+              placeholder="Enter project name"
+              fullWidth
+              margin="normal"
+              multiline
+              onChange={(e) => handleInputChange('name', e.target.value)}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              error={errorFields.name}
+              helperText={helperFields.name}
+            />
+            <TextField
+              id="description-field"
+              label="Description"
+              placeholder="Enter project description"
+              fullWidth
+              margin="normal"
+              multiline
+              rows={6}
+              onChange={(e) => handleInputChange('description', e.target.value)}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              error={errorFields.description}
+              helperText={helperFields.description}
+            />
+            <Button
+              color="primary"
+              variant="contained"
+              startIcon={<SaveIcon />}
+              className={classes.headerButton}
+              onClick={validateAndSubmit}
+            >
+              Create
+            </Button>
+          </form>
+        </Grid>
+        <Grid item md={7} xs={12}>
+          <Typography variant="h5">
+            Manage project users
+          </Typography>
+          <br />
+          <ProjectUsersModalList users={innerProject.users} handleInputChange={handleInputChange} />
+        </Grid>
+      </Grid>
     </Box>
   );
 

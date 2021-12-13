@@ -32,6 +32,14 @@ module.exports = {
     getUsers: async () => {
         return await client.query("SELECT username, first_name, last_name, role, is_admin FROM users");
     },
+    getUsersBySubstring: async (letters) => {
+        let filter = '';
+
+        const matched = letters.match(/[a-z]/g);
+        if (matched) filter = matched.join('');
+
+        return await client.query(`SELECT username, first_name, last_name, role, is_admin FROM users WHERE username LIKE '%${filter}%'`);
+    },
     getUserProjects: async (username) => {
         try {
             return await client.query(`

@@ -19,6 +19,13 @@ router
             else res.status(500).send(parsedResult);
         })
     })
+    .get('/substring/:letters', authorizedOnly, (req, res) => {
+        db.getUsersBySubstring(req.params.letters).then((queryResult) => {
+            const parsedResult = parseDBResults(queryResult);
+            if(parsedResult.success) res.status(200).send(parsedResult);
+            else res.status(500).send(parsedResult);
+        })
+    })
     .get('/token', authorizedOnly, (req, res) => {
         verifyClaimAdmin(req).then(isAdmin => {
             if (isAdmin) {

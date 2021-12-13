@@ -9,6 +9,12 @@ export function getUsers() {
     .catch((error) => auth.handleResponse(error.response));
 }
 
+export function getUsersBySubstring(letters) {
+  return axios.get(`${API_URL}/users/substring/${letters}`, auth.getAuthHeaders())
+    .then((data) => auth.handleResponse(data))
+    .catch((error) => auth.handleResponse(error.response));
+}
+
 export function getUser(username) {
   return axios.get(`${API_URL}/users/${username}`, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))
