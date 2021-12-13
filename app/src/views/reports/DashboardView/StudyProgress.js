@@ -59,8 +59,11 @@ const StudyProgress = ({ className, papers }) => {
               color="textPrimary"
               variant="h3"
             >
-              {((getSumFinishedPapers() / papers.length) * 100).toFixed(1)}
-              %
+              {
+                papers.length
+                  ? `${((getSumFinishedPapers() / papers.length) * 100).toFixed(1)}%`
+                  : 'No papers yet'
+              }
             </Typography>
           </Grid>
           <Grid item>
@@ -69,7 +72,7 @@ const StudyProgress = ({ className, papers }) => {
             </Avatar>
           </Grid>
         </Grid>
-        <Box mt={3}>
+        <Box mt={3} hidden={!papers.length}>
           <LinearProgress
             value={(getSumFinishedPapers() / papers.length) * 100}
             variant="determinate"

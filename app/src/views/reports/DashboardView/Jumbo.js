@@ -24,7 +24,7 @@ const Jumbo = ({ className }) => {
     >
       <CardContent>
         <Typography variant="h1" component="div" gutterBottom>
-          Welcome to Ardent!
+          Welcome in Ardent!
         </Typography>
         <Typography variant="body1">
           Ardent (for

@@ -131,9 +131,9 @@ const Dashboard = () => {
           </Grid>
           <Grid
             item
-            lg={7}
+            lg={papers.length ? 7 : 12}
             md={12}
-            xl={8}
+            xl={papers.length ? 8 : 12}
             xs={12}
           >
             <Jumbo />
@@ -144,6 +144,7 @@ const Dashboard = () => {
             md={6}
             xl={4}
             xs={12}
+            hidden={!papers.length}
           >
             <PapersStatuses papers={papers} />
           </Grid>
