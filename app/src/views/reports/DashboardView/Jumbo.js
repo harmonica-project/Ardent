@@ -7,16 +7,20 @@ import {
   makeStyles,
   Typography
 } from '@material-ui/core';
+import { useProject } from '../../../project-context';
 
 const useStyles = makeStyles(() => ({
   root: {
-    height: '100%',
     padding: '20px'
   }
 }));
 
 const Jumbo = ({ className }) => {
   const classes = useStyles();
+  const {
+    state: { project },
+  } = useProject();
+  console.log(project);
 
   return (
     <Card
@@ -24,51 +28,14 @@ const Jumbo = ({ className }) => {
     >
       <CardContent>
         <Typography variant="h1" component="div" gutterBottom>
-          Welcome in Ardent!
+          { project.name }
         </Typography>
         <Typography variant="body1">
-          Ardent (for
-          {' '}
-          <i>ARchitecture knowleDge ExtractioN plaTform</i>
-          ), is a platform
-          designed to support the extraction of software architectures from academic literature.
-          From that, this application can leverage several algorithms to compute
-          similarities between architectures and identify new or existing software patterns.
-        </Typography>
-        <br />
-        <Typography variant="body1">
-          <b>Tutorial -</b>
-          {' '}
-          The dashboard menu proposes several features. First, in the
-          {' '}
-          <i>Study papers </i>
-          tab, you can input papers, architectures, and components.
-          To input papers, you can do it manually by providing BibTeX information, but also
-          use an auto-importer from
-          {' '}
-          <a href="https://parsif.al">Parsif.al</a>
-          {' '}
-          export results.
-          Thus, this tool can be use in complement of Parsif.al.
-          You can monitor the submission of papers and architectures using the
-          {' '}
-          <i>Dashboard</i>
-          .
-        </Typography>
-        <br />
-        <Typography variant="body1">
-          After the completion of the extraction, you can use the
-          {' '}
-          <i>Analytics</i>
-          {' '}
-          menu to
-          identify the patterns, by using provided algorithm. You can tune the algorithm to
-          be more or less sensitive on discovered patterns.
-          In
-          {' '}
-          <i>Analytics</i>
-          , you will also find a menu to see base components, their occurences
-          in extracted architectures, and references to instances.
+          {
+            project.description.length
+              ? project.description
+              : 'There is no description for this project.'
+          }
         </Typography>
       </CardContent>
     </Card>

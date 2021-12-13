@@ -43,9 +43,7 @@ import { useProject } from '../../../project-context';
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    backgroundColor: theme.palette.background.dark,
-    paddingBottom: theme.spacing(3),
-    paddingTop: theme.spacing(3)
+    backgroundColor: theme.palette.background.dark
   },
   buttonMargin: {
     marginRight: theme.spacing(1),
@@ -639,7 +637,7 @@ const PapersListView = () => {
         {
         papers.length
           ? (
-            <Box>
+            <Box mt={3}>
               <Toolbar
                 setTitleFilter={setTitleFilter}
                 stateSelect={stateSelect}

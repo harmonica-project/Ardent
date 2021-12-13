@@ -60,6 +60,7 @@ export default function ProjectModal({
     description: yup.string()
       .max(2000, 'Description is too long (2000 char. max).')
       .transform((fieldValue) => nullToValue(fieldValue, ''))
+      .default('')
   });
 
   const defaultErrorFields = {

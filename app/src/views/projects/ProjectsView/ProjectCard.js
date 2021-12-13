@@ -14,6 +14,7 @@ const useStyles = makeStyles({
 });
 
 export default function ProjectCard({ project, action }) {
+  console.log(project);
   const classes = useStyles();
 
   const disableDelete = (() => {

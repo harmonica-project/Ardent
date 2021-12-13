@@ -74,13 +74,25 @@ const NavBar = ({ onMobileClose, openMobile }) => {
     setOpen(!open);
   };
 
-  const projectItem = {
-    href: '/projects',
-    icon: ListIcon,
-    title: 'My projects'
-  };
+  const defaultItems = [
+    {
+      href: '/projects',
+      icon: ListIcon,
+      title: 'My projects'
+    },
+    {
+      href: '/help',
+      icon: HelpCircleIcon,
+      title: 'Help me'
+    },
+    {
+      href: '/settings',
+      icon: SettingsIcon,
+      title: 'User settings'
+    }
+  ];
 
-  const items = [
+  const projectItems = [
     {
       href: `/project/${project.url}/`,
       icon: BarChartIcon,
@@ -118,7 +130,7 @@ const NavBar = ({ onMobileClose, openMobile }) => {
     {
       href: `/project/${project.url}/settings`,
       icon: SettingsIcon,
-      title: 'Settings'
+      title: 'Project settings'
     }
   ];
 
@@ -171,12 +183,14 @@ const NavBar = ({ onMobileClose, openMobile }) => {
       <Divider />
       <Box p={2}>
         <List>
-          <NavItem
-            href={projectItem.href}
-            key={projectItem.title}
-            title={projectItem.title}
-            icon={projectItem.icon}
-          />
+          {defaultItems.map((item) => (
+            <NavItem
+              href={item.href}
+              key={item.title}
+              title={item.title}
+              icon={item.icon}
+            />
+          ))}
           <NavItem
             href="/login"
             key="Logout"
@@ -192,7 +206,7 @@ const NavBar = ({ onMobileClose, openMobile }) => {
           {project.name}
         </Typography>
         <List>
-          {items.map((item) => {
+          {projectItems.map((item) => {
             if (item.subitems) {
               return (
                 <div>

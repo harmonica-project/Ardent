@@ -4,7 +4,8 @@ import * as React from 'react';
 const blankProject = {
   project: {
     url: '',
-    name: ''
+    name: '',
+    description: ''
   }
 }
 

@@ -11,10 +11,12 @@ import AnalyticsView from 'src/views/analytics/AnalyticsView';
 import RegisterView from 'src/views/auth/RegisterView';
 import ProjectsView from 'src/views/projects/ProjectsView';
 import QuestionsView from 'src/views/questions/QuestionsView';
-import SettingsView from 'src/views/settings/SettingsView';
+import HelpView from 'src/views/help/HelpView';
 import ArchitectureView from 'src/views/architecture/ArchitectureView';
 import InstanceComponentView from 'src/views/components/InstanceComponentView';
 import BaseComponentsView from 'src/views/components/BaseComponentsView';
+import UserSettingsView from './views/userSettingsView/UserSettingsView';
+import ProjectSettingsView from 'src/views/projectSettings/ProjectSettingsView';
 
 const routes = (isLoggedIn, project) => [
   {
@@ -27,7 +29,8 @@ const routes = (isLoggedIn, project) => [
       { path: 'components', element: <BaseComponentsView /> },
       { path: 'architecture/:id', element: <ArchitectureView /> },
       { path: 'component/:id', element: <InstanceComponentView /> },
-      { path: 'settings', element: <SettingsView /> },
+      { path: 'settings', element: <ProjectSettingsView /> },
+      { path: 'help', element: <HelpView /> },
       { path: '/', element: <DashboardView /> },
       { path: '404', element: <NotFoundView /> },
       { path: '*', element: <Navigate to={`/project/${project}/404`} /> }
@@ -38,6 +41,24 @@ const routes = (isLoggedIn, project) => [
     element: isLoggedIn ? <DashboardLayout /> : <Navigate to="/login" replace />,
     children: [
       { path: '/', element: <ProjectsView /> },
+      { path: '404', element: <NotFoundView /> },
+      { path: '*', element: <Navigate to={`/projects/404`}  /> }
+    ]
+  },
+  {
+    path: '/help',
+    element: isLoggedIn ? <DashboardLayout /> : <Navigate to="/login" replace />,
+    children: [
+      { path: '/', element: <HelpView /> },
+      { path: '404', element: <NotFoundView /> },
+      { path: '*', element: <Navigate to={`/projects/404`}  /> }
+    ]
+  },
+  {
+    path: '/settings',
+    element: isLoggedIn ? <DashboardLayout /> : <Navigate to="/login" replace />,
+    children: [
+      { path: '/', element: <UserSettingsView /> },
       { path: '404', element: <NotFoundView /> },
       { path: '*', element: <Navigate to={`/projects/404`}  /> }
     ]
