@@ -29,6 +29,7 @@ import BasePropertyModal from 'src/modals/BasePropertyModal';
 import QuestionModal from 'src/modals/QuestionModal';
 import BaseComponentInput from './BaseComponentsInput';
 import BaseComponentTable from './BaseComponentsTable';
+import { useProject } from '../../../project-context';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -72,6 +73,10 @@ export default function BaseComponentsView() {
     open: false,
     context: {}
   });
+
+  const {
+    state: { project },
+  } = useProject();
 
   const handleAutocompleteChange = (value) => {
     setAutocompleteValue(value);
@@ -169,7 +174,7 @@ export default function BaseComponentsView() {
 
   const saveNewBaseComponent = (newComponent) => {
     setOpen(true);
-    saveNewBaseComponentRequest(newComponent)
+    saveNewBaseComponentRequest({ ...newComponent, project_url: project.url })
       .then((data) => {
         if (data.success) {
           enqueueSnackbar('Base component successfully added.', { variant: 'success' });
@@ -436,7 +441,7 @@ export default function BaseComponentsView() {
   };
 
   const postQuestion = (question) => {
-    saveQuestionRequest(question)
+    saveQuestionRequest({ ...question, project_url: project.url })
       .then((data) => {
         if (data.success) {
           enqueueSnackbar('Question successfully post. You can find it in the Questions section.', { variant: 'success' });

@@ -15,6 +15,7 @@ import { NavLink } from 'react-router-dom';
 import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import TableActionCell from '../../../components/TableActionCell';
+import { useProject } from '../../../project-context';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -95,12 +96,15 @@ function Row({
   row, connectionActionHandler, architectureComponents
 }) {
   const classes = useRowStyles();
+  const {
+    state: { project },
+  } = useProject();
 
   const formatComponentId = (componentId) => {
     for (let i = 0; i < architectureComponents.length; i++) {
       if (componentId === architectureComponents[i].id) {
         return (
-          <NavLink to={`/app/component/${componentId}`}>
+          <NavLink to={`/project/${project.url}/component/${componentId}`}>
             { architectureComponents[i].name }
           </NavLink>
         );

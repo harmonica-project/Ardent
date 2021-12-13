@@ -25,7 +25,9 @@ import {
   HighlightOff as HighlightOffIcon
 } from '@material-ui/icons/';
 import {
-  getQuestions as getQuestionsRequest,
+  getProjectQuestions as getProjectQuestionsRequest,
+} from 'src/requests/projects';
+import {
   markAsClosed as markAsClosedRequest
 } from 'src/requests/questions';
 import { NavLink } from 'react-router-dom';
@@ -38,6 +40,7 @@ import Page from 'src/components/Page';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 import DisplayStatusQuestion from 'src/components/DisplayStatusQuestion';
 import QuestionsTable from './QuestionsTable';
+import { useProject } from '../../../project-context';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -63,9 +66,13 @@ const QuestionsView = () => {
     maskClosed: true
   });
 
+  const {
+    state: { project },
+  } = useProject();
+
   const fetchQuestions = () => {
     setOpen(true);
-    getQuestionsRequest()
+    getProjectQuestionsRequest(project.url)
       .then((data) => {
         if (data.success) {
           setQuestions(data.result);
@@ -117,16 +124,16 @@ const QuestionsView = () => {
     switch (objectType) {
       case 'papers':
       case 'paper':
-        url = '/app/papers';
+        url = `/project/${project.url}/papers`;
         break;
 
       case 'base_components':
-        url = '/app/components';
+        url = `/project/${project.url}/components`;
         break;
 
       case 'architecture':
       case 'component':
-        if (objectId) url = `/app/${objectType}/${objectId}`;
+        if (objectId) url = `/project/${project.url}/${objectType}/${objectId}`;
         break;
 
       default:

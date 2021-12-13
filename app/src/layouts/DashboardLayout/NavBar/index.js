@@ -18,7 +18,8 @@ import {
   Paperclip as PaperclipIcon,
   Cpu as CpuIcon,
   LogOut as LogOutIcon,
-  HelpCircle as HelpCircleIcon
+  HelpCircle as HelpCircleIcon,
+  List as ListIcon
 } from 'react-feather';
 import {
   AccountTree as AccountTreeIcon,
@@ -26,6 +27,7 @@ import {
 } from '@material-ui/icons/';
 import NavItem from './NavItem';
 import authenticationService from '../../../requests/authentication';
+import { useProject } from '../../../project-context';
 
 const useStyles = makeStyles(() => ({
   mobileDrawer: {
@@ -46,6 +48,10 @@ const useStyles = makeStyles(() => ({
 const NavBar = ({ onMobileClose, openMobile }) => {
   const classes = useStyles();
   const location = useLocation();
+
+  const {
+    state: { project }
+  } = useProject();
 
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState({
@@ -68,43 +74,49 @@ const NavBar = ({ onMobileClose, openMobile }) => {
     setOpen(!open);
   };
 
+  const projectItem = {
+    href: '/projects',
+    icon: ListIcon,
+    title: 'My projects'
+  };
+
   const items = [
     {
-      href: '/app/dashboard',
+      href: `/project/${project.url}/`,
       icon: BarChartIcon,
       title: 'Dashboard'
     },
     {
-      href: '/app/papers',
+      href: `/project/${project.url}/papers`,
       icon: PaperclipIcon,
       title: 'Study papers'
     },
     {
-      href: '/app/analytics',
+      href: `/project/${project.url}/analytics`,
       action: handleOpen,
       openState: open,
       icon: CpuIcon,
       title: 'Analytics',
       subitems: [
         {
-          href: '/app/analytics',
+          href: `/project/${project.url}/analytics`,
           icon: AccountTreeIcon,
           title: 'Patterns identification'
         },
         {
-          href: '/app/components',
+          href: `/project/${project.url}/components`,
           icon: FormatListBulletedIcon,
           title: 'Components summary'
         }
       ]
     },
     {
-      href: '/app/questions',
+      href: `/project/${project.url}/questions`,
       icon: HelpCircleIcon,
       title: 'Questions'
     },
     {
-      href: '/app/settings',
+      href: `/project/${project.url}/settings`,
       icon: SettingsIcon,
       title: 'Settings'
     }
@@ -159,6 +171,27 @@ const NavBar = ({ onMobileClose, openMobile }) => {
       <Divider />
       <Box p={2}>
         <List>
+          <NavItem
+            href={projectItem.href}
+            key={projectItem.title}
+            title={projectItem.title}
+            icon={projectItem.icon}
+          />
+          <NavItem
+            href="/login"
+            key="Logout"
+            title="Logout"
+            icon={LogOutIcon}
+            onClick={authenticationService.logout}
+          />
+        </List>
+      </Box>
+      <Divider />
+      <Box p={2} hidden={!project.url.length}>
+        <Typography style={{ textAlign: 'center' }} variant="h5" component="p">
+          {project.name}
+        </Typography>
+        <List>
           {items.map((item) => {
             if (item.subitems) {
               return (
@@ -196,13 +229,6 @@ const NavBar = ({ onMobileClose, openMobile }) => {
               />
             );
           })}
-          <NavItem
-            href="/login"
-            key="Logout"
-            title="Logout"
-            icon={LogOutIcon}
-            onClick={authenticationService.logout}
-          />
         </List>
       </Box>
     </Box>

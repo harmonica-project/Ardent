@@ -21,8 +21,10 @@ import {
   saveNewPaper as saveNewPaperRequest,
   saveExistingPaper as saveExistingPaperRequest,
   deletePaper as deletePaperRequest,
-  getPapers as getPapersRequest,
 } from 'src/requests/papers';
+import {
+  getProjectPapers as getProjectPapersRequest
+} from 'src/requests/projects';
 import { getUsers as getUsersRequest } from 'src/requests/users';
 import { saveQuestion as saveQuestionRequest } from 'src/requests/questions';
 import authenticationService from 'src/requests/authentication';
@@ -37,6 +39,7 @@ import ConfirmModal from 'src/modals/ConfirmModal';
 import QuestionModal from 'src/modals/QuestionModal';
 import Results from './Results';
 import Toolbar from './Toolbar';
+import { useProject } from '../../../project-context';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -63,6 +66,11 @@ const PapersListView = () => {
     name: '',
     id: ''
   });
+
+  const {
+    state: { project },
+  } = useProject();
+
   const [open, setOpen] = useState(false);
   const [dotProps, setDotProps] = useState({
     open: false,
@@ -220,7 +228,7 @@ const PapersListView = () => {
   const saveNewPaper = async (newPaper, handleAdditionHere = true) => {
     setOpen(true);
     try {
-      const data = await saveNewPaperRequest(newPaper);
+      const data = await saveNewPaperRequest({ ...newPaper, project_url: project.url });
       setOpen(false);
       if (data.success) {
         if (handleAdditionHere) {
@@ -259,7 +267,7 @@ const PapersListView = () => {
 
   const saveNewArchitecture = (newArchitecture) => {
     setOpen(true);
-    saveNewArchitectureRequest(newArchitecture)
+    saveNewArchitectureRequest({ ...newArchitecture, project_url: project.url })
       .then((data) => {
         if (data.success) {
           addArchitectureToState({ ...newArchitecture, id: data.architectureId });
@@ -504,17 +512,19 @@ const PapersListView = () => {
   };
 
   const architectureClickHandler = (architectureId) => {
-    navigate(`/app/architecture/${architectureId}`);
+    navigate(`/project/${project.url}/architecture/${architectureId}`);
   };
 
   const getPapers = async () => {
-    try {
-      const data = await getPapersRequest();
-      if (data.success) {
-        setPapers(data.result);
+    if (project.url) {
+      try {
+        const data = await getProjectPapersRequest(project.url);
+        if (data.success) {
+          setPapers(data.result);
+        }
+      } catch (error) {
+        enqueueSnackbar(error, 'error');
       }
-    } catch (error) {
-      enqueueSnackbar(error, 'error');
     }
   };
 
@@ -573,7 +583,7 @@ const PapersListView = () => {
   };
 
   const postQuestion = (question) => {
-    saveQuestionRequest(question)
+    saveQuestionRequest({ ...question, project_url: project.url })
       .then((data) => {
         if (data.success) {
           enqueueSnackbar('Question successfully post. You can find it in the Questions section.', { variant: 'success' });

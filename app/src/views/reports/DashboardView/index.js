@@ -7,15 +7,18 @@ import {
 } from '@material-ui/core';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 import Page from 'src/components/Page';
-import { getArchitectures as getArchitecturesRequest } from 'src/requests/architectures';
-import { getBaseComponents as getBaseComponentsRequest } from 'src/requests/components';
-import { getPapers as getPapersRequest } from 'src/requests/papers';
+import {
+  getProjectPapers as getProjectPapersRequest,
+  getProjectArchitectures as getProjectArchitecturesRequest,
+  getProjectBaseComponents as getProjectBaseComponentsRequest
+} from 'src/requests/projects';
 import ArchitectureSummary from './ArchitectureSummary';
 import Jumbo from './Jumbo';
 import PapersStatuses from './PapersStatuses';
 import PaperSummary from './PaperSummary';
 import ComponentSummary from './ComponentSummary';
 import StudyProgress from './StudyProgress';
+import { useProject } from '../../../project-context';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -34,9 +37,13 @@ const Dashboard = () => {
   const [components, setComponents] = useState([]);
   const [open, setOpen] = useState(false);
 
+  const {
+    state: { project },
+  } = useProject();
+
   const getArchitectures = async () => {
     try {
-      const data = await getArchitecturesRequest();
+      const data = await getProjectArchitecturesRequest(project.url);
       if (data.success) {
         setArchitectures(data.result);
       }
@@ -47,7 +54,7 @@ const Dashboard = () => {
 
   const getBaseComponents = async () => {
     try {
-      const data = await getBaseComponentsRequest();
+      const data = await getProjectBaseComponentsRequest(project.url);
       if (data.success) {
         setComponents(data.result);
       }
@@ -57,13 +64,15 @@ const Dashboard = () => {
   };
 
   const getPapers = async () => {
-    try {
-      const data = await getPapersRequest();
-      if (data.success) {
-        setPapers(data.result);
+    if (project.url) {
+      try {
+        const data = await getProjectPapersRequest(project.url);
+        if (data.success) {
+          setPapers(data.result);
+        }
+      } catch (error) {
+        enqueueSnackbar(error.toString(), { variant: 'error' });
       }
-    } catch (error) {
-      enqueueSnackbar(error.toString(), { variant: 'error' });
     }
   };
 

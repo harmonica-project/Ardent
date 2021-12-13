@@ -25,12 +25,14 @@ import {
   saveNewComponentInstance as saveNewComponentInstanceRequest,
   saveExistingComponentInstance as saveExistingComponentInstanceRequest,
   saveNewBaseComponent as saveNewBaseComponentRequest,
-  getBaseComponents as getBaseComponentsRequest,
 } from 'src/requests/components';
 import {
   saveProperty as savePropertyRequest,
   getBaseComponentProperties as getBaseComponentPropertiesRequest,
 } from 'src/requests/properties';
+import {
+  getProjectBaseComponents as getProjectBaseComponentsRequest
+} from 'src/requests/projects';
 import { saveQuestion as saveQuestionRequest } from 'src/requests/questions';
 import DotOverlay from 'src/components/DotOverlay';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
@@ -40,6 +42,7 @@ import QuestionModal from 'src/modals/QuestionModal';
 import ArchitectureModal from 'src/modals/ArchitectureModal';
 import ConfirmModal from 'src/modals/ConfirmModal';
 import ComponentsTable from './ComponentsTable';
+import { useProject } from '../../../project-context';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -71,6 +74,10 @@ const ArchitectureView = () => {
     architecture: { components: [] },
     actionType: ''
   });
+
+  const {
+    state: { project },
+  } = useProject();
 
   const [dotProps, setDotProps] = useState({
     open: false,
@@ -114,7 +121,7 @@ const ArchitectureView = () => {
 
   const getBaseComponents = async () => {
     try {
-      const data = await getBaseComponentsRequest(id);
+      const data = await getProjectBaseComponentsRequest(project.url);
       if (data.success) {
         setBaseComponents(data.result);
       }
@@ -156,7 +163,7 @@ const ArchitectureView = () => {
       .then((data) => {
         if (data.success) {
           enqueueSnackbar('Architecture successfully deleted.', { variant: 'success' });
-          navigate('/app/papers');
+          navigate(`/project/${project.url}/papers`);
         }
       })
       .catch((error) => enqueueSnackbar(error.toString(), { variant: 'error' }))
@@ -390,7 +397,8 @@ const ArchitectureView = () => {
       if (!component.component_base_id || component.component_base_id === '') {
         const baseRes = await saveNewBaseComponentRequest({
           name: component.component_base_name,
-          base_description: 'No description yet.'
+          base_description: 'No description yet.',
+          project_url: project.url
         });
         if (baseRes.success) {
           component = { ...component, component_base_id: baseRes.componentId };
@@ -435,7 +443,7 @@ const ArchitectureView = () => {
   };
 
   const postQuestion = (question) => {
-    saveQuestionRequest(question)
+    saveQuestionRequest({ ...question, project_url: project.url })
       .then((data) => {
         if (data.success) {
           enqueueSnackbar('Question successfully post. You can find it in the Questions section.', { variant: 'success' });
@@ -472,7 +480,8 @@ const ArchitectureView = () => {
       if (!component.component_base_id || component.component_base_id === '') {
         const baseRes = await saveNewBaseComponentRequest({
           name: component.component_base_name,
-          base_description: 'No description yet.'
+          base_description: 'No description yet.',
+          project_url: project.url
         });
         if (baseRes.success) {
           component = { ...component, component_base_id: baseRes.componentId };
@@ -543,7 +552,7 @@ const ArchitectureView = () => {
   };
 
   const componentClickHandler = (componentId) => {
-    navigate(`/app/component/${componentId}`);
+    navigate(`/project/${project.url}/component/${componentId}`);
   };
 
   return (

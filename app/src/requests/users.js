@@ -38,3 +38,9 @@ export default function getInviteToken() {
     .then((data) => auth.handleResponse(data))
     .catch((error) => auth.handleResponse(error.response));
 }
+
+export function getUserProjects(username) {
+  return axios.get(`${API_URL}/users/${username}/projects`, auth.getAuthHeaders())
+    .then((data) => auth.handleResponse(data))
+    .catch((error) => auth.handleResponse(error.response));
+}

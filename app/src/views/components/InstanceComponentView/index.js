@@ -13,8 +13,7 @@ import {
   getComponentInstance as getComponentInstanceRequest,
   deleteComponentInstance as deleteComponentInstanceRequest,
   saveExistingComponentInstance as saveExistingComponentInstanceRequest,
-  saveNewBaseComponent as saveNewBaseComponentRequest,
-  getBaseComponents as getBaseComponentsRequest
+  saveNewBaseComponent as saveNewBaseComponentRequest
 } from 'src/requests/components';
 import {
   getArchitecture as getArchitectureRequest
@@ -31,6 +30,9 @@ import {
   deleteConnection as deleteConnectionRequest,
   modifyConnection as modifyConnectionRequest
 } from 'src/requests/connections';
+import {
+  getProjectBaseComponents as getProjectBaseComponentsRequest
+} from 'src/requests/projects';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
 import ComponentModal from 'src/modals/ComponentModal';
 import QuestionModal from 'src/modals/QuestionModal';
@@ -39,6 +41,7 @@ import InstancePropertyModal from 'src/modals/InstancePropertyModal';
 import ConnectionModal from 'src/modals/ConnectionModal';
 import ConnectionsTable from './ConnectionsTable';
 import AccordionOverlay from './AccordionOverlay';
+import { useProject } from '../../../project-context';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -75,6 +78,11 @@ export default function InstanceComponentView() {
   const [baseComponents, setBaseComponents] = useState([]);
   const [architectureComponents, setArchitectureComponents] = useState([]);
   const [open, setOpen] = useState(false);
+
+  const {
+    state: { project },
+  } = useProject();
+
   const [breadcrumb, setBreadcrumb] = useState({
     architectureId: '',
     componentId: '',
@@ -168,7 +176,8 @@ export default function InstanceComponentView() {
       if (!newComponent.component_base_id || newComponent.component_base_id === '') {
         const baseRes = await saveNewBaseComponentRequest({
           name: component.component_base_name,
-          base_description: 'No description yet.'
+          base_description: 'No description yet.',
+          project_url: project.url
         });
         if (baseRes.success) {
           newComponent = { ...newComponent, component_base_id: baseRes.componentId };
@@ -208,7 +217,7 @@ export default function InstanceComponentView() {
   };
 
   const postQuestion = (question) => {
-    saveQuestionRequest(question)
+    saveQuestionRequest({ ...question, project_url: project.url })
       .then((data) => {
         if (data.success) {
           enqueueSnackbar('Question successfully post. You can find it in the Questions section.', { variant: 'success' });
@@ -232,7 +241,7 @@ export default function InstanceComponentView() {
       .then((data) => {
         if (data.success) {
           enqueueSnackbar('Component successfully deleted.', { variant: 'success' });
-          navigate(`/app/architecture/${component.architecture_id}`);
+          navigate(`/project/${project.url}/architecture/${component.architecture_id}`);
         }
       })
       .catch((error) => enqueueSnackbar(error.toString(), 'error'))
@@ -668,6 +677,7 @@ export default function InstanceComponentView() {
   const fetchComponentData = async () => {
     try {
       const compRes = await getComponentInstanceRequest(id);
+
       if (!compRes.success) return;
 
       const archRes = await getArchitectureRequest(compRes.result.architecture_id);
@@ -697,7 +707,7 @@ export default function InstanceComponentView() {
 
   const fetchBaseComponents = async () => {
     try {
-      const data = await getBaseComponentsRequest();
+      const data = await getProjectBaseComponentsRequest(project.url);
       if (data.success) {
         setBaseComponents(data.result);
       }

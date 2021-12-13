@@ -65,7 +65,7 @@ const LoginView = () => {
               authenticationService.login(username, password)
                 .then((data) => {
                   if (data.success) {
-                    navigate('/app/dashboard', { replace: true });
+                    navigate('/projects', { replace: true });
                   } else {
                     enqueueSnackbar('Authentication failed. Check your username and your password, then retry.', { variant: 'error' });
                   }

@@ -11,6 +11,7 @@ import {
   makeStyles
 } from '@material-ui/core';
 import DeveloperBoardIcon from '@material-ui/icons/DeveloperBoard';
+import { useProject } from '../../../project-context';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -28,6 +29,9 @@ const useStyles = makeStyles((theme) => ({
 
 const ComponentSummary = ({ className, nbComponents }) => {
   const classes = useStyles();
+  const {
+    state: { project },
+  } = useProject();
 
   return (
     <Card
@@ -61,7 +65,7 @@ const ComponentSummary = ({ className, nbComponents }) => {
           </Grid>
         </Grid>
         <Typography className={classes.link}>
-          <NavLink to="/app/components">
+          <NavLink to={`/project/${project.url}/components`}>
             Go to components
           </NavLink>
         </Typography>
