@@ -42,6 +42,18 @@ module.exports = {
             return false;
         }
     },
+    getIdentity: (req) => {
+        try {
+            const authHeader = req.headers['authorization'];
+            const token = authHeader && authHeader.split(' ')[1];
+            const verifiedToken = nJwt.verify(token, SIGN_KEY);
+            return (verifiedToken.body.sub || false);
+        }
+        catch {
+            // failed to get id
+            return false;
+        }
+    },
     verifyClaimAdmin: async (req) => {
         try {
             const authHeader = req.headers['authorization'];

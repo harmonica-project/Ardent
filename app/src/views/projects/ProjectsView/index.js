@@ -17,9 +17,11 @@ import {
 } from 'src/requests/users';
 import {
   saveNewProject as saveNewProjectRequest,
+  deleteProject as deleteProjectRequest
 } from 'src/requests/projects';
 import Page from 'src/components/Page';
 import ProjectCard from './ProjectCard';
+import ConfirmModal from 'src/modals/ConfirmModal';
 import { useProject } from '../../../project-context';
 import ProjectModal from 'src/modals/ProjectModal';
 import authenticationService from 'src/requests/authentication';
@@ -40,6 +42,12 @@ const ProjectsView = () => {
   const { enqueueSnackbar } = useSnackbar();
   const { username } = authenticationService.currentUserValue.user;
   const [open, setOpen] = useState(false);
+
+  const [confirmModalProps, setConfirmModalProps] = useState({
+    open: false,
+    actionModalHandler: null,
+    message: ''
+  });
 
   const [projectModalProps, setProjectModalProps] = useState({
     open: false,
@@ -77,6 +85,14 @@ const ProjectsView = () => {
       case 'edit':
         console.log(action, value, 'edit');
         break;
+
+      case 'delete':
+        setConfirmModalProps({
+          ...confirmModalProps,
+          open: true,
+          message: 'Project deletion is irreversible. Associated papers, architectures, components, and properties will also be deleted. Proceed?',
+          actionModalHandler: () => deleteProject(value)
+        });
     }
   };
 
@@ -85,7 +101,7 @@ const ProjectsView = () => {
     saveNewProjectRequest({ ...newProject, username })
       .then((data) => {
         if (data.success) {
-          setProjects([...projects, newProject]);
+          setProjects([...projects, { ...newProject, is_admin: true }]);
           setProjectModalProps({
             open: false,
             project: {},
@@ -98,8 +114,30 @@ const ProjectsView = () => {
       .finally(() => { setOpen(false); });
   };
 
+  const deleteProjectFromState = (url) => {
+    const newProjects = [...projects].filter(project => project.url !== url);
+    setProjects(newProjects);
+  };
+
+  const deleteProject = (newProject) => {
+    setOpen(true);
+    deleteProjectRequest(newProject.url)
+      .then((data) => {
+        if (data.success) {
+          deleteProjectFromState(newProject.url);
+          setConfirmModalProps({
+            open: false,
+            actionModalHandler: null,
+            message: ''
+          });
+          enqueueSnackbar('Project successfully deleted.', { variant: 'success' });
+        }
+      })
+      .catch((error) => enqueueSnackbar(error.toString(), 'error'))
+      .finally(() => { setOpen(false); });
+  };
+
   const projectActionModalHandler = (actionType, newProject) => {
-    console.log(actionType)
     switch (actionType) {
       case 'new':
         saveNewProject(newProject);
@@ -109,7 +147,7 @@ const ProjectsView = () => {
         console.error('No action were provided to the handler.');
     }
   };
-
+  
   return (
     <Page
       className={classes.root}
@@ -133,7 +171,7 @@ const ProjectsView = () => {
           <CardContent>
             <Grid container>
               {projects.map((p) => (
-                <Grid item xs={4}>
+                <Grid item xs={12} sm={6} md={4}>
                   <ProjectCard project={p} action={handleCardAction} />
                 </Grid>
               ))}
@@ -145,6 +183,10 @@ const ProjectsView = () => {
         modalProps={projectModalProps}
         setModalProps={setProjectModalProps}
         actionModalHandler={projectActionModalHandler}
+      />
+      <ConfirmModal
+        modalProps={confirmModalProps}
+        setModalProps={setConfirmModalProps}
       />
       <LoadingOverlay open={open} />
     </Page>

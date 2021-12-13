@@ -1,6 +1,6 @@
 const express = require('express'), router = express.Router();
 const db = require('../data/projects');
-const { authorizedOnly, verifyClaimIdentity } = require('../utils/authorization');
+const { authorizedOnly, verifyClaimIdentity, getIdentity } = require('../utils/authorization');
 const { parseDBResults, intErrResp } = require('../utils/helpers');
 
 router
@@ -31,6 +31,14 @@ router
     const projectUrl = req.params.projectUrl;
     db.getProjectBaseComponents(projectUrl).then((queryResult) => {
         const parsedResult = parseDBResults(queryResult);
+        if(parsedResult.success) res.status(200).send(parsedResult);
+        else res.status(500).send(parsedResult);
+    })
+  })
+  .delete('/:projectUrl', authorizedOnly, (req, res) => {
+    const username = getIdentity(req);
+
+    db.deleteProject(req.params.projectUrl, username).then((parsedResult) => {
         if(parsedResult.success) res.status(200).send(parsedResult);
         else res.status(500).send(parsedResult);
     })

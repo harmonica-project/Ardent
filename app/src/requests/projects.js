@@ -32,3 +32,9 @@ export function getProjectBaseComponents(projectURL) {
     .then((data) => auth.handleResponse(data))
     .catch((error) => auth.handleResponse(error.response));
 }
+
+export function deleteProject(projectURL) {
+  return axios.delete(`${API_URL}/projects/${projectURL}`, auth.getAuthHeaders())
+    .then((data) => auth.handleResponse(data))
+    .catch((error) => auth.handleResponse(error.response));
+}

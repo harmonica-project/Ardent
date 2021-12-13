@@ -99,5 +99,22 @@ module.exports = {
             ]
         );
         return { success: true }
+    },
+    deleteProject: async (projectUrl, username) => {
+        const foundProject = await client.query("SELECT * FROM project_roles WHERE url = $1 AND username = $2", [projectUrl, username]);
+            if(foundProject["rows"].length !== 0 && foundProject["rows"][0].is_admin === true) {
+                await client.query(`
+                        DELETE from projects WHERE url = $1
+                    `, 
+                    [projectUrl]
+                );
+                return { success: true }
+            }
+            else {
+                return {
+                    success: false,
+                    errorMsg: 'The user is not an admin of the project, deletion is impossible.'
+                };
+            }
     }
 }
