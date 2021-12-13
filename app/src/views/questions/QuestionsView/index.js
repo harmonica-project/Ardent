@@ -45,7 +45,6 @@ import { useProject } from '../../../project-context';
 const useStyles = makeStyles((theme) => ({
   root: {
     backgroundColor: theme.palette.background.dark,
-    minHeight: '100%',
     padding: theme.spacing(2),
     flexGrow: 1
   }
@@ -351,32 +350,6 @@ const QuestionsView = () => {
         <Grid item xs={12} md={12}>
           <FormGroup row>
             <FormControlLabel
-              labelPlacement="top"
-              component="legend"
-              label="Order table"
-              control={(
-                <Typography component="div">
-                  <Grid component="label" container alignItems="center" spacing={1}>
-                    <Grid item>Asc</Grid>
-                    <Grid item>
-                      <Switch
-                        checked={tableOptions.orderDesc}
-                        onChange={() => {
-                          setTableOptions({
-                            ...tableOptions,
-                            orderDesc: !tableOptions.orderDesc
-                          });
-                        }}
-                        name="checkedOrder"
-                      />
-                    </Grid>
-                    <Grid item>Desc</Grid>
-                  </Grid>
-                </Typography>
-              )}
-            />
-
-            <FormControlLabel
               component="legend"
               label="Mask closed questions"
               labelPlacement="top"
@@ -401,9 +374,35 @@ const QuestionsView = () => {
                 </Typography>
               )}
             />
+            <FormControlLabel
+              style={{ display: (!displayedQuestions.length ? 'none' : '') }}
+              labelPlacement="top"
+              component="legend"
+              label="Order table"
+              control={(
+                <Typography component="div">
+                  <Grid component="label" container alignItems="center" spacing={1}>
+                    <Grid item>Asc</Grid>
+                    <Grid item>
+                      <Switch
+                        checked={tableOptions.orderDesc}
+                        onChange={() => {
+                          setTableOptions({
+                            ...tableOptions,
+                            orderDesc: !tableOptions.orderDesc
+                          });
+                        }}
+                        name="checkedOrder"
+                      />
+                    </Grid>
+                    <Grid item>Desc</Grid>
+                  </Grid>
+                </Typography>
+              )}
+            />
           </FormGroup>
         </Grid>
-        <Grid item xs={12} md={5}>
+        <Grid item xs={12} md={5} hidden={!displayedQuestions.length}>
           <QuestionsTable
             questions={displayedQuestions}
             setOpenQuestion={setOpenQuestion}
@@ -444,6 +443,21 @@ const QuestionsView = () => {
           </Box>
         </Grid>
       </Grid>
+      <Box align="center" hidden={displayedQuestions.length}>
+        <Card>
+          <CardContent>
+            <Typography variant="h1" component="div" gutterBottom>
+              No questions to display.
+            </Typography>
+            <Typography variant="body1">
+              <p>
+                If you ask questions on this project, they will appear here.
+                You can also display masked questions (as they are closed).
+              </p>
+            </Typography>
+          </CardContent>
+        </Card>
+      </Box>
       <LoadingOverlay open={open} />
     </Page>
   );
