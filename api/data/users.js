@@ -1,5 +1,4 @@
 var pg = require("pg")
-const { v4: uuidv4 } = require('uuid');
 const { DB_CONFIG } = require('../config');
 const client = new pg.Client(DB_CONFIG);
 
@@ -42,13 +41,30 @@ module.exports = {
     },
     getUserProjects: async (username) => {
         try {
-            return await client.query(`
+            const projects = await client.query(`
                 SELECT p.name, p.description, p.url, pr.is_admin FROM projects as p
                 LEFT JOIN project_roles as pr on pr.url = p.url
                 WHERE pr.username = $1
             `, [username]);
+
+            if (projects['rows'].length) {
+                for (let i = 0; i < projects["rows"].length; i++) {
+                    const users = await client.query(`
+                        SELECT pr.username, pr.is_admin FROM project_roles as pr
+                        LEFT JOIN projects as p on pr.url = p.url
+                        WHERE p.url = $1
+                    `, [projects["rows"][i].url]);
+
+                    projects["rows"][i]['users'] = users['rows'];
+                }
+    
+                return projects;
+            } else {
+                return { rows: [] };
+            }
         }
         catch(err) {
+            console.log(err);
             return err;
         }
     },
