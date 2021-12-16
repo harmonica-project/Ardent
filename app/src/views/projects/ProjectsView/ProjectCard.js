@@ -14,9 +14,7 @@ const useStyles = makeStyles({
 });
 
 export default function ProjectCard({ project, action }) {
-  console.log(project);
   const classes = useStyles();
-
   const disableDelete = (() => {
     if (!localStorage.getItem('danger') || localStorage.getItem('danger') === 'false') return true;
     return false;
@@ -34,16 +32,16 @@ export default function ProjectCard({ project, action }) {
       </CardContent>
       <CardActions>
         <Button size="small" color="primary" onClick={() => action('view', project)}>
-          View project
+          Open
         </Button>
         { project.is_admin ? (
           <Button size="small" color="primary" onClick={() => action('edit', project)}>
-            Manage project
+            Manage
           </Button>
         ) : <div />}
         { !disableDelete && project.is_admin ? (
           <Button size="small" color="primary" onClick={() => action('delete', project)}>
-            Delete project
+            Delete
           </Button>
         ) : <div />}
       </CardActions>
@@ -58,5 +56,5 @@ ProjectCard.propTypes = {
     url: PropTypes.string,
     is_admin: PropTypes.bool
   }),
-  action: PropTypes.func
+  action: PropTypes.func,
 };

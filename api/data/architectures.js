@@ -89,7 +89,6 @@ module.exports = {
         }
     },
     storeArchitecture: async architecture => {
-        console.log(architecture)
         try {
             const newArchitectureId = uuidv4();
             await client.query("INSERT INTO architectures (id, name, reader_description, paper_id, author_description, project_url) VALUES ($1, $2, $3, $4, $5, $6)", [newArchitectureId, architecture.name, architecture.reader_description, architecture.paper_id, architecture.author_description, architecture.project_url])

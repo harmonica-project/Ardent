@@ -5,11 +5,11 @@ const saltRounds = 10;
 const db = require('../data/users');
 const { 
     authorizedOnly, 
-    verifyClaimIdentity,
-    verifyClaimAdmin,
+    isAppAdmin,
+    isConcernedUser,
     generateToken 
 } = require('../utils/authorization');
-const { parseDBResults } = require('../utils/helpers');
+const { parseDBResults, intErrResp } = require('../utils/helpers');
 
 router
     .get('/', authorizedOnly, (req, res) => {
@@ -26,21 +26,11 @@ router
             else res.status(500).send(parsedResult);
         })
     })
-    .get('/token', authorizedOnly, (req, res) => {
-        verifyClaimAdmin(req).then(isAdmin => {
-            if (isAdmin) {
-                const token = crypto.randomBytes(10).toString('hex');
-                db.storeInviteToken(token).then((parsedResult) => {
-                    if(parsedResult.success) res.status(200).send(parsedResult);
-                    else res.status(500).send(parsedResult);
-                })
-            }
-            else {
-                res.status(500).send({
-                    success: false,
-                    errorMsg: "User role verification failed."
-                })
-            }
+    .get('/token', isAppAdmin, (req, res) => {
+        const token = crypto.randomBytes(10).toString('hex');
+        db.storeInviteToken(token).then((parsedResult) => {
+            if(parsedResult.success) res.status(200).send(parsedResult);
+            else res.status(500).send(parsedResult);
         });
     })
     .get('/:username', authorizedOnly, (req, res) => {
@@ -53,51 +43,37 @@ router
             else res.status(500).send(parsedResult);
         })
     })
-    .put('/:username/information', authorizedOnly, (req, res) => {
+    .put('/:username/information', isConcernedUser('params'), (req, res) => {
         const newUser = req.body;
-        verifyClaimIdentity(newUser.username, req).then(isSameUser => {
-            if (isSameUser) {
-                if(newUser.first_name && newUser.last_name && newUser.role) {
-                    db.modifyUser(newUser).then((parsedResult) => {
-                        if(parsedResult.success) res.status(200).send(parsedResult);
-                        else res.status(500).send(parsedResult);
-                    })
-                }
-                else {
-                    res.status(500).send({
-                        success: false,
-                        errorMsg: "Missing fields."
-                    })
-                }
-            }
-            else {
-                res.status(403).send({success: false, errorMsg: "You are not the user concerned by this request."});
-            }
-        });
+        if(newUser.first_name && newUser.last_name && newUser.role) {
+            db.modifyUser(newUser).then((parsedResult) => {
+                if(parsedResult.success) res.status(200).send(parsedResult);
+                else res.status(500).send(parsedResult);
+            })
+        }
+        else {
+            res.status(500).send({
+                success: false,
+                errorMsg: "Missing fields."
+            })
+        }
     })
-    .put('/:username/password', authorizedOnly, (req, res) => {
+    .put('/:username/password', isConcernedUser('params'), (req, res) => {
         const newPasswordInfo = req.body;
-        verifyClaimIdentity(newPasswordInfo.username, req).then(isSameUser => {
-            if (isSameUser) {
-                if(newPasswordInfo.username && newPasswordInfo.password) {
-                    bcrypt.hash(newPasswordInfo.password, saltRounds, function(err, hash) {
-                        db.changeUserPassword(newPasswordInfo.username, hash).then((parsedResult) => {
-                            if(parsedResult.success) res.status(200).send(parsedResult);
-                            else res.status(500).send(parsedResult);
-                        })
-                    });
-                }
-                else {
-                    res.status(500).send({
-                        success: false,
-                        errorMsg: "Missing fields."
-                    })
-                }
-            }
-            else {
-                res.status(403).send({success: false, errorMsg: "You are not the user concerned by this request."});
-            }
-        })
+        if(newPasswordInfo.username && newPasswordInfo.password) {
+            bcrypt.hash(newPasswordInfo.password, saltRounds, function(err, hash) {
+                db.changeUserPassword(newPasswordInfo.username, hash).then((parsedResult) => {
+                    if(parsedResult.success) res.status(200).send(parsedResult);
+                    else res.status(500).send(parsedResult);
+                })
+            });
+        }
+        else {
+            res.status(500).send({
+                success: false,
+                errorMsg: "Missing fields."
+            })
+        }
     })
     .post('/register', (req, res) => {
         const newUser = req.body;
@@ -157,18 +133,11 @@ router
             }
         });
     })
-    .get('/:username/projects', authorizedOnly, (req, res) => {
-        verifyClaimIdentity(req.params.username, req).then(isSameUser => {
-            if (isSameUser) {
-                db.getUserProjects(req.params.username).then((queryResult) => {
-                    const parsedResult = parseDBResults(queryResult);
-                    if(parsedResult.success) res.status(200).send(parsedResult);
-                    else res.status(500).send(intErrResp());
-                })
-            }
-            else {
-                res.status(403).send({success: false, errorMsg: "You are not the user concerned by this request."});
-            }
+    .get('/:username/projects', isConcernedUser('params'), (req, res) => {
+        db.getUserProjects(req.params.username).then((queryResult) => {
+            const parsedResult = parseDBResults(queryResult);
+            if(parsedResult.success) res.status(200).send(parsedResult);
+            else res.status(500).send(intErrResp());
         });
       });
 

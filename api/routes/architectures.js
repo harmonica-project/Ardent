@@ -2,7 +2,6 @@ const express = require('express'), router = express.Router();
 const archDB = require('../data/architectures');
 const compDB = require('../data/components');
 const { authorizedOnly } = require('../utils/authorization');
-const { parseDBResults } = require('../utils/helpers');
 
 function resolveComponentName(id, components) {
     for (let i = 0; i < components.length; i++) {

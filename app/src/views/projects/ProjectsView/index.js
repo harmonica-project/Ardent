@@ -17,7 +17,8 @@ import {
 } from 'src/requests/users';
 import {
   saveNewProject as saveNewProjectRequest,
-  deleteProject as deleteProjectRequest
+  deleteProject as deleteProjectRequest,
+  editProject as editProjectRequest
 } from 'src/requests/projects';
 import Page from 'src/components/Page';
 import ProjectCard from './ProjectCard';
@@ -66,10 +67,13 @@ const ProjectsView = () => {
   } = useProject();
   
   const getProjects = () => {
+    setOpen(true);
     getUserProjectsRequest(username)
       .then((data) => {
         setProjects([...data.result]);
-      });
+      })
+      .catch((error) => enqueueSnackbar(error.toString(), 'error'))
+      .finally(() => { setOpen(false); });
   };
 
   useEffect(() => {
@@ -84,7 +88,13 @@ const ProjectsView = () => {
         break;
       
       case 'edit':
-        console.log(action, value, 'edit');
+        setProjectModalProps({
+          ...projectModalProps,
+          open: true,
+          actionType: 'edit',
+          project: value,
+          oldUrl: value.url
+        });
         break;
 
       case 'delete':
@@ -95,6 +105,29 @@ const ProjectsView = () => {
           actionModalHandler: () => deleteProject(value)
         });
     }
+  };
+
+  const editProject = (newProject) => {
+    setOpen(true);
+    editProjectRequest(projectModalProps.oldUrl, newProject)
+      .then((data) => {
+        if (data.success) {
+          modifyProjectFromState(projectModalProps.oldUrl, newProject);
+          setProjectModalProps({
+            open: false,
+            project: {
+              url: '',
+              name: '',
+              description: '',
+              users: []
+            },
+            actionType: ''
+          });
+          enqueueSnackbar('Project successfully modified.', { variant: 'success' });
+        }
+      })
+      .catch((error) => enqueueSnackbar(error.toString(), 'error'))
+      .finally(() => { setOpen(false); });
   };
 
   const saveNewProject = (newProject) => {
@@ -122,6 +155,19 @@ const ProjectsView = () => {
 
   const deleteProjectFromState = (url) => {
     const newProjects = [...projects].filter(project => project.url !== url);
+    setProjects(newProjects);
+  };
+
+  const modifyProjectFromState = (oldUrl, newProject) => {
+    const foundUser = newProject.users.find((user) => user.username === username);
+    let newProjects;
+
+    if (foundUser) {
+      newProjects = [...projects].map(project => (project.url === oldUrl ? { ...newProject, is_admin: foundUser.is_admin } : project));
+    } else {
+      newProjects = [...projects].filter(project => (project.url !== oldUrl));
+    }
+
     setProjects(newProjects);
   };
 
@@ -159,6 +205,10 @@ const ProjectsView = () => {
         saveNewProject(newProject);
         break;
 
+      case 'edit':
+        editProject(newProject);
+        break;
+
       default:
         console.error('No action were provided to the handler.');
     }
@@ -175,11 +225,12 @@ const ProjectsView = () => {
           color="primary"
           variant="contained"
           onClick={() => setProjectModalProps({
-            ...projectModalProps,
             open: true,
             actionType: 'new',
             project: {
-              ...projectModalProps.project,
+              url: '',
+              name: '',
+              description: '',
               users: [{
                 username,
                 is_admin: true,

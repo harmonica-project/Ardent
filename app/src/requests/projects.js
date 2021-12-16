@@ -3,8 +3,8 @@ import { API_URL } from './config';
 
 import auth from './authentication';
 
-export function saveNewProject(paper) {
-  return axios.post(`${API_URL}/projects`, paper, auth.getAuthHeaders())
+export function saveNewProject(project) {
+  return axios.post(`${API_URL}/projects`, project, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))
     .catch((error) => auth.handleResponse(error.response));
 }
@@ -35,6 +35,12 @@ export function getProjectBaseComponents(projectURL) {
 
 export function deleteProject(projectURL) {
   return axios.delete(`${API_URL}/projects/${projectURL}`, auth.getAuthHeaders())
+    .then((data) => auth.handleResponse(data))
+    .catch((error) => auth.handleResponse(error.response));
+}
+
+export function editProject(oldUrl, project) {
+  return axios.put(`${API_URL}/projects/${oldUrl}`, project, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))
     .catch((error) => auth.handleResponse(error.response));
 }

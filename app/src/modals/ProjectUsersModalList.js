@@ -29,7 +29,7 @@ const useStyles = makeStyles({
 });
 
 const ProjectUsersModalList = ({
-  users, handleInputChange
+  users, handleInputChange, disabled
 }) => {
   const classes = useStyles();
   const [formUser, setFormUser] = useState({
@@ -90,28 +90,30 @@ const ProjectUsersModalList = ({
           </TableRow>
         </TableHead>
         <TableBody>
-          {users.map((row) => {
+          {users.map((row, i) => {
             return (
-              <TableRow role="checkbox" tabIndex={-1} key={`row-category-${row.id}`}>
-                <TableCell key={`cell-category-${row.id}`} style={{ textAlign: 'center' }}>
+              /* eslint-disable */
+              <TableRow role="checkbox" tabIndex={-1} key={`row-category-${i}`}>
+                <TableCell key={`cell-category-${i}`} style={{ textAlign: 'center' }}>
                   {row.username}
                 </TableCell>
-                <TableCell key={`cell-category-${row.id}`} style={{ textAlign: 'center' }}>
+                <TableCell key={`cell-category-${i}`} style={{ textAlign: 'center' }}>
                   <Checkbox
                     checked={row.is_admin}
                     inputProps={{ 'aria-label': 'primary checkbox' }}
                     onClick={() => handleInputChange('user', row, 'modify')}
-                    disabled={row.locked}
+                    disabled={row.locked || disabled}
                   />
                 </TableCell>
                 <TableCell style={{ textAlign: 'center' }}>
-                  <IconButton aria-label="delete" disabled={row.locked}>
+                  <IconButton aria-label="delete" disabled={row.locked || disabled}>
                     <CloseIcon
                       onClick={() => handleInputChange('user', row, 'delete')}
                     />
                   </IconButton>
                 </TableCell>
               </TableRow>
+              /* eslint-enable */
             );
           })}
           <TableRow role="checkbox" tabIndex={-1} key="row-user-new">
@@ -121,9 +123,10 @@ const ProjectUsersModalList = ({
                 options={matchingUNames.sort((a, b) => -b.username[0].localeCompare(a.username[0]))}
                 groupBy={(option) => option.username[0]}
                 getOptionLabel={(option) => option.username}
-                renderInput={(params) => <TextField {...params} label="Type username ..." onChange={(e) => changeAutocomplete(e.target.value)} />}
+                renderInput={(params) => <TextField {...params} disabled={disabled} label="Type username ..." onChange={(e) => changeAutocomplete(e.target.value)} />}
                 value={formUser}
                 error={errorUsername}
+                disabled={disabled}
                 onChange={(_, newValue) => {
                   if (newValue) {
                     setFormUser({ ...formUser, username: newValue.username });
@@ -138,12 +141,14 @@ const ProjectUsersModalList = ({
                 checked={formUser.is_admin}
                 onChange={() => setFormUser({ ...formUser, is_admin: !formUser.is_admin })}
                 inputProps={{ 'aria-label': 'primary checkbox' }}
+                disabled={disabled}
               />
             </TableCell>
             <TableCell key="cell-validate-new" style={{ textAlign: 'center' }}>
               <Button
                 onClick={validateAndChange}
                 variant="contained"
+                disabled={disabled}
               >
                 Add user
               </Button>
@@ -157,7 +162,8 @@ const ProjectUsersModalList = ({
 
 ProjectUsersModalList.propTypes = {
   users: PropTypes.array,
-  handleInputChange: PropTypes.func
+  handleInputChange: PropTypes.func,
+  disabled: PropTypes.bool
 };
 
 export default ProjectUsersModalList;

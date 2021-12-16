@@ -189,7 +189,6 @@ export default function ComponentModal({
   };
 
   const validateAndSubmit = () => {
-    console.log(innerComponent);
     const castedData = schema.cast(innerComponent);
     schema.validate(castedData, { abortEarly: false })
       .then(() => {

@@ -20,7 +20,6 @@ const Jumbo = ({ className }) => {
   const {
     state: { project },
   } = useProject();
-  console.log(project);
 
   return (
     <Card

@@ -196,7 +196,6 @@ export default function ProjectModal({
         actionModalHandler(modalProps.actionType, castedData);
       })
       .catch((errs) => {
-        console.log(errs);
         const newErrorFields = {};
         const newHelperFields = {};
 
@@ -233,6 +232,7 @@ export default function ProjectModal({
               InputLabelProps={{
                 shrink: true,
               }}
+              disabled={modalProps.actionType === 'view'}
               value={innerProject.url}
               error={errorFields.url}
               helperText={helperFields.url}
@@ -248,6 +248,8 @@ export default function ProjectModal({
               InputLabelProps={{
                 shrink: true,
               }}
+              disabled={modalProps.actionType === 'view'}
+              value={innerProject.name}
               error={errorFields.name}
               helperText={helperFields.name}
             />
@@ -263,18 +265,11 @@ export default function ProjectModal({
               InputLabelProps={{
                 shrink: true,
               }}
+              disabled={modalProps.actionType === 'view'}
+              value={innerProject.description}
               error={errorFields.description}
               helperText={helperFields.description}
             />
-            <Button
-              color="primary"
-              variant="contained"
-              startIcon={<SaveIcon />}
-              className={classes.headerButton}
-              onClick={validateAndSubmit}
-            >
-              Create
-            </Button>
           </form>
         </Grid>
         <Grid item md={7} xs={12}>
@@ -282,7 +277,18 @@ export default function ProjectModal({
             Manage project users
           </Typography>
           <br />
-          <ProjectUsersModalList users={innerProject.users} handleInputChange={handleInputChange} />
+          <ProjectUsersModalList users={innerProject.users} handleInputChange={handleInputChange} disabled={modalProps.actionType === 'view'} />
+        </Grid>
+        <Grid item>
+          <Button
+            color="primary"
+            variant="contained"
+            startIcon={<SaveIcon />}
+            className={classes.headerButton}
+            onClick={validateAndSubmit}
+          >
+            { modalProps.actionType === 'edit' ? 'Save changes' : 'Create' }
+          </Button>
         </Grid>
       </Grid>
     </Box>
