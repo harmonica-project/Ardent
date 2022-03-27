@@ -11,6 +11,7 @@ import {
   makeStyles
 } from '@material-ui/core';
 import DescriptionIcon from '@material-ui/icons/Description';
+import { useProject } from '../../../project-context';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -28,6 +29,9 @@ const useStyles = makeStyles((theme) => ({
 
 const PaperSummary = ({ className, nbPapers }) => {
   const classes = useStyles();
+  const {
+    state: { project },
+  } = useProject();
 
   return (
     <Card
@@ -61,7 +65,7 @@ const PaperSummary = ({ className, nbPapers }) => {
           </Grid>
         </Grid>
         <Typography className={classes.link}>
-          <NavLink to="/app/papers">
+          <NavLink to={`/project/${project.url}/papers`}>
             Go to papers
           </NavLink>
         </Typography>

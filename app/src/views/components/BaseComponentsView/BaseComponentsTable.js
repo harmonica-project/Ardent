@@ -23,6 +23,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 import reduceLongText from 'src/utils/reduceLongText';
 import TableActionCell from 'src/components/TableActionCell';
+import { useProject } from '../../../project-context';
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -53,6 +54,9 @@ function stableSort(array, comparator) {
 const headCells = [
   {
     id: 'name', center: true, label: 'Name'
+  },
+  {
+    id: 'category', center: true, label: 'Category'
   },
   {
     id: 'base_description', center: false, label: 'Base description'
@@ -150,6 +154,10 @@ function Row({
     return false;
   })();
 
+  const {
+    state: { project },
+  } = useProject();
+
   const displayNoInstances = () => {
     return (
       <Typography variant="h6" color="textSecondary" gutterBottom component="div">
@@ -182,21 +190,21 @@ function Row({
               <TableCell
                 style={{ cursor: 'pointer' }}
               >
-                <NavLink to="/app/papers">
+                <NavLink to={`/project/${project.url}/papers`}>
                   { reduceLongText(instance.paper_name, 30) }
                 </NavLink>
               </TableCell>
               <TableCell
                 style={{ cursor: 'pointer' }}
               >
-                <NavLink to={`/app/architecture/${instance.architecture_id}`}>
+                <NavLink to={`/project/${project.url}/architecture/${instance.architecture_id}`}>
                   { instance.architecture_name }
                 </NavLink>
               </TableCell>
               <TableCell
                 style={{ cursor: 'pointer' }}
               >
-                <NavLink to={`/app/component/${instance.id}`}>
+                <NavLink to={`/project/${project.url}/component/${instance.id}`}>
                   View
                 </NavLink>
               </TableCell>
@@ -258,6 +266,7 @@ function Row({
         <TableCell component="th" id={row.id} scope="row" align="center">
           {row.name}
         </TableCell>
+        <TableCell align="center">{row.label ? row.label : 'Other'}</TableCell>
         <TableCell align="right">{row.base_description}</TableCell>
         <TableCell align="center">{row.occurences}</TableCell>
         <TableCell align="center">

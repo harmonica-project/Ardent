@@ -18,7 +18,8 @@ import {
   Paperclip as PaperclipIcon,
   Cpu as CpuIcon,
   LogOut as LogOutIcon,
-  HelpCircle as HelpCircleIcon
+  HelpCircle as HelpCircleIcon,
+  List as ListIcon
 } from 'react-feather';
 import {
   AccountTree as AccountTreeIcon,
@@ -26,6 +27,7 @@ import {
 } from '@material-ui/icons/';
 import NavItem from './NavItem';
 import authenticationService from '../../../requests/authentication';
+import { useProject } from '../../../project-context';
 
 const useStyles = makeStyles(() => ({
   mobileDrawer: {
@@ -46,6 +48,10 @@ const useStyles = makeStyles(() => ({
 const NavBar = ({ onMobileClose, openMobile }) => {
   const classes = useStyles();
   const location = useLocation();
+
+  const {
+    state: { project }
+  } = useProject();
 
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState({
@@ -68,45 +74,63 @@ const NavBar = ({ onMobileClose, openMobile }) => {
     setOpen(!open);
   };
 
-  const items = [
+  const defaultItems = [
     {
-      href: '/app/dashboard',
+      href: '/projects',
+      icon: ListIcon,
+      title: 'My projects'
+    },
+    {
+      href: '/help',
+      icon: HelpCircleIcon,
+      title: 'Help me'
+    },
+    {
+      href: '/settings',
+      icon: SettingsIcon,
+      title: 'User settings'
+    }
+  ];
+
+  const projectItems = [
+    {
+      href: `/project/${project.url}/`,
       icon: BarChartIcon,
       title: 'Dashboard'
     },
     {
-      href: '/app/papers',
+      href: `/project/${project.url}/papers`,
       icon: PaperclipIcon,
       title: 'Study papers'
     },
     {
-      href: '/app/analytics',
+      href: `/project/${project.url}/analytics`,
       action: handleOpen,
       openState: open,
       icon: CpuIcon,
       title: 'Analytics',
       subitems: [
         {
-          href: '/app/analytics',
+          href: `/project/${project.url}/analytics`,
           icon: AccountTreeIcon,
           title: 'Patterns identification'
         },
         {
-          href: '/app/components',
+          href: `/project/${project.url}/components`,
           icon: FormatListBulletedIcon,
           title: 'Components summary'
         }
       ]
     },
     {
-      href: '/app/questions',
+      href: `/project/${project.url}/questions`,
       icon: HelpCircleIcon,
       title: 'Questions'
     },
     {
-      href: '/app/settings',
+      href: `/project/${project.url}/settings`,
       icon: SettingsIcon,
-      title: 'Settings'
+      title: 'Project settings'
     }
   ];
 
@@ -159,7 +183,30 @@ const NavBar = ({ onMobileClose, openMobile }) => {
       <Divider />
       <Box p={2}>
         <List>
-          {items.map((item) => {
+          {defaultItems.map((item) => (
+            <NavItem
+              href={item.href}
+              key={item.title}
+              title={item.title}
+              icon={item.icon}
+            />
+          ))}
+          <NavItem
+            href="/login"
+            key="Logout"
+            title="Logout"
+            icon={LogOutIcon}
+            onClick={authenticationService.logout}
+          />
+        </List>
+      </Box>
+      <Divider />
+      <Box p={2} hidden={!project.url.length}>
+        <Typography style={{ textAlign: 'center' }} variant="h5" component="p">
+          {project.name}
+        </Typography>
+        <List>
+          {projectItems.map((item) => {
             if (item.subitems) {
               return (
                 <div>
@@ -196,13 +243,6 @@ const NavBar = ({ onMobileClose, openMobile }) => {
               />
             );
           })}
-          <NavItem
-            href="/login"
-            key="Logout"
-            title="Logout"
-            icon={LogOutIcon}
-            onClick={authenticationService.logout}
-          />
         </List>
       </Box>
     </Box>

@@ -6,17 +6,9 @@ const client = new pg.Client(DB_CONFIG);
 client.connect();
 
 module.exports = {
-    getComponentsInstances: async () => {
-        try {
-            return await client.query("SELECT * FROM components_instances");
-        }
-        catch(err) {
-            return err;
-        }
-    },
     getFullComponents: async () => {
         try {
-            const baseComponents = (await client.query("SELECT * FROM components_base"))["rows"];
+            const baseComponents = (await client.query("SELECT c.*, b.label FROM components_base as c LEFT JOIN categories_base as b ON c.category_id = b.id"))["rows"];
 
             if (baseComponents) {
                 for (let i = 0; i < baseComponents.length; i++) {
@@ -39,14 +31,6 @@ module.exports = {
         }
         catch(err) {
             console.log(err);
-            return err;
-        }
-    },
-    getBaseComponents: async () => {
-        try {
-            return await client.query("SELECT * FROM components_base");
-        }
-        catch(err) {
             return err;
         }
     },
@@ -132,7 +116,7 @@ module.exports = {
     storeComponentBase: async component => {
         const newComponentId = uuidv4();
         try {
-            await client.query("INSERT INTO components_base VALUES ($1, $2, $3)", [newComponentId, component.name, component.base_description])
+            await client.query("INSERT INTO components_base (id, name, base_description, project_url) VALUES ($1, $2, $3, $4)", [newComponentId, component.name, component.base_description, component.project_url])
             return {success: true, componentId: newComponentId};
         }
         catch(err) {
@@ -145,7 +129,14 @@ module.exports = {
     },
     modifyComponentBase: async component => {
         try {
-            await client.query("UPDATE components_base SET (name, base_description) = ($1, $2) WHERE id = $3", [component.name, component.base_description, component.id])
+            await client.query("UPDATE components_base SET (name, base_description, category_id) = ($1, $2, $3) WHERE id = $4", 
+                [
+                    component.name,
+                    component.base_description,
+                    (validate(component.category_id) ? component.category_id : null),
+                    component.id
+                ]
+            )
             return {success: true};
         }
         catch(err) {

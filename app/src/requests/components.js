@@ -3,18 +3,6 @@ import { API_URL } from './config';
 
 import auth from './authentication';
 
-export function getBaseComponents() {
-  return axios.get(`${API_URL}/components/bases`, auth.getAuthHeaders())
-    .then((data) => auth.handleResponse(data))
-    .catch((error) => auth.handleResponse(error.response));
-}
-
-export function getComponentsInstances() {
-  return axios.get(`${API_URL}/components/instances`, auth.getAuthHeaders())
-    .then((data) => auth.handleResponse(data))
-    .catch((error) => auth.handleResponse(error.response));
-}
-
 export function saveNewComponentInstance(component) {
   return axios.post(`${API_URL}/components/instances`, component, auth.getAuthHeaders())
     .then((data) => auth.handleResponse(data))

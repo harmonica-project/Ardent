@@ -12,6 +12,9 @@ import {
   saveNewBaseComponent as saveNewBaseComponentRequest,
 } from 'src/requests/components';
 import {
+  getCategories as getCategoriesRequest,
+} from 'src/requests/categories';
+import {
   getInstancePropertiesFromComponent as getInstancePropertiesFromComponentRequest,
   saveProperty as savePropertyRequest,
   saveNewBaseProperty as saveNewBasePropertyRequest,
@@ -26,11 +29,11 @@ import BasePropertyModal from 'src/modals/BasePropertyModal';
 import QuestionModal from 'src/modals/QuestionModal';
 import BaseComponentInput from './BaseComponentsInput';
 import BaseComponentTable from './BaseComponentsTable';
+import { useProject } from '../../../project-context';
 
 const useStyles = makeStyles((theme) => ({
   root: {
     backgroundColor: theme.palette.background.dark,
-    minHeight: '100%',
     paddingBottom: theme.spacing(3)
   },
   buttonMargin: {
@@ -45,7 +48,7 @@ export default function BaseComponentsView() {
   const [autocompleteValue, setAutocompleteValue] = useState('');
   const [open, setOpen] = useState(false);
   const [displayedComponents, setDisplayedComponents] = useState([]);
-
+  const [categories, setCategories] = useState([]);
   const [confirmModalProps, setConfirmModalProps] = useState({
     open: false,
     actionModalHandler: null,
@@ -69,6 +72,10 @@ export default function BaseComponentsView() {
     open: false,
     context: {}
   });
+
+  const {
+    state: { project },
+  } = useProject();
 
   const handleAutocompleteChange = (value) => {
     setAutocompleteValue(value);
@@ -117,13 +124,23 @@ export default function BaseComponentsView() {
     return newBaseComponents;
   };
 
+  const getCategoryLabelFromId = (catId) => {
+    for (let i = 0; i < categories.length; i++) {
+      if (categories[i].id === catId) return categories[i].label;
+    }
+    return 'Other';
+  };
+
   const saveExistingBaseComponent = (newComponent) => {
     setOpen(true);
     saveExistingBaseComponentRequest(newComponent)
       .then((data) => {
         if (data.success) {
           enqueueSnackbar('Base component successfully modified.', { variant: 'success' });
-          modifyBaseComponentState(newComponent);
+          modifyBaseComponentState({
+            ...newComponent,
+            label: getCategoryLabelFromId(newComponent.category_id)
+          });
           if (baseComponentModalProps.open) {
             setBaseComponentModalProps({
               ...baseComponentModalProps,
@@ -151,14 +168,12 @@ export default function BaseComponentsView() {
       }
     } catch (err) {
       enqueueSnackbar(err.toString(), { variant: 'error' });
-    } finally {
-      setOpen(false);
     }
   };
 
   const saveNewBaseComponent = (newComponent) => {
     setOpen(true);
-    saveNewBaseComponentRequest(newComponent)
+    saveNewBaseComponentRequest({ ...newComponent, project_url: project.url })
       .then((data) => {
         if (data.success) {
           enqueueSnackbar('Base component successfully added.', { variant: 'success' });
@@ -425,7 +440,7 @@ export default function BaseComponentsView() {
   };
 
   const postQuestion = (question) => {
-    saveQuestionRequest(question)
+    saveQuestionRequest({ ...question, project_url: project.url })
       .then((data) => {
         if (data.success) {
           enqueueSnackbar('Question successfully post. You can find it in the Questions section.', { variant: 'success' });
@@ -500,13 +515,28 @@ export default function BaseComponentsView() {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const data = await getCategoriesRequest();
+      if (data.success) {
+        setCategories(data.result);
+      }
+    } catch (error) {
+      enqueueSnackbar(error.toString(), 'error');
+    }
+  };
+
   useEffect(() => {
-    fetchComponentData();
+    setOpen(true);
+    Promise.all([fetchComponentData(), fetchCategories()])
+      .then(() => {
+        setOpen(false);
+      });
   }, []);
 
   useEffect(() => {
     filterAutocomplete();
-  }, [baseComponents]);
+  }, [baseComponents, autocompleteValue]);
 
   return (
     <Page title="Base components" className={classes.root}>
@@ -555,6 +585,7 @@ export default function BaseComponentsView() {
           modalProps={baseComponentModalProps}
           setModalProps={setBaseComponentModalProps}
           actionModalHandler={baseComponentActionModalHandler}
+          categories={categories}
         />
         <BasePropertyModal
           modalProps={basePropertyModalProps}

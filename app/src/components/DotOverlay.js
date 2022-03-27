@@ -28,7 +28,7 @@ export default function LoadingOverlay({ open, graph, setOpen }) {
   const { enqueueSnackbar } = useSnackbar();
 
   const isEmptyGraph = (newGraph) => {
-    const emptyGraph = 'strict digraph {\n}\n';
+    const emptyGraph = 'digraph {\n}';
     if (!newGraph || !newGraph.length || emptyGraph === newGraph) return true;
     return false;
   };

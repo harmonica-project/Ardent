@@ -9,6 +9,7 @@ import Page from 'src/components/Page';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 import authenticationService from 'src/requests/authentication';
 import { setUser as setUserRequest, setNewPassword as setNewPasswordRequest } from 'src/requests/users';
+import ConfirmModal from 'src/modals/ConfirmModal';
 import Password from './Password';
 import Admin from './Admin';
 import UserInfo from './UserInfo';
@@ -16,13 +17,12 @@ import UserInfo from './UserInfo';
 const useStyles = makeStyles((theme) => ({
   root: {
     backgroundColor: theme.palette.background.dark,
-    minHeight: '100%',
     paddingBottom: theme.spacing(3),
     paddingTop: theme.spacing(3)
   }
 }));
 
-const SettingsView = () => {
+const UserSettingsView = () => {
   const classes = useStyles();
   const { enqueueSnackbar } = useSnackbar();
   const [user, setUser] = useState({});
@@ -30,6 +30,11 @@ const SettingsView = () => {
   const [password, setPassword] = useState({
     password: '',
     confirm: ''
+  });
+  const [confirmModalProps, setConfirmModalProps] = useState({
+    open: false,
+    actionModalHandler: null,
+    message: ''
   });
 
   const actionUserHandler = async () => {
@@ -110,8 +115,12 @@ const SettingsView = () => {
           : <div />}
       </Container>
       <LoadingOverlay open={open} />
+      <ConfirmModal
+        modalProps={confirmModalProps}
+        setModalProps={setConfirmModalProps}
+      />
     </Page>
   );
 };
 
-export default SettingsView;
+export default UserSettingsView;

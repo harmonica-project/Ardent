@@ -25,7 +25,9 @@ import {
   HighlightOff as HighlightOffIcon
 } from '@material-ui/icons/';
 import {
-  getQuestions as getQuestionsRequest,
+  getProjectQuestions as getProjectQuestionsRequest,
+} from 'src/requests/projects';
+import {
   markAsClosed as markAsClosedRequest
 } from 'src/requests/questions';
 import { NavLink } from 'react-router-dom';
@@ -38,11 +40,11 @@ import Page from 'src/components/Page';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 import DisplayStatusQuestion from 'src/components/DisplayStatusQuestion';
 import QuestionsTable from './QuestionsTable';
+import { useProject } from '../../../project-context';
 
 const useStyles = makeStyles((theme) => ({
   root: {
     backgroundColor: theme.palette.background.dark,
-    minHeight: '100%',
     padding: theme.spacing(2),
     flexGrow: 1
   }
@@ -63,9 +65,13 @@ const QuestionsView = () => {
     maskClosed: true
   });
 
+  const {
+    state: { project },
+  } = useProject();
+
   const fetchQuestions = () => {
     setOpen(true);
-    getQuestionsRequest()
+    getProjectQuestionsRequest(project.url)
       .then((data) => {
         if (data.success) {
           setQuestions(data.result);
@@ -117,16 +123,16 @@ const QuestionsView = () => {
     switch (objectType) {
       case 'papers':
       case 'paper':
-        url = '/app/papers';
+        url = `/project/${project.url}/papers`;
         break;
 
       case 'base_components':
-        url = '/app/components';
+        url = `/project/${project.url}/components`;
         break;
 
       case 'architecture':
       case 'component':
-        if (objectId) url = `/app/${objectType}/${objectId}`;
+        if (objectId) url = `/project/${project.url}/${objectType}/${objectId}`;
         break;
 
       default:
@@ -160,9 +166,9 @@ const QuestionsView = () => {
     setQuestions(newQuestions);
   };
 
-  const markAsClosed = () => {
+  const markAsClosed = (questionId) => {
     setOpen(true);
-    markAsClosedRequest(openQuestion.id)
+    markAsClosedRequest(questionId)
       .then((data) => {
         if (data.success) {
           enqueueSnackbar('Question successfully marked as closed.', { variant: 'success' });
@@ -170,7 +176,7 @@ const QuestionsView = () => {
             ...openQuestion,
             status: 2
           });
-          modifyQuestionStatusFromState(openQuestion.id, 2);
+          modifyQuestionStatusFromState(questionId, 2);
         }
       })
       .catch((error) => enqueueSnackbar(error.toString(), { variant: 'error' }))
@@ -344,32 +350,6 @@ const QuestionsView = () => {
         <Grid item xs={12} md={12}>
           <FormGroup row>
             <FormControlLabel
-              labelPlacement="top"
-              component="legend"
-              label="Order table"
-              control={(
-                <Typography component="div">
-                  <Grid component="label" container alignItems="center" spacing={1}>
-                    <Grid item>Asc</Grid>
-                    <Grid item>
-                      <Switch
-                        checked={tableOptions.orderDesc}
-                        onChange={() => {
-                          setTableOptions({
-                            ...tableOptions,
-                            orderDesc: !tableOptions.orderDesc
-                          });
-                        }}
-                        name="checkedOrder"
-                      />
-                    </Grid>
-                    <Grid item>Desc</Grid>
-                  </Grid>
-                </Typography>
-              )}
-            />
-
-            <FormControlLabel
               component="legend"
               label="Mask closed questions"
               labelPlacement="top"
@@ -394,9 +374,35 @@ const QuestionsView = () => {
                 </Typography>
               )}
             />
+            <FormControlLabel
+              style={{ display: (!displayedQuestions.length ? 'none' : '') }}
+              labelPlacement="top"
+              component="legend"
+              label="Order table"
+              control={(
+                <Typography component="div">
+                  <Grid component="label" container alignItems="center" spacing={1}>
+                    <Grid item>Asc</Grid>
+                    <Grid item>
+                      <Switch
+                        checked={tableOptions.orderDesc}
+                        onChange={() => {
+                          setTableOptions({
+                            ...tableOptions,
+                            orderDesc: !tableOptions.orderDesc
+                          });
+                        }}
+                        name="checkedOrder"
+                      />
+                    </Grid>
+                    <Grid item>Desc</Grid>
+                  </Grid>
+                </Typography>
+              )}
+            />
           </FormGroup>
         </Grid>
-        <Grid item xs={12} md={5}>
+        <Grid item xs={12} md={5} hidden={!displayedQuestions.length}>
           <QuestionsTable
             questions={displayedQuestions}
             setOpenQuestion={setOpenQuestion}
@@ -437,6 +443,21 @@ const QuestionsView = () => {
           </Box>
         </Grid>
       </Grid>
+      <Box align="center" hidden={displayedQuestions.length}>
+        <Card>
+          <CardContent>
+            <Typography variant="h1" component="div" gutterBottom>
+              No questions to display.
+            </Typography>
+            <Typography variant="body1">
+              <p>
+                If you ask questions on this project, they will appear here.
+                You can also display masked questions (as they are closed).
+              </p>
+            </Typography>
+          </CardContent>
+        </Card>
+      </Box>
       <LoadingOverlay open={open} />
     </Page>
   );

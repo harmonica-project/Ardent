@@ -10,9 +10,9 @@ module.exports = {
         const newQuestionId = uuidv4();
         try {
             await client.query(`
-                INSERT INTO questions (id, title, content, username, date, object_id, object_type, status) 
-                VALUES ($1, $2, $3, $4, $5, $6, $7, 0)
-            `, [newQuestionId, question.title, question.content, question.username, new Date().toISOString(), question.object_id, question.object_type])
+                INSERT INTO questions (id, title, content, username, date, object_id, object_type, status, project_url) 
+                VALUES ($1, $2, $3, $4, $5, $6, $7, 0, $8)
+            `, [newQuestionId, question.title, question.content, question.username, new Date().toISOString(), question.object_id, question.object_type, question.project_url])
             return {
                 success: true,
                 questionId: newQuestionId
@@ -24,17 +24,6 @@ module.exports = {
                 success: false,
                 errorMsg: 'Failed connexion to DB: ' + err
             };
-        }
-    },
-    getQuestions: async () => {
-        try {
-            return await client.query(`
-                SELECT id, title, content, questions.username, date, first_name, last_name, role, object_id, object_type, status FROM questions
-                LEFT JOIN users on questions.username = users.username
-            `);
-        }
-        catch(err) {
-            return err;
         }
     },
     getQuestion: async (questionId) => {

@@ -51,7 +51,6 @@ module.exports = {
         }
     },
     deleteAnswer: async (answerId) => {
-      console.log(answerId);
       try {
         await client.query("DELETE FROM answers WHERE id = $1", [answerId]);
         

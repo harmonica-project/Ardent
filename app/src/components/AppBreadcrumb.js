@@ -5,6 +5,7 @@ import {
   makeStyles,
   Breadcrumbs
 } from '@material-ui/core';
+import { useProject } from '../project-context';
 
 const useStyles = makeStyles((theme) => ({
   breadcrumb: {
@@ -14,12 +15,15 @@ const useStyles = makeStyles((theme) => ({
 
 const AppBreadcrumb = ({ paperId, architectureId, componentId }) => {
   const classes = useStyles();
+  const {
+    state: { project },
+  } = useProject();
 
   const reduceUUID = (uuid) => { return uuid.substring(0, 8); };
 
   const displayPaperLink = () => {
     return (
-      <Link color="inherit" to="/app/papers">
+      <Link color="inherit" to={`/project/${project.url}/papers`}>
         Paper #
         {reduceUUID(paperId)}
       </Link>
@@ -30,7 +34,7 @@ const AppBreadcrumb = ({ paperId, architectureId, componentId }) => {
     return (
       <Link
         color="textPrimary"
-        to={`/app/architecture/${architectureId}`}
+        to={`/project/${project.url}/architecture/${architectureId}`}
         aria-current="page"
       >
         Architecture #
@@ -43,7 +47,7 @@ const AppBreadcrumb = ({ paperId, architectureId, componentId }) => {
     return (
       <Link
         color="textPrimary"
-        to={`/app/component/${componentId}`}
+        to={`/project/${project.url}/component/${componentId}`}
         aria-current="page"
       >
         Component #
@@ -54,7 +58,7 @@ const AppBreadcrumb = ({ paperId, architectureId, componentId }) => {
 
   return (
     <Breadcrumbs aria-label="breadcrumb" className={classes.breadcrumb}>
-      <Link color="inherit" to="/app/dashboard">
+      <Link color="inherit" to={`/project/${project.url}/`}>
         Home
       </Link>
       {paperId ? displayPaperLink() : ''}

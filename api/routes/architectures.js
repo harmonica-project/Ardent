@@ -1,26 +1,16 @@
 const express = require('express'), router = express.Router();
-var dot = require('graphlib-dot');
-var Graph = require("graphlib").Graph;
 const archDB = require('../data/architectures');
 const compDB = require('../data/components');
 const { authorizedOnly } = require('../utils/authorization');
-const { parseDBResults } = require('../utils/helpers');
 
 function resolveComponentName(id, components) {
     for (let i = 0; i < components.length; i++) {
-        if (components[i].id === id) return `${components[i].name} (#${components[i].id.substring(0, 7)})`;
+        if (components[i].id === id) return `${components[i].name} (${components[i].id.substring(0, 7)})`;
     }
     return `Unknown name (${components[i].id.substring(0, 7)})`;
 };
 
 router
-  .get('/', authorizedOnly, (req, res) => {
-    archDB.getArchitectures().then((queryResult) => {
-        const parsedResult = parseDBResults(queryResult);
-        if(parsedResult.success) res.status(200).send(parsedResult);
-        else res.status(500).send(parsedResult);
-    })
-  })
   .get('/:id', authorizedOnly, (req, res) => {
     var id = req.params.id;
     archDB.getArchitecture(id).then((parsedResult) => {
@@ -29,39 +19,47 @@ router
     })
   })
   .get('/:id/graph', authorizedOnly, async (req, res) => {
-    let digraph = new Graph();
     let id = req.params.id;
+    let graph = "digraph {\n";
     let archConns = {};
     if(id) {
         const resArch = await archDB.getArchitecture(id);
         if (!resArch.result) return res.status(500).send({ success: false, errorMsg: "Server error." });
         for (let i = 0; i < resArch.result.components.length; i++) {
             let c = resArch.result.components[i];
-            digraph.setNode(`${c.name} (#${c.id.substring(0, 7)})`);
+            graph += `"${resolveComponentName(c.id, resArch.result.components)}"\n`;
             let fullComp = await compDB.getComponentInstance(c.id);
             if (!fullComp.result) return res.status(500).send({ success: false, errorMsg: "Server error." });
             fullComp.result.connections.forEach(c => { archConns[c.id] = c; });
         }
         
         Object.keys(archConns).forEach(key => {
-            if (archConns[key].direction === "bidirectional" || archConns[key].direction === "first-to-second") {
-                digraph.setEdge(
-                    resolveComponentName(archConns[key].first_component, resArch.result.components),
-                    resolveComponentName(archConns[key].second_component, resArch.result.components),
-                    { label: (archConns[key].datatype ? archConns[key].datatype : "Any") }
-                );
-            }
-            if (archConns[key].direction === "bidirectional" || archConns[key].direction === "second-to-first") {
-                digraph.setEdge(
-                    resolveComponentName(archConns[key].second_component, resArch.result.components),
-                    resolveComponentName(archConns[key].first_component, resArch.result.components),
-                    { label: (archConns[key].datatype ? archConns[key].datatype : "Any") }
-                );
+            const label = (archConns[key].datatype ? archConns[key].datatype : "Any");
+
+            switch (archConns[key].direction) {
+                case 'bidirectional':
+                    graph += `"${resolveComponentName(archConns[key].first_component, resArch.result.components)}"`;
+                    graph += `-> "${resolveComponentName(archConns[key].second_component, resArch.result.components)}"`;
+                    graph += `[dir=both${(label ? `, label="${label}"` : '')}]\n`;
+                    break;
+
+                case 'first-to-second':
+                    graph += `"${resolveComponentName(archConns[key].first_component, resArch.result.components)}"`;
+                    graph += `-> "${resolveComponentName(archConns[key].second_component, resArch.result.components)}"`;
+                    graph += `${(label ? `[label="${label}"]` : '')}\n`;
+                    break;
+
+                case 'second-to-first':
+                    graph += `"${resolveComponentName(archConns[key].second_component, resArch.result.components)}"`;
+                    graph += `-> "${resolveComponentName(archConns[key].first_component, resArch.result.components)}"`;
+                    graph += `${(label ? `[label="${label}"]` : '')}\n`;
+                    break;
             }
         });
+        graph += "}";
         res.status(200).send({
             success: true,
-            result: dot.write(digraph)
+            result: graph
         });
 
     }

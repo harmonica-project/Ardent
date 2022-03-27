@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, NavLink } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
 import {
   Container, Box, makeStyles, Button, Typography, Card, CardContent, Grid
@@ -13,8 +13,7 @@ import {
   getComponentInstance as getComponentInstanceRequest,
   deleteComponentInstance as deleteComponentInstanceRequest,
   saveExistingComponentInstance as saveExistingComponentInstanceRequest,
-  saveNewBaseComponent as saveNewBaseComponentRequest,
-  getBaseComponents as getBaseComponentsRequest
+  saveNewBaseComponent as saveNewBaseComponentRequest
 } from 'src/requests/components';
 import {
   getArchitecture as getArchitectureRequest
@@ -31,6 +30,9 @@ import {
   deleteConnection as deleteConnectionRequest,
   modifyConnection as modifyConnectionRequest
 } from 'src/requests/connections';
+import {
+  getProjectBaseComponents as getProjectBaseComponentsRequest
+} from 'src/requests/projects';
 import AppBreadcrumb from 'src/components/AppBreadcrumb';
 import ComponentModal from 'src/modals/ComponentModal';
 import QuestionModal from 'src/modals/QuestionModal';
@@ -39,11 +41,11 @@ import InstancePropertyModal from 'src/modals/InstancePropertyModal';
 import ConnectionModal from 'src/modals/ConnectionModal';
 import ConnectionsTable from './ConnectionsTable';
 import AccordionOverlay from './AccordionOverlay';
+import { useProject } from '../../../project-context';
 
 const useStyles = makeStyles((theme) => ({
   root: {
     backgroundColor: theme.palette.background.dark,
-    minHeight: '100%',
     paddingBottom: theme.spacing(3),
     paddingTop: theme.spacing(3)
   },
@@ -53,6 +55,16 @@ const useStyles = makeStyles((theme) => ({
   componentSubtitle: {
     marginBottom: theme.spacing(3),
     color: 'grey'
+  },
+  customChip: {
+    backgroundColor: '#616161',
+    borderRadius: '30px',
+    paddingTop: '5px',
+    paddingBottom: '5px',
+    paddingLeft: '30px',
+    paddingRight: '30px',
+    fontSize: '130%',
+    color: 'white'
   }
 }));
 
@@ -65,6 +77,11 @@ export default function InstanceComponentView() {
   const [baseComponents, setBaseComponents] = useState([]);
   const [architectureComponents, setArchitectureComponents] = useState([]);
   const [open, setOpen] = useState(false);
+
+  const {
+    state: { project },
+  } = useProject();
+
   const [breadcrumb, setBreadcrumb] = useState({
     architectureId: '',
     componentId: '',
@@ -153,13 +170,13 @@ export default function InstanceComponentView() {
   };
 
   const saveExistingComponent = async (newComponent, doAddBaseProps) => {
-    console.log(newComponent, doAddBaseProps);
     setOpen(true);
     try {
       if (!newComponent.component_base_id || newComponent.component_base_id === '') {
         const baseRes = await saveNewBaseComponentRequest({
-          name: newComponent.name,
-          base_description: ''
+          name: component.component_base_name,
+          base_description: 'No description yet.',
+          project_url: project.url
         });
         if (baseRes.success) {
           newComponent = { ...newComponent, component_base_id: baseRes.componentId };
@@ -167,8 +184,7 @@ export default function InstanceComponentView() {
             ...baseComponents,
             {
               id: baseRes.componentId,
-              name: newComponent.name,
-              base_description: ''
+              name: component.component_base_name,
             }
           ]);
         }
@@ -189,7 +205,7 @@ export default function InstanceComponentView() {
           ...componentModalProps,
           component: newComponent,
           open: false,
-          initialComponent: component.name
+          initialComponent: component.component_base_id
         });
       }
     } catch (error) {
@@ -200,7 +216,7 @@ export default function InstanceComponentView() {
   };
 
   const postQuestion = (question) => {
-    saveQuestionRequest(question)
+    saveQuestionRequest({ ...question, project_url: project.url })
       .then((data) => {
         if (data.success) {
           enqueueSnackbar('Question successfully post. You can find it in the Questions section.', { variant: 'success' });
@@ -224,7 +240,7 @@ export default function InstanceComponentView() {
       .then((data) => {
         if (data.success) {
           enqueueSnackbar('Component successfully deleted.', { variant: 'success' });
-          navigate(`/app/architecture/${component.architecture_id}`);
+          navigate(`/project/${project.url}/architecture/${component.architecture_id}`);
         }
       })
       .catch((error) => enqueueSnackbar(error.toString(), 'error'))
@@ -535,8 +551,36 @@ export default function InstanceComponentView() {
       ...componentModalProps,
       open: true,
       actionType: 'edit',
-      initialComponent: component.name
+      initialComponent: component.component_base_id
     });
+  };
+
+  const getBaseComponentBlock = (bcId) => {
+    if (bcId) {
+      for (let i = 0; i < baseComponents.length; i++) {
+        if (bcId === baseComponents[i].id) {
+          return (
+            <NavLink to="/app/components">
+              {baseComponents[i].name}
+            </NavLink>
+          );
+        }
+      }
+      return `Unknown (${bcId})`;
+    }
+    return 'Unknown';
+  };
+
+  const getComponentCategory = (bcId) => {
+    if (bcId) {
+      for (let i = 0; i < baseComponents.length; i++) {
+        if (bcId === baseComponents[i].id && baseComponents[i].category_id) {
+          return baseComponents[i].label;
+        }
+      }
+      return 'Other';
+    }
+    return 'Other';
   };
 
   const ComponentHeader = () => {
@@ -591,9 +635,24 @@ export default function InstanceComponentView() {
                   architectureId={breadcrumb.architecture_id}
                   componentId={breadcrumb.component_id}
                 />
+              </Box>
+              <Box flexShrink={0}>
+                <Typography variant="caption" className={classes.customChip}>
+                  Type:&nbsp;
+                  {getComponentCategory(component.component_base_id)}
+                </Typography>
+              </Box>
+            </Box>
+            <Box display="flex">
+              <Box width="100%">
                 <Typography variant="h1">
                   {component.name}
                 </Typography>
+                <Typography variant="h3">
+                  Base component:&nbsp;
+                  {getBaseComponentBlock(component.component_base_id)}
+                </Typography>
+                <br />
                 <Typography variant="subtitle1" className={classes.componentSubtitle}>
                   Component #
                   {component.id}
@@ -631,7 +690,7 @@ export default function InstanceComponentView() {
         setArchitectureComponents(archRes.result.components);
         setComponentModalProps({
           ...componentModalProps,
-          initialComponent: compRes.result.name,
+          initialComponent: compRes.result.component_base_id,
           component: compRes.result
         });
         setConnectionModalProps({
@@ -647,7 +706,7 @@ export default function InstanceComponentView() {
 
   const fetchBaseComponents = async () => {
     try {
-      const data = await getBaseComponentsRequest();
+      const data = await getProjectBaseComponentsRequest(project.url);
       if (data.success) {
         setBaseComponents(data.result);
       }

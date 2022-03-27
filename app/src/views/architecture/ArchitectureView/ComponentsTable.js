@@ -94,14 +94,26 @@ const useRowStyles = makeStyles({
 });
 
 function Row({
-  row, componentActionHandler, componentClickHandler
+  row, componentActionHandler, componentClickHandler, baseComponents
 }) {
   const classes = useRowStyles();
+
+  const getBaseComponentName = (id) => {
+    if (id) {
+      for (let i = 0; i < baseComponents.length; i++) {
+        if (id === baseComponents[i].id) {
+          return baseComponents[i].name;
+        }
+      }
+    }
+    return 'Unknown';
+  };
 
   return (
     <>
       <TableRow className={classes.root} key={row.id}>
         <TableCell style={{ cursor: 'pointer' }} onClick={() => componentClickHandler(row.id)} align="center">{row.name}</TableCell>
+        <TableCell style={{ cursor: 'pointer' }} onClick={() => componentClickHandler(row.id)} align="center">{getBaseComponentName(row.component_base_id)}</TableCell>
         <TableCell style={{ cursor: 'pointer' }} onClick={() => componentClickHandler(row.id)}>{reduceLongText(row.reader_description, 100)}</TableCell>
         <TableCell style={{ cursor: 'pointer' }} onClick={() => componentClickHandler(row.id)}>{reduceLongText(row.author_description, 100)}</TableCell>
         <TableCell align="center"><TableActionCell item={row} actionHandler={componentActionHandler} /></TableCell>
@@ -116,13 +128,15 @@ Row.propTypes = {
     name: PropTypes.string,
     author_description: PropTypes.string,
     reader_description: PropTypes.string,
+    component_base_id: PropTypes.string
   }),
   componentActionHandler: PropTypes.func,
-  componentClickHandler: PropTypes.func
+  componentClickHandler: PropTypes.func,
+  baseComponents: PropTypes.array
 };
 
 export default function ComponentsTable({
-  components, componentActionHandler, componentClickHandler
+  components, componentActionHandler, componentClickHandler, baseComponents
 }) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
@@ -144,6 +158,7 @@ export default function ComponentsTable({
         <TableHead>
           <TableRow>
             <TableCell align="center">Name</TableCell>
+            <TableCell align="center">Base component</TableCell>
             <TableCell>Reader description</TableCell>
             <TableCell>Author description</TableCell>
             <TableCell align="center">Actions</TableCell>
@@ -159,6 +174,7 @@ export default function ComponentsTable({
               row={row}
               componentActionHandler={componentActionHandler}
               componentClickHandler={componentClickHandler}
+              baseComponents={baseComponents}
             />
           ))}
         </TableBody>
@@ -188,5 +204,6 @@ export default function ComponentsTable({
 ComponentsTable.propTypes = {
   components: PropTypes.array.isRequired,
   componentActionHandler: PropTypes.func,
-  componentClickHandler: PropTypes.func
+  componentClickHandler: PropTypes.func,
+  baseComponents: PropTypes.array
 };

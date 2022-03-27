@@ -6,12 +6,6 @@ const db = require('../data/papers');
 const { authorizedOnly } = require('../utils/authorization');
 
 router
-  .get('/', authorizedOnly, (req, res) => {
-    db.getPapers().then(parsedResult => {
-        if(parsedResult.success) res.status(200).send(parsedResult);
-        else res.status(500).send(parsedResult);
-    })
-  })
   .get('/:name/exists', authorizedOnly, (req, res) => {
     db.paperExists(req.params.name).then(parsedResult => {
         if(parsedResult.success) res.status(200).send(parsedResult);
